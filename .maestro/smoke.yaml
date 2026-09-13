@@ -1,0 +1,11 @@
+appId: pe.rastro.finanzas
+---
+- launchApp:
+    clearState: true
+- assertVisible: 'Resumen del mes'
+- tapOn: 'Registrar movimiento'
+- assertVisible: 'Nuevo movimiento'
+- tapOn: '0.00'
+- inputText: '1.00'
+- tapOn: 'Guardar movimiento'
+- assertVisible: 'S/ 1.00'
