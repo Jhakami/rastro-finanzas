@@ -5,6 +5,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { Link } from 'expo-router';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
+import { getCategoryPath } from '@/domain/categories';
 import { formatPEN } from '@/domain/money';
 import { Card, Chip, EmptyState, LoadingView, ScreenHeader } from '@/presentation/components';
 import { useFinance } from '@/presentation/finance-provider';
@@ -20,8 +21,7 @@ export default function MovementsScreen() {
     () =>
       transactions.filter((item) => {
         if (filter !== 'all' && item.kind !== filter) return false;
-        const category =
-          categories.find((candidate) => candidate.id === item.categoryId)?.name ?? '';
+        const category = getCategoryPath(item.categoryId, categories);
         return `${item.merchant ?? ''} ${item.note ?? ''} ${item.source ?? ''} ${category}`
           .toLowerCase()
           .includes(query.toLowerCase());
@@ -119,6 +119,11 @@ export default function MovementsScreen() {
                         {format(new Date(item.occurredAt), 'd MMM, HH:mm', { locale: es })}
                         {item.location ? ' · zona guardada' : ''}
                       </Text>
+                      {item.kind === 'expense' ? (
+                        <Text style={styles.categoryPath}>
+                          {getCategoryPath(item.categoryId, categories)}
+                        </Text>
+                      ) : null}
                     </View>
                     <Text style={[styles.amount, incoming && styles.income]}>
                       {incoming ? '+' : item.kind === 'transfer' ? '→ ' : '-'}
@@ -172,6 +177,7 @@ const styles = StyleSheet.create({
   rowText: { flex: 1, marginLeft: 11 },
   rowTitle: { color: colors.ink, fontWeight: '800' },
   rowMeta: { color: colors.muted, fontSize: 12, marginTop: 4 },
+  categoryPath: { color: colors.green, fontSize: 11, marginTop: 3, fontWeight: '700' },
   amount: { color: colors.red, fontWeight: '900', fontSize: 14 },
   income: { color: colors.green },
   tip: { color: colors.muted, textAlign: 'center', fontSize: 12, padding: spacing.md },

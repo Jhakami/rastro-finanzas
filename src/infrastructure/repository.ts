@@ -49,6 +49,51 @@ export class LocalRepository {
     `);
   }
 
+  async createCategory(name: string, parentId: string): Promise<string> {
+    const cleanName = name.trim().replace(/\s+/g, ' ');
+    if (cleanName.length < 2 || cleanName.length > 50) {
+      throw new Error('La categoría debe tener entre 2 y 50 caracteres.');
+    }
+    const db = await this.db();
+    const parent = await db.getFirstAsync<Category>(
+      `SELECT id,name,icon,color,parent_id AS parentId
+       FROM categories WHERE id=? AND parent_id IS NULL AND is_archived=0`,
+      parentId,
+    );
+    if (!parent) throw new Error('Elige una familia válida.');
+    const duplicate = await db.getFirstAsync<{ id: string }>(
+      `SELECT id FROM categories
+       WHERE parent_id=? AND lower(trim(name))=lower(?) AND is_archived=0`,
+      parentId,
+      cleanName,
+    );
+    if (duplicate) throw new Error('Esa categoría ya existe dentro de la familia.');
+
+    const id = `category-custom-${Crypto.randomUUID()}`;
+    const now = new Date().toISOString();
+    await db.withTransactionAsync(async () => {
+      await db.runAsync(
+        `INSERT INTO categories(id,name,icon,color,parent_id)
+         VALUES(?,?,?,?,?)`,
+        id,
+        cleanName,
+        'pricetag',
+        parent.color,
+        parentId,
+      );
+      await db.runAsync(
+        'INSERT INTO audit_events(id,entity_type,entity_id,action,payload,occurred_at) VALUES(?,?,?,?,?,?)',
+        Crypto.randomUUID(),
+        'category',
+        id,
+        'created',
+        JSON.stringify({ name: cleanName, parentId }),
+        now,
+      );
+    });
+    return id;
+  }
+
   async listFavorites(): Promise<FavoriteTemplate[]> {
     const db = await this.db();
     return db.getAllAsync<FavoriteTemplate>(`
