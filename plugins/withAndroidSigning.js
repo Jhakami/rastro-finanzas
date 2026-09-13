@@ -1,4 +1,8 @@
-const { withAppBuildGradle, withGradleProperties } = require('@expo/config-plugins');
+const {
+  withAppBuildGradle,
+  withGradleProperties,
+  withProjectBuildGradle,
+} = require('@expo/config-plugins');
 
 module.exports = function withAndroidSigning(config) {
   config = withAppBuildGradle(config, (result) => {
@@ -32,6 +36,23 @@ module.exports = function withAndroidSigning(config) {
       }
     }
     result.modResults.contents = source;
+    return result;
+  });
+  config = withProjectBuildGradle(config, (result) => {
+    if (result.modResults.language !== 'groovy') return result;
+    const marker = '// Rastro: unify native toolchain versions across Android libraries.';
+    if (!result.modResults.contents.includes(marker)) {
+      result.modResults.contents += `
+
+${marker}
+subprojects { subproject ->
+  subproject.plugins.withId("com.android.library") {
+    subproject.android.ndkVersion = rootProject.ext.ndkVersion
+    subproject.android.buildToolsVersion = rootProject.ext.buildToolsVersion
+  }
+}
+`;
+    }
     return result;
   });
   return withGradleProperties(config, (result) => {
