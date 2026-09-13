@@ -4,7 +4,7 @@ const config: ExpoConfig = {
   name: 'Rastro',
   slug: 'rastro-finanzas',
   scheme: 'rastro',
-  version: '0.1.0',
+  version: '0.1.1',
   orientation: 'portrait',
   icon: './assets/icon.png',
   userInterfaceStyle: 'light',
@@ -34,8 +34,9 @@ const config: ExpoConfig = {
   ],
   android: {
     package: 'pe.rastro.finanzas',
+    versionCode: 2,
     adaptiveIcon: {
-      backgroundColor: '#F3EFE7',
+      backgroundColor: '#F4F7FA',
       foregroundImage: './assets/android-icon-foreground.png',
       backgroundImage: './assets/android-icon-background.png',
       monochromeImage: './assets/android-icon-monochrome.png',

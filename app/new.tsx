@@ -419,8 +419,8 @@ export default function NewTransactionScreen() {
               value={Boolean(location)}
               disabled={locating}
               onValueChange={(value) => void toggleLocation(value)}
-              trackColor={{ true: colors.greenSoft }}
-              thumbColor={location ? colors.green : '#AAA'}
+              trackColor={{ false: colors.line, true: colors.accentActive }}
+              thumbColor={location ? colors.accent : colors.muted}
             />
           </View>
           <Pressable
@@ -569,7 +569,7 @@ const styles = StyleSheet.create({
   locationHint: { color: colors.muted, fontSize: 12, lineHeight: 17, marginTop: 4 },
   save: {
     marginTop: spacing.lg,
-    backgroundColor: colors.ink,
+    backgroundColor: colors.primary,
     borderRadius: radius.md,
     padding: 16,
     alignItems: 'center',

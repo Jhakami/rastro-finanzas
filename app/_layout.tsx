@@ -1,38 +1,63 @@
 import 'react-native-gesture-handler';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { AppState, Pressable, StyleSheet, Text, View } from 'react-native';
 import * as LocalAuthentication from 'expo-local-authentication';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { FinanceProvider } from '@/presentation/finance-provider';
+import {
+  isBiometricLockSuspended,
+  subscribeBiometricPreference,
+} from '@/application/biometric-lock';
 import { repository } from '@/infrastructure/repository';
 import { colors } from '@/theme';
 
 function LockGate({ children }: { children: React.ReactNode }) {
   const [unlocked, setUnlocked] = useState(false);
-  const [enabled, setEnabled] = useState(false);
+  const enabledRef = useRef(false);
+  const authenticatingRef = useRef(false);
 
   const authenticate = useCallback(async () => {
-    const result = await LocalAuthentication.authenticateAsync({
-      promptMessage: 'Desbloquea Rastro',
-      fallbackLabel: 'Usar PIN del dispositivo',
-    });
-    setUnlocked(result.success);
+    if (authenticatingRef.current) return;
+    authenticatingRef.current = true;
+    try {
+      const result = await LocalAuthentication.authenticateAsync({
+        promptMessage: 'Desbloquea Rastro',
+        fallbackLabel: 'Usar PIN del dispositivo',
+      });
+      setUnlocked(result.success);
+    } finally {
+      authenticatingRef.current = false;
+    }
   }, []);
 
   useEffect(() => {
-    repository.getSetting('biometricEnabled', 'false').then((value) => {
-      const nextEnabled = value === 'true';
-      setEnabled(nextEnabled);
+    let mounted = true;
+    const applyPreference = (nextEnabled: boolean) => {
+      enabledRef.current = nextEnabled;
       if (!nextEnabled) setUnlocked(true);
-      else void authenticate();
+    };
+    const unsubscribePreference = subscribeBiometricPreference(applyPreference);
+    repository.getSetting('biometricEnabled', 'false').then((value) => {
+      if (!mounted) return;
+      const nextEnabled = value === 'true';
+      applyPreference(nextEnabled);
+      if (nextEnabled) void authenticate();
     });
     const subscription = AppState.addEventListener('change', (state) => {
-      if (state !== 'active' && enabled) setUnlocked(false);
+      if (state === 'background' && enabledRef.current && !isBiometricLockSuspended()) {
+        setUnlocked(false);
+      } else if (state === 'active' && enabledRef.current && !isBiometricLockSuspended()) {
+        void authenticate();
+      }
     });
-    return () => subscription.remove();
-  }, [authenticate, enabled]);
+    return () => {
+      mounted = false;
+      unsubscribePreference();
+      subscription.remove();
+    };
+  }, [authenticate]);
 
   if (!unlocked)
     return (
@@ -78,7 +103,7 @@ const styles = StyleSheet.create({
     width: 64,
     height: 64,
     borderRadius: 20,
-    backgroundColor: colors.green,
+    backgroundColor: colors.primary,
     color: colors.white,
     fontSize: 36,
     fontWeight: '900',
@@ -88,7 +113,7 @@ const styles = StyleSheet.create({
   lockTitle: { marginTop: 20, fontSize: 22, fontWeight: '800', color: colors.ink },
   unlockButton: {
     marginTop: 20,
-    backgroundColor: colors.ink,
+    backgroundColor: colors.primaryLight,
     paddingHorizontal: 24,
     paddingVertical: 14,
     borderRadius: 999,

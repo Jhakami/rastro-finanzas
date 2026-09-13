@@ -11,7 +11,7 @@ El seguimiento operativo se realiza mediante los [hitos](https://github.com/Jhak
 - SQLite con SQLCipher, SecureStore, migración y auditoría.
 - Calidad automática, Dependabot y documentación RUP/ADR.
 
-## Sprint 1 — Trazabilidad diaria · Hecho, pendiente de prueba en dispositivo
+## Sprint 1 — Trazabilidad diaria · 90 % · Estabilización en dispositivo
 
 - Yape como cuenta principal, banco y efectivo.
 - Gastos, ingresos variables y transferencias.
@@ -21,11 +21,13 @@ El seguimiento operativo se realiza mediante los [hitos](https://github.com/Jhak
 - Ubicación aproximada opcional, mapa de calor y lista offline.
 - Patrones con evidencia mínima, CSV, biometría y copia cifrada.
 
-**Cierre pendiente:** compilar e instalar el APK con Android SDK y ejecutar el flujo Maestro en un teléfono o emulador.
+**Cierre pendiente:** repetir en un teléfono la aceptación de movimientos, biometría y ubicación
+después de las correcciones encontradas durante la primera prueba. Las pruebas automáticas no
+sustituyen esta comprobación.
 
 Seguimiento: [#6](https://github.com/Jhakami/rastro-finanzas/issues/6).
 
-## Sprint 2 — Parametrización completa · En curso
+## Sprint 2 — Parametrización completa · 20 % · En curso
 
 - Crear, editar, ordenar, archivar y restaurar cuentas.
 - Categorías jerárquicas: catálogo inicial detallado, búsqueda, selección por familia y
@@ -36,6 +38,24 @@ Seguimiento: [#6](https://github.com/Jhakami/rastro-finanzas/issues/6).
 - Límites generales, por cuenta y por categoría con alertas configurables.
 
 Seguimiento: [#7](https://github.com/Jhakami/rastro-finanzas/issues/7), [#8](https://github.com/Jhakami/rastro-finanzas/issues/8), [#9](https://github.com/Jhakami/rastro-finanzas/issues/9), [#10](https://github.com/Jhakami/rastro-finanzas/issues/10) y [#11](https://github.com/Jhakami/rastro-finanzas/issues/11).
+
+El porcentaje es orientativo y se calcula con criterios de aceptación terminados, no por tiempo
+transcurrido. El catálogo, la navegación jerárquica, la búsqueda y la creación de una categoría
+propia están disponibles; todavía falta administrar todo su ciclo de vida y los demás módulos del
+sprint.
+
+## Estado global orientativo
+
+| Alcance       | Avance | Condición para aumentar                                        |
+| ------------- | -----: | -------------------------------------------------------------- |
+| Sprint 0      |  100 % | Cerrado                                                        |
+| Sprint 1      |   90 % | Validación manual completa en Android                          |
+| Sprint 2      |   20 % | CRUD de categorías, cuentas, favoritos, conciliación y límites |
+| Sprints 3 a 5 |    0 % | Aún no iniciados                                               |
+| MVP completo  |   35 % | Promedio simple de los seis sprints; no representa una fecha   |
+
+La guía de comprobación de cada incremento está en
+[`DEVICE_VALIDATION.md`](./DEVICE_VALIDATION.md).
 
 ## Sprint 3 — Automatización y documentos · Pendiente
 

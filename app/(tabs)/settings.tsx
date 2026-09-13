@@ -11,6 +11,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import * as LocalAuthentication from 'expo-local-authentication';
+import { publishBiometricPreference } from '@/application/biometric-lock';
 import { createEncryptedBackup } from '@/application/backup-service';
 import { exportTransactionsCsv } from '@/application/export-service';
 import { formatPEN, parseAmountToCents } from '@/domain/money';
@@ -30,6 +31,7 @@ export default function SettingsScreen() {
   } = useFinance();
   const [threshold, setThreshold] = useState((microThresholdCents / 100).toFixed(2));
   const [biometric, setBiometric] = useState(false);
+  const [changingBiometric, setChangingBiometric] = useState(false);
   const [backupPassword, setBackupPassword] = useState('');
   const [busy, setBusy] = useState(false);
   useEffect(() => {
@@ -39,17 +41,30 @@ export default function SettingsScreen() {
   }, []);
 
   async function toggleBiometric(value: boolean) {
-    if (value) {
-      const available =
-        (await LocalAuthentication.hasHardwareAsync()) &&
-        (await LocalAuthentication.isEnrolledAsync());
-      if (!available) {
-        Alert.alert('Biometría no disponible', 'Configura huella o bloqueo seguro en Android.');
-        return;
+    setChangingBiometric(true);
+    try {
+      if (value) {
+        const available =
+          (await LocalAuthentication.hasHardwareAsync()) &&
+          (await LocalAuthentication.isEnrolledAsync());
+        if (!available) {
+          Alert.alert('Biometría no disponible', 'Configura huella o bloqueo seguro en Android.');
+          return;
+        }
+        const result = await LocalAuthentication.authenticateAsync({
+          promptMessage: 'Confirma el bloqueo de Rastro',
+          fallbackLabel: 'Usar PIN del dispositivo',
+        });
+        if (!result.success) return;
       }
+      await repository.setSetting('biometricEnabled', String(value));
+      setBiometric(value);
+      publishBiometricPreference(value);
+    } catch {
+      Alert.alert('No se cambió la biometría', 'Intenta nuevamente.');
+    } finally {
+      setChangingBiometric(false);
     }
-    await repository.setSetting('biometricEnabled', String(value));
-    setBiometric(value);
   }
   async function saveThreshold() {
     const cents = parseAmountToCents(threshold);
@@ -125,9 +140,10 @@ export default function SettingsScreen() {
             </View>
             <Switch
               value={biometric}
+              disabled={changingBiometric}
               onValueChange={(value) => void toggleBiometric(value)}
-              trackColor={{ true: colors.greenSoft }}
-              thumbColor={biometric ? colors.green : '#AAA'}
+              trackColor={{ false: colors.line, true: colors.accentActive }}
+              thumbColor={biometric ? colors.accent : colors.muted}
             />
           </View>
           <View style={[styles.switchRow, styles.divider]}>
@@ -192,7 +208,7 @@ export default function SettingsScreen() {
             <Text style={styles.primaryText}>{busy ? 'Cifrando…' : 'Crear copia .finbackup'}</Text>
           </Pressable>
         </Card>
-        <Text style={styles.version}>Rastro 0.1.0 · local-first · PEN</Text>
+        <Text style={styles.version}>Rastro 0.1.1 · local-first · PEN</Text>
       </ScrollView>
     </SafeAreaView>
   );
