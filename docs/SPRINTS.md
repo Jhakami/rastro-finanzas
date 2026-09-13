@@ -25,10 +25,12 @@ El seguimiento operativo se realiza mediante los [hitos](https://github.com/Jhak
 
 Seguimiento: [#6](https://github.com/Jhakami/rastro-finanzas/issues/6).
 
-## Sprint 2 — Parametrización completa · Pendiente
+## Sprint 2 — Parametrización completa · En curso
 
 - Crear, editar, ordenar, archivar y restaurar cuentas.
-- CRUD de categorías, subcategorías y etiquetas.
+- Categorías jerárquicas: catálogo inicial detallado, búsqueda, selección por familia y
+  creación inmediata de subcategorías propias implementadas.
+- Pendiente del CRUD de categorías: editar, ordenar, archivar y restaurar; además de etiquetas.
 - CRUD de favoritos con monto fijo, sugerido o variable.
 - Conciliación guiada con motivo y vista de auditoría.
 - Límites generales, por cuenta y por categoría con alertas configurables.

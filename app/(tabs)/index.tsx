@@ -3,6 +3,7 @@ import { Link } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { getCategoryParent, getCategoryPath } from '@/domain/categories';
 import { formatPEN } from '@/domain/money';
 import { Card, EmptyState, LoadingView, MetricCard, ScreenHeader } from '@/presentation/components';
 import { useFinance } from '@/presentation/finance-provider';
@@ -14,14 +15,17 @@ export default function DashboardScreen() {
   const { accounts, balances, metrics, insights, categories, monthlyTransactions, loading, error } =
     useFinance();
   const totalBalance = Object.values(balances).reduce((sum, value) => sum + value, 0);
-  const topCategory = categories.find((item) => item.id === metrics.topCategoryId);
+  const pendingClassification = monthlyTransactions.filter(
+    (item) => item.kind === 'expense' && item.categoryId === 'category-other',
+  ).length;
   const categoryBars = useMemo(() => {
     const totals = new Map<string, number>();
     monthlyTransactions
       .filter((item) => item.kind === 'expense')
       .forEach((item) => {
         if (item.categoryId) {
-          totals.set(item.categoryId, (totals.get(item.categoryId) ?? 0) + item.amountCents);
+          const familyId = getCategoryParent(item.categoryId, categories)?.id ?? item.categoryId;
+          totals.set(familyId, (totals.get(familyId) ?? 0) + item.amountCents);
         }
       });
     const rows = [...totals.entries()].sort((a, b) => b[1] - a[1]).slice(0, 4);
@@ -103,7 +107,11 @@ export default function DashboardScreen() {
           </View>
           <View style={styles.factRow}>
             <Text style={styles.factLabel}>Categoría principal</Text>
-            <Text style={styles.factValue}>{topCategory?.name ?? 'Sin datos'}</Text>
+            <Text style={styles.factValue}>
+              {metrics.topCategoryId
+                ? getCategoryPath(metrics.topCategoryId, categories)
+                : 'Sin datos'}
+            </Text>
           </View>
           <View style={styles.factRow}>
             <Text style={styles.factLabel}>Hora con más compras</Text>
@@ -119,16 +127,22 @@ export default function DashboardScreen() {
               {metrics.busiestWeekday === null ? 'Sin datos' : weekdays[metrics.busiestWeekday]}
             </Text>
           </View>
+          {pendingClassification ? (
+            <View style={styles.factRow}>
+              <Text style={styles.factLabel}>Pendientes de clasificar</Text>
+              <Text style={styles.warningValue}>{pendingClassification}</Text>
+            </View>
+          ) : null}
         </Card>
         <Card>
           <Text style={styles.cardKicker}>Distribución</Text>
-          <Text style={styles.cardTitle}>Gasto por categoría</Text>
+          <Text style={styles.cardTitle}>Gasto por familia</Text>
           {categoryBars.length ? (
             <View style={styles.bars}>
               {categoryBars.map((bar) => (
                 <View key={bar.category?.id ?? 'unknown'}>
                   <View style={styles.barLabel}>
-                    <Text style={styles.factLabel}>{bar.category?.name ?? 'Otros'}</Text>
+                    <Text style={styles.factLabel}>{bar.category?.name ?? 'Sin categoría'}</Text>
                     <Text style={styles.factValue}>{formatPEN(bar.amount)}</Text>
                   </View>
                   <View style={styles.barTrack}>
@@ -229,6 +243,7 @@ const styles = StyleSheet.create({
   },
   factLabel: { color: colors.muted },
   factValue: { color: colors.ink, fontWeight: '800' },
+  warningValue: { color: colors.red, fontWeight: '900' },
   bars: { gap: 13, marginTop: 16 },
   barLabel: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 6 },
   barTrack: {

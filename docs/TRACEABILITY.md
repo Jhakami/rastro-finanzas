@@ -12,3 +12,5 @@
 | Exportación consciente | CU-08 Exportar CSV             | `exportTransactionsCsv`                    | Prueba manual con/sin zona     |
 | Cifrado local          | CU-09 Abrir aplicación         | SQLCipher + SecureStore                    | Compilación nativa             |
 | Respaldo               | CU-10 Crear copia              | AES-256-GCM + PBKDF2                       | Prueba en dispositivo          |
+| Clasificación precisa  | CU-11 Clasificar gasto         | Familias, subcategorías y búsqueda         | `categories.test.ts`           |
+| Categoría propia       | CU-12 Crear subcategoría       | `createCategory` con auditoría             | Prueba manual y validación     |

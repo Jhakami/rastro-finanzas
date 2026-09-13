@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { z } from 'zod';
 import {
@@ -17,6 +17,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { captureApproximateLocation } from '@/application/location-service';
+import { getCategoryParent, getCategoryPath, groupCategories } from '@/domain/categories';
 import { parseAmountToCents } from '@/domain/money';
 import type { ApproximateCell } from '@/domain/location';
 import type { TransactionKind } from '@/domain/types';
@@ -33,7 +34,7 @@ const formSchema = z.object({
 type FormValues = z.infer<typeof formSchema>;
 
 export default function NewTransactionScreen() {
-  const { accounts, categories, favorites, addTransaction } = useFinance();
+  const { accounts, categories, favorites, addTransaction, addCategory } = useFinance();
   const [kind, setKind] = useState<TransactionKind>('expense');
   const [accountId, setAccountId] = useState(
     accounts.find((item) => item.isDefault)?.id ?? accounts[0]?.id ?? 'account-yape',
@@ -41,13 +42,55 @@ export default function NewTransactionScreen() {
   const [destinationAccountId, setDestinationAccountId] = useState(
     accounts.find((item) => item.id !== accountId)?.id ?? '',
   );
-  const [categoryId, setCategoryId] = useState(categories[0]?.id ?? 'category-other');
+  const [categoryId, setCategoryId] = useState('');
+  const [categoryFamilyId, setCategoryFamilyId] = useState<string | null>(null);
+  const [categoryQuery, setCategoryQuery] = useState('');
+  const [creatingCategory, setCreatingCategory] = useState(false);
   const [location, setLocation] = useState<ApproximateCell | null>(null);
   const [locating, setLocating] = useState(false);
   const [saving, setSaving] = useState(false);
   const { control, handleSubmit, setValue } = useForm<FormValues>({
     defaultValues: { amount: '', merchant: '', note: '', source: 'Padres' },
   });
+  const categoryGroups = useMemo(() => groupCategories(categories), [categories]);
+  const selectedFamily = getCategoryParent(categoryId, categories);
+  const selectedGroup = categoryGroups.find((group) => group.parent.id === selectedFamily?.id);
+  const activeFamilyId =
+    selectedGroup?.parent.id ?? categoryFamilyId ?? categoryGroups[0]?.parent.id ?? '';
+  const activeGroup = categoryGroups.find((group) => group.parent.id === activeFamilyId);
+  const matchingCategories = useMemo(() => {
+    const query = normalizeSearch(categoryQuery);
+    if (!query) return [];
+    return categoryGroups.flatMap((group) =>
+      group.children
+        .filter((category) =>
+          normalizeSearch(`${group.parent.name} ${category.name}`).includes(query),
+        )
+        .map((category) => ({ category, parent: group.parent })),
+    );
+  }, [categoryGroups, categoryQuery]);
+
+  async function createMissingCategory() {
+    const name = categoryQuery.trim();
+    if (!activeGroup || name.length < 2) {
+      Alert.alert('Escribe un nombre', 'Elige una familia y escribe al menos dos caracteres.');
+      return;
+    }
+    setCreatingCategory(true);
+    try {
+      const id = await addCategory(name, activeGroup.parent.id);
+      setCategoryId(id);
+      setCategoryFamilyId(activeGroup.parent.id);
+      setCategoryQuery('');
+    } catch (cause) {
+      Alert.alert(
+        'No se pudo crear',
+        cause instanceof Error ? cause.message : 'Intenta nuevamente.',
+      );
+    } finally {
+      setCreatingCategory(false);
+    }
+  }
 
   async function toggleLocation(enabled: boolean) {
     if (!enabled) {
@@ -79,6 +122,25 @@ export default function NewTransactionScreen() {
     }
     if (kind === 'transfer' && (!destinationAccountId || destinationAccountId === accountId)) {
       Alert.alert('Elige otra cuenta de destino');
+      return;
+    }
+    if (kind === 'expense' && !categoryId) {
+      Alert.alert(
+        'Elige una categoría específica',
+        'Esto permite que el análisis no mezcle gastos diferentes.',
+      );
+      return;
+    }
+    if (
+      kind === 'expense' &&
+      categoryId === 'category-other' &&
+      !values.merchant.trim() &&
+      !values.note.trim()
+    ) {
+      Alert.alert(
+        'Describe este gasto',
+        'Si lo guardas por clasificar, escribe el comercio o una nota para identificarlo después.',
+      );
       return;
     }
     setSaving(true);
@@ -155,6 +217,9 @@ export default function NewTransactionScreen() {
                     onPress={() => {
                       setAccountId(favorite.accountId);
                       setCategoryId(favorite.categoryId);
+                      setCategoryFamilyId(
+                        getCategoryParent(favorite.categoryId, categories)?.id ?? null,
+                      );
                       if (favorite.amountCents)
                         setValue('amount', (favorite.amountCents / 100).toFixed(2));
                       if (favorite.merchant) setValue('merchant', favorite.merchant);
@@ -222,18 +287,99 @@ export default function NewTransactionScreen() {
           ) : null}
           {kind === 'expense' ? (
             <>
-              <Text style={styles.label}>Categoría</Text>
-              <View style={styles.chips}>
-                {categories.map((category) => (
-                  <Chip
-                    key={category.id}
-                    label={category.name}
-                    selected={categoryId === category.id}
-                    color={category.color}
-                    onPress={() => setCategoryId(category.id)}
-                  />
-                ))}
-              </View>
+              <Text style={styles.label}>Categoría específica</Text>
+              <TextInput
+                value={categoryQuery}
+                onChangeText={setCategoryQuery}
+                placeholder="Buscar: agua, pasaje, videojuego…"
+                placeholderTextColor="#9AA098"
+                style={styles.input}
+              />
+              {categoryId ? (
+                <View style={styles.categorySelection}>
+                  <Ionicons name="checkmark-circle" size={18} color={colors.green} />
+                  <Text style={styles.categorySelectionText}>
+                    {getCategoryPath(categoryId, categories)}
+                  </Text>
+                </View>
+              ) : (
+                <Text style={styles.categoryHint}>
+                  Primero elige una familia y luego el gasto exacto.
+                </Text>
+              )}
+              {categoryQuery.trim() ? (
+                <View style={styles.chips}>
+                  {matchingCategories.length ? (
+                    matchingCategories.map(({ category, parent }) => (
+                      <Chip
+                        key={category.id}
+                        label={`${parent.name} · ${category.name}`}
+                        selected={categoryId === category.id}
+                        color={category.color}
+                        onPress={() => {
+                          setCategoryId(category.id);
+                          setCategoryFamilyId(parent.id);
+                          setCategoryQuery('');
+                        }}
+                      />
+                    ))
+                  ) : (
+                    <View style={styles.noCategoryResult}>
+                      <Text style={styles.categoryHint}>No hay coincidencias.</Text>
+                      <Pressable
+                        disabled={creatingCategory}
+                        onPress={() => void createMissingCategory()}
+                        style={styles.createCategory}
+                      >
+                        <Ionicons name="add-circle" size={18} color={colors.white} />
+                        <Text style={styles.createCategoryText}>
+                          {creatingCategory
+                            ? 'Creando…'
+                            : `Crear en ${activeGroup?.parent.name ?? 'una familia'}`}
+                        </Text>
+                      </Pressable>
+                    </View>
+                  )}
+                </View>
+              ) : (
+                <>
+                  <ScrollView
+                    horizontal
+                    showsHorizontalScrollIndicator={false}
+                    contentContainerStyle={styles.chips}
+                  >
+                    {categoryGroups.map(({ parent }) => (
+                      <Chip
+                        key={parent.id}
+                        label={parent.name}
+                        selected={activeFamilyId === parent.id}
+                        color={parent.color}
+                        onPress={() => {
+                          setCategoryFamilyId(parent.id);
+                          if (selectedFamily?.id !== parent.id) setCategoryId('');
+                        }}
+                      />
+                    ))}
+                  </ScrollView>
+                  <View style={styles.chips}>
+                    {activeGroup?.children.map((category) => (
+                      <Chip
+                        key={category.id}
+                        label={category.name}
+                        selected={categoryId === category.id}
+                        color={category.color}
+                        onPress={() => setCategoryId(category.id)}
+                      />
+                    ))}
+                  </View>
+                </>
+              )}
+              <Pressable
+                onPress={() => setCategoryId('category-other')}
+                style={styles.classifyLater}
+              >
+                <Text style={styles.classifyLaterText}>No aparece: guardar por clasificar</Text>
+              </Pressable>
             </>
           ) : null}
           {kind === 'income' ? (
@@ -288,6 +434,13 @@ export default function NewTransactionScreen() {
       </KeyboardAvoidingView>
     </SafeAreaView>
   );
+}
+
+function normalizeSearch(value: string): string {
+  return value
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLocaleLowerCase('es');
 }
 
 function Field({
@@ -375,6 +528,31 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     paddingVertical: 13,
   },
+  categorySelection: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 7,
+    marginTop: 10,
+    padding: 10,
+    borderRadius: radius.md,
+    backgroundColor: colors.greenSoft,
+  },
+  categorySelectionText: { color: colors.green, fontWeight: '800', flex: 1 },
+  categoryHint: { color: colors.muted, fontSize: 12, lineHeight: 18, marginVertical: 9 },
+  noCategoryResult: { width: '100%', gap: 6 },
+  createCategory: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    alignSelf: 'flex-start',
+    gap: 6,
+    borderRadius: radius.pill,
+    backgroundColor: colors.green,
+    paddingHorizontal: 12,
+    paddingVertical: 9,
+  },
+  createCategoryText: { color: colors.white, fontWeight: '800', fontSize: 12 },
+  classifyLater: { alignSelf: 'flex-start', marginTop: 12, paddingVertical: 5 },
+  classifyLaterText: { color: colors.muted, fontSize: 12, textDecorationLine: 'underline' },
   multiline: { minHeight: 80, textAlignVertical: 'top' },
   locationRow: {
     flexDirection: 'row',

@@ -27,6 +27,7 @@ interface FinanceContextValue {
   loading: boolean;
   error: string | null;
   addTransaction(input: CreateTransactionInput): Promise<void>;
+  addCategory(name: string, parentId: string): Promise<string>;
   deleteTransaction(id: string): Promise<void>;
   updateMicroThreshold(cents: number): Promise<void>;
   refresh(): Promise<void>;
@@ -84,6 +85,15 @@ export function FinanceProvider({ children }: { children: React.ReactNode }) {
     [refresh],
   );
 
+  const addCategory = useCallback(
+    async (name: string, parentId: string) => {
+      const id = await repository.createCategory(name, parentId);
+      await refresh();
+      return id;
+    },
+    [refresh],
+  );
+
   const deleteTransaction = useCallback(
     async (id: string) => {
       await repository.softDeleteTransaction(id);
@@ -129,6 +139,7 @@ export function FinanceProvider({ children }: { children: React.ReactNode }) {
       loading,
       error,
       addTransaction,
+      addCategory,
       deleteTransaction,
       updateMicroThreshold,
       refresh,
@@ -147,6 +158,7 @@ export function FinanceProvider({ children }: { children: React.ReactNode }) {
       loading,
       error,
       addTransaction,
+      addCategory,
       deleteTransaction,
       updateMicroThreshold,
       refresh,

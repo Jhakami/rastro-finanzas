@@ -1,5 +1,6 @@
 import * as FileSystem from 'expo-file-system/legacy';
 import * as Sharing from 'expo-sharing';
+import { getCategoryPath } from '@/domain/categories';
 import type { Account, Category, FinanceTransaction } from '@/domain/types';
 
 function csvCell(value: unknown): string {
@@ -31,7 +32,7 @@ export async function exportTransactionsCsv(
       item.kind,
       (item.amountCents / 100).toFixed(2),
       accounts.find((account) => account.id === item.accountId)?.name ?? item.accountId,
-      categories.find((category) => category.id === item.categoryId)?.name ?? '',
+      item.categoryId ? getCategoryPath(item.categoryId, categories) : '',
       item.occurredAt,
       item.merchant,
       item.note,
