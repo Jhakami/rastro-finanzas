@@ -1,0 +1,46 @@
+name: Reporte de error
+description: Registrar un fallo reproducible en Rastro
+title: '[Bug]: '
+labels:
+  - bug
+body:
+  - type: markdown
+    attributes:
+      value: |
+        No incluyas bases de datos, respaldos, comprobantes, coordenadas ni otra información financiera personal.
+  - type: textarea
+    id: description
+    attributes:
+      label: Descripción
+      description: ¿Qué ocurrió y qué esperabas que ocurriera?
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Pasos para reproducirlo
+      placeholder: |
+        1. Abrir...
+        2. Pulsar...
+        3. Observar...
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Versión o commit
+      placeholder: v0.1.0 o 97986e6
+    validations:
+      required: true
+  - type: input
+    id: device
+    attributes:
+      label: Dispositivo y versión de Android
+      placeholder: Pixel 7, Android 16
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Evidencia sin datos personales
+      description: Registros o capturas previamente anonimizados.

@@ -43,4 +43,4 @@ npx expo prebuild --platform android --clean
 - Los CSV excluyen ubicaciones por defecto.
 - `.gitignore` bloquea bases, exportaciones, comprobantes y claves.
 
-Consulta [sprints](docs/SPRINTS.md), [arquitectura](docs/ARCHITECTURE.md), [RUP ligero](docs/RUP.md), [trazabilidad](docs/TRACEABILITY.md) y [decisiones](docs/adr/0001-local-first.md).
+Consulta [sprints](docs/SPRINTS.md), [arquitectura](docs/ARCHITECTURE.md), [RUP ligero](docs/RUP.md), [trazabilidad](docs/TRACEABILITY.md), [decisiones](docs/adr/0001-local-first.md) y la [guía de contribución](CONTRIBUTING.md).

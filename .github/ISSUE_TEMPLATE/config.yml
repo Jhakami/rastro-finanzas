@@ -1,0 +1,5 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Plan de sprints
+    url: https://github.com/Jhakami/rastro-finanzas/blob/main/docs/SPRINTS.md
+    about: Consulta primero el alcance y el estado de cada iteración.

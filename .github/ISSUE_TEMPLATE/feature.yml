@@ -1,0 +1,47 @@
+name: Mejora o funcionalidad
+description: Proponer una mejora vinculada al plan de Rastro
+title: '[Mejora]: '
+labels:
+  - enhancement
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problema que resuelve
+      description: Describe la necesidad, no solo una solución técnica.
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Resultado esperado
+    validations:
+      required: true
+  - type: dropdown
+    id: area
+    attributes:
+      label: Área
+      options:
+        - Cuentas y movimientos
+        - Parametrización
+        - Dashboard y análisis
+        - Ubicación y mapa
+        - Respaldo y seguridad
+        - Calidad y publicación
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Criterios de aceptación
+      placeholder: |
+        - [ ] Dado..., cuando..., entonces...
+    validations:
+      required: true
+  - type: checkboxes
+    id: privacy
+    attributes:
+      label: Privacidad
+      options:
+        - label: La propuesta conserva el enfoque local-first y no expone información financiera personal.
+          required: true
