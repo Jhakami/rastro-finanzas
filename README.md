@@ -1,5 +1,7 @@
 # Rastro
 
+[![Calidad](https://github.com/Jhakami/rastro-finanzas/actions/workflows/quality.yml/badge.svg)](https://github.com/Jhakami/rastro-finanzas/actions/workflows/quality.yml)
+
 Aplicación Android local-first para registrar gastos e ingresos en segundos, controlar Yape, banco y efectivo, y descubrir patrones de compra verificables sin enviar datos financieros a un servidor.
 
 ## Estado del producto

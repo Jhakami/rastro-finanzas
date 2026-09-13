@@ -2,6 +2,8 @@
 
 Cada sprint termina únicamente cuando pasan TypeScript, ESLint, Jest, Expo Doctor, bundle Hermes y prueba manual en Android. El estado **hecho** significa implementado y verificado; no significa que todo el producto esté culminado.
 
+El seguimiento operativo se realiza mediante los [hitos](https://github.com/Jhakami/rastro-finanzas/milestones) y las [incidencias](https://github.com/Jhakami/rastro-finanzas/issues) de GitHub. Este archivo define el alcance; GitHub refleja su ejecución.
+
 ## Sprint 0 — Base técnica · Hecho
 
 - Expo 57, React Native 0.86 y TypeScript estricto.
@@ -21,6 +23,8 @@ Cada sprint termina únicamente cuando pasan TypeScript, ESLint, Jest, Expo Doct
 
 **Cierre pendiente:** compilar e instalar el APK con Android SDK y ejecutar el flujo Maestro en un teléfono o emulador.
 
+Seguimiento: [#6](https://github.com/Jhakami/rastro-finanzas/issues/6).
+
 ## Sprint 2 — Parametrización completa · Pendiente
 
 - Crear, editar, ordenar, archivar y restaurar cuentas.
@@ -29,12 +33,16 @@ Cada sprint termina únicamente cuando pasan TypeScript, ESLint, Jest, Expo Doct
 - Conciliación guiada con motivo y vista de auditoría.
 - Límites generales, por cuenta y por categoría con alertas configurables.
 
+Seguimiento: [#7](https://github.com/Jhakami/rastro-finanzas/issues/7), [#8](https://github.com/Jhakami/rastro-finanzas/issues/8), [#9](https://github.com/Jhakami/rastro-finanzas/issues/9), [#10](https://github.com/Jhakami/rastro-finanzas/issues/10) y [#11](https://github.com/Jhakami/rastro-finanzas/issues/11).
+
 ## Sprint 3 — Automatización y documentos · Pendiente
 
 - Recurrencias que generen borradores confirmables y notificaciones.
 - Fotografías de comprobantes almacenadas en el espacio privado.
 - Respaldo que incluya comprobantes y restauración guiada con copia preventiva.
 - Reembolsos enlazados desde la interfaz al gasto original.
+
+Seguimiento: [#12](https://github.com/Jhakami/rastro-finanzas/issues/12), [#13](https://github.com/Jhakami/rastro-finanzas/issues/13), [#14](https://github.com/Jhakami/rastro-finanzas/issues/14) y [#15](https://github.com/Jhakami/rastro-finanzas/issues/15).
 
 ## Sprint 4 — Análisis avanzado · Pendiente
 
@@ -45,9 +53,13 @@ Cada sprint termina únicamente cuando pasan TypeScript, ESLint, Jest, Expo Doct
 - Recomendaciones que puedan aceptarse, modificarse, posponerse o descartarse.
 - Etiquetas manuales para celdas geográficas y paquetes de mapa offline.
 
+Seguimiento: [#16](https://github.com/Jhakami/rastro-finanzas/issues/16), [#17](https://github.com/Jhakami/rastro-finanzas/issues/17), [#18](https://github.com/Jhakami/rastro-finanzas/issues/18), [#19](https://github.com/Jhakami/rastro-finanzas/issues/19), [#20](https://github.com/Jhakami/rastro-finanzas/issues/20) y [#21](https://github.com/Jhakami/rastro-finanzas/issues/21).
+
 ## Sprint 5 — Publicación personal · Pendiente
 
 - Pruebas de migración, permisos denegados, modo avión y varios años de datos.
 - Generación de clave privada de firma y almacenamiento seguro de su copia.
 - Configuración de secretos de GitHub Actions.
 - APK firmado, hash SHA-256, notas de versión y prueba de actualización sin pérdida de datos.
+
+Seguimiento: [#22](https://github.com/Jhakami/rastro-finanzas/issues/22), [#23](https://github.com/Jhakami/rastro-finanzas/issues/23) y [#25](https://github.com/Jhakami/rastro-finanzas/issues/25).
