@@ -20,3 +20,6 @@
 | Patrones estadísticos       | CU-16 Comprender variaciones    | `buildInsights` y reglas configurables     | `analytics.test.ts` + PAT-01   |
 | Límite mensual              | CU-17 Controlar presupuesto     | `spending_limits` y alertas por porcentaje | Analytics unitario + LIM-01    |
 | Jerarquía visual            | CU-18 Clasificar sin confusión  | Chips diferenciados de familia y categoría | CAT-04                         |
+| Gráficos consultables       | CU-19 Consultar un dato visual  | Selección SVG, valor contextual y leyendas | DASH-03                        |
+| Límite familiar             | CU-20 Limitar un rubro          | Familia incluye sus categorías hijas       | Analytics unitario + LIM-02    |
+| Favorito adaptativo         | CU-21 Repetir una compra        | Selección visible y contador de uso        | Repositorio + FAV-01           |

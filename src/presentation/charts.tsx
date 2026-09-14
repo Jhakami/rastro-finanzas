@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import Svg, {
   Circle,
   Defs,
@@ -10,6 +11,7 @@ import Svg, {
   Text as SvgText,
 } from 'react-native-svg';
 import { colors } from '@/theme';
+import { formatPEN } from '@/domain/money';
 
 export interface ChartDatum {
   label: string;
@@ -26,6 +28,7 @@ export function DonutChart({
   centerValue: string;
   centerLabel: string;
 }) {
+  const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
   const total = Math.max(
     1,
     data.reduce((sum, item) => sum + item.value, 0),
@@ -47,7 +50,7 @@ export function DonutChart({
     <Svg width={150} height={150} viewBox="0 0 150 150" accessibilityLabel="Gráfico de composición">
       <Circle cx="75" cy="75" r={radius} stroke={colors.surface1} strokeWidth="16" fill="none" />
       <G rotation="-90" origin="75, 75">
-        {segments.map((item) => {
+        {segments.map((item, index) => {
           return (
             <Circle
               key={item.label}
@@ -60,21 +63,25 @@ export function DonutChart({
               strokeDasharray={`${item.length} ${circumference - item.length}`}
               strokeDashoffset={item.dashOffset}
               fill="none"
+              onPress={() => setSelectedIndex(index)}
             />
           );
         })}
       </G>
       <SvgText x="75" y="70" fill={colors.ink} fontSize="18" fontWeight="800" textAnchor="middle">
-        {centerValue}
+        {selectedIndex === null ? centerValue : compactAmount(data[selectedIndex]?.value ?? 0)}
       </SvgText>
       <SvgText x="75" y="89" fill={colors.muted} fontSize="10" textAnchor="middle">
-        {centerLabel}
+        {selectedIndex === null
+          ? centerLabel
+          : truncateLabel(data[selectedIndex]?.label ?? 'Sin categoría', 18)}
       </SvgText>
     </Svg>
   );
 }
 
 export function AreaTrendChart({ data }: { data: ChartDatum[] }) {
+  const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
   const width = 340;
   const height = 180;
   const left = 12;
@@ -134,12 +141,28 @@ export function AreaTrendChart({ data }: { data: ChartDatum[] }) {
           key={`${data[index]?.label}-${index}`}
           cx={point.x}
           cy={point.y}
-          r="3.5"
+          r={selectedIndex === index ? 7 : 5}
           fill={colors.teal}
           stroke={colors.crust}
           strokeWidth="1.5"
+          onPress={() => setSelectedIndex(index)}
         />
       ))}
+      {selectedIndex !== null && points[selectedIndex] ? (
+        <G>
+          <Rect x="105" y="3" width="130" height="27" rx="9" fill={colors.crust} />
+          <SvgText
+            x="170"
+            y="21"
+            fill={colors.ink}
+            fontSize="11"
+            fontWeight="800"
+            textAnchor="middle"
+          >
+            {`${data[selectedIndex]?.label}: ${compactAmount(data[selectedIndex]?.value ?? 0)}`}
+          </SvgText>
+        </G>
+      ) : null}
       {data.map((item, index) => {
         if (data.length > 14 && index % 3 !== 0 && index !== data.length - 1) return null;
         return (
@@ -160,6 +183,7 @@ export function AreaTrendChart({ data }: { data: ChartDatum[] }) {
 }
 
 export function PastelBarChart({ data }: { data: ChartDatum[] }) {
+  const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
   const width = 340;
   const height = 155;
   const top = 12;
@@ -191,6 +215,8 @@ export function PastelBarChart({ data }: { data: ChartDatum[] }) {
               height={barHeight}
               rx="4"
               fill={item.color ?? colors.blue}
+              fillOpacity={selectedIndex === null || selectedIndex === index ? 1 : 0.45}
+              onPress={() => setSelectedIndex(index)}
             />
             <SvgText
               x={x + barWidth / 2}
@@ -204,11 +230,27 @@ export function PastelBarChart({ data }: { data: ChartDatum[] }) {
           </G>
         );
       })}
+      {selectedIndex !== null ? (
+        <G>
+          <Rect x="105" y="3" width="130" height="27" rx="9" fill={colors.crust} />
+          <SvgText
+            x="170"
+            y="21"
+            fill={colors.ink}
+            fontSize="11"
+            fontWeight="800"
+            textAnchor="middle"
+          >
+            {`${data[selectedIndex]?.label}: ${compactAmount(data[selectedIndex]?.value ?? 0)}`}
+          </SvgText>
+        </G>
+      ) : null}
     </Svg>
   );
 }
 
 export function ScatterChart({ points }: { points: { id: string; x: number; y: number }[] }) {
+  const [selectedId, setSelectedId] = useState<string | null>(null);
   const width = 340;
   const height = 170;
   const left = 25;
@@ -236,18 +278,34 @@ export function ScatterChart({ points }: { points: { id: string; x: number; y: n
           stroke={colors.surface1}
         />
       ))}
-      {points.map((point, index) => (
+      {points.map((point) => (
         <Circle
           key={point.id}
           cx={left + (Math.min(24, Math.max(0, point.x)) / 24) * chartWidth}
           cy={top + chartHeight - (point.y / maximum) * chartHeight}
-          r={4 + Math.min(3, index % 3)}
-          fill={[colors.teal, colors.pink, colors.blue][index % 3]}
-          fillOpacity="0.82"
+          r={selectedId === point.id ? 8 : 5}
+          fill={scatterColor(point.y, maximum)}
+          fillOpacity={selectedId === null || selectedId === point.id ? 0.95 : 0.4}
           stroke={colors.crust}
           strokeWidth="1"
+          onPress={() => setSelectedId(point.id)}
         />
       ))}
+      {selectedId ? (
+        <G>
+          <Rect x="90" y="3" width="160" height="27" rx="9" fill={colors.crust} />
+          <SvgText
+            x="170"
+            y="21"
+            fill={colors.ink}
+            fontSize="11"
+            fontWeight="800"
+            textAnchor="middle"
+          >
+            {scatterTooltip(points.find((point) => point.id === selectedId))}
+          </SvgText>
+        </G>
+      ) : null}
       {[0, 6, 12, 18, 24].map((hour) => (
         <SvgText
           key={hour}
@@ -262,4 +320,26 @@ export function ScatterChart({ points }: { points: { id: string; x: number; y: n
       ))}
     </Svg>
   );
+}
+
+function compactAmount(cents: number): string {
+  return formatPEN(cents).replace('\u00a0', ' ');
+}
+
+function truncateLabel(value: string, maximum: number): string {
+  return value.length > maximum ? `${value.slice(0, maximum - 1)}…` : value;
+}
+
+function scatterColor(value: number, maximum: number): string {
+  const ratio = value / Math.max(1, maximum);
+  if (ratio > 0.66) return colors.pink;
+  if (ratio > 0.33) return colors.blue;
+  return colors.teal;
+}
+
+function scatterTooltip(point: { x: number; y: number } | undefined): string {
+  if (!point) return '';
+  const hour = Math.floor(point.x);
+  const minute = Math.round((point.x - hour) * 60);
+  return `${compactAmount(point.y)} · ${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}`;
 }

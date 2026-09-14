@@ -145,15 +145,25 @@ describe('analytics', () => {
     };
     const limit: SpendingLimit = {
       id: 'limit-food',
-      name: 'Comida',
+      name: 'Alimentación',
       amountCents: 10000,
-      categoryId: 'food',
+      categoryId: 'family-food',
       warningPercent: 80,
       enabled: true,
     };
     const insights = buildInsights([...currentExpenses, income], 500, {
       now: new Date(2026, 8, 10),
       limits: [limit],
+      categories: [
+        { id: 'family-food', name: 'Alimentación', icon: 'food', color: '#fff' },
+        {
+          id: 'food',
+          name: 'Menú',
+          icon: 'food',
+          color: '#fff',
+          parentId: 'family-food',
+        },
+      ],
     });
     expect(insights.some((item) => item.id === 'projection-over-received')).toBe(true);
     expect(insights.some((item) => item.id === 'limit-limit-food')).toBe(true);
