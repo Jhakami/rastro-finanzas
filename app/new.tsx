@@ -45,6 +45,7 @@ export default function NewTransactionScreen() {
     accounts.find((item) => item.id !== accountId)?.id ?? '',
   );
   const [categoryId, setCategoryId] = useState('');
+  const [selectedFavoriteId, setSelectedFavoriteId] = useState<string | null>(null);
   const [categoryFamilyId, setCategoryFamilyId] = useState<string | null>(null);
   const [categoryQuery, setCategoryQuery] = useState('');
   const [creatingCategory, setCreatingCategory] = useState(false);
@@ -196,6 +197,7 @@ export default function NewTransactionScreen() {
         note: values.note.trim() || null,
         source: kind === 'income' ? values.source.trim() || null : null,
         location,
+        favoriteId: kind === 'expense' ? selectedFavoriteId : null,
       });
       router.back();
     } catch (cause) {
@@ -236,7 +238,10 @@ export default function NewTransactionScreen() {
                 key={value}
                 label={label}
                 selected={kind === value}
-                onPress={() => setKind(value)}
+                onPress={() => {
+                  setKind(value);
+                  if (value !== 'expense') setSelectedFavoriteId(null);
+                }}
                 color={
                   value === 'expense' ? colors.red : value === 'income' ? colors.green : colors.blue
                 }
@@ -255,7 +260,13 @@ export default function NewTransactionScreen() {
                   <Chip
                     key={favorite.id}
                     label={favorite.name}
+                    selected={selectedFavoriteId === favorite.id}
+                    color={
+                      categories.find((category) => category.id === favorite.categoryId)?.color ??
+                      colors.mauve
+                    }
                     onPress={() => {
+                      setSelectedFavoriteId(favorite.id);
                       setAccountId(favorite.accountId);
                       setCategoryId(favorite.categoryId);
                       setCategoryFamilyId(
@@ -280,7 +291,10 @@ export default function NewTransactionScreen() {
               render={({ field }) => (
                 <TextInput
                   {...field}
-                  onChangeText={field.onChange}
+                  onChangeText={(value) => {
+                    setSelectedFavoriteId(null);
+                    field.onChange(value);
+                  }}
                   autoFocus
                   keyboardType="decimal-pad"
                   placeholder="0.00"
@@ -299,6 +313,7 @@ export default function NewTransactionScreen() {
                 selected={accountId === account.id}
                 color={account.color}
                 onPress={() => {
+                  setSelectedFavoriteId(null);
                   setAccountId(account.id);
                   if (destinationAccountId === account.id)
                     setDestinationAccountId(
@@ -368,6 +383,7 @@ export default function NewTransactionScreen() {
                         selected={categoryId === category.id}
                         color={category.color}
                         onPress={() => {
+                          setSelectedFavoriteId(null);
                           setCategoryId(category.id);
                           setCategoryFamilyId(parent.id);
                           setCategoryQuery('');
@@ -407,6 +423,7 @@ export default function NewTransactionScreen() {
                         color={parent.color}
                         variant="family"
                         onPress={() => {
+                          setSelectedFavoriteId(null);
                           setCategoryFamilyId(parent.id);
                           if (selectedFamily?.id !== parent.id) setCategoryId('');
                         }}
@@ -423,14 +440,20 @@ export default function NewTransactionScreen() {
                         label={category.name}
                         selected={categoryId === category.id}
                         color={category.color}
-                        onPress={() => setCategoryId(category.id)}
+                        onPress={() => {
+                          setSelectedFavoriteId(null);
+                          setCategoryId(category.id);
+                        }}
                       />
                     ))}
                   </View>
                 </>
               )}
               <Pressable
-                onPress={() => setCategoryId('category-other')}
+                onPress={() => {
+                  setSelectedFavoriteId(null);
+                  setCategoryId('category-other');
+                }}
                 style={styles.classifyLater}
               >
                 <Text style={styles.classifyLaterText}>No aparece: guardar por clasificar</Text>

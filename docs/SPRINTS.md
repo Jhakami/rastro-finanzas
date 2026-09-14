@@ -26,16 +26,18 @@ POCO X7 Pro con Android 16. El ajuste posterior a celdas de 50 m se valida como 
 
 Seguimiento: [#6](https://github.com/Jhakami/rastro-finanzas/issues/6).
 
-## Sprint 2 — Parametrización completa · 40 % · En curso
+## Sprint 2 — Parametrización completa · 45 % · En curso
 
 - Crear, editar, ordenar, archivar y restaurar cuentas.
 - Categorías jerárquicas: catálogo inicial detallado, búsqueda, selección por familia y
   creación inmediata de subcategorías propias implementadas.
 - Pendiente del CRUD de categorías: editar, ordenar, archivar y restaurar; además de etiquetas.
-- CRUD de favoritos con monto fijo, sugerido o variable.
+- Los favoritos resaltan la selección, completan cuenta/familia/categoría y suben de posición
+  según su uso. Falta su CRUD con monto fijo, sugerido o variable.
 - Conciliación guiada con motivo y vista de auditoría.
-- Límites mensuales generales y por categoría con umbral de aviso configurable ya
-  implementados. Falta la selección por cuenta y una administración más completa.
+- Límites mensuales generales y por familia con umbral de aviso configurable ya implementados.
+  Cada familia suma sus categorías hijas. Falta la selección por cuenta y una administración más
+  completa.
 
 Seguimiento: [#7](https://github.com/Jhakami/rastro-finanzas/issues/7), [#8](https://github.com/Jhakami/rastro-finanzas/issues/8), [#9](https://github.com/Jhakami/rastro-finanzas/issues/9), [#10](https://github.com/Jhakami/rastro-finanzas/issues/10) y [#11](https://github.com/Jhakami/rastro-finanzas/issues/11).
 
@@ -50,11 +52,11 @@ sprint.
 | ------------ | -----: | ------------------------------------------------------------ |
 | Sprint 0     |  100 % | Cerrado                                                      |
 | Sprint 1     |  100 % | Cerrado en dispositivo                                       |
-| Sprint 2     |   40 % | CRUD de categorías, cuentas, favoritos y conciliación        |
+| Sprint 2     |   45 % | CRUD de categorías, cuentas, favoritos y conciliación        |
 | Sprint 3     |    0 % | Aún no iniciado                                              |
-| Sprint 4     |   35 % | Validar gráficos y patrones nuevos; faltan periodos globales |
+| Sprint 4     |   40 % | Validar interacción; faltan periodos globales y detalle      |
 | Sprint 5     |    0 % | Aún no iniciado                                              |
-| MVP completo |   46 % | Promedio simple de los seis sprints; no representa una fecha |
+| MVP completo |   48 % | Promedio simple de los seis sprints; no representa una fecha |
 
 La guía de comprobación de cada incremento está en
 [`DEVICE_VALIDATION.md`](./DEVICE_VALIDATION.md).
@@ -68,10 +70,11 @@ La guía de comprobación de cada incremento está en
 
 Seguimiento: [#12](https://github.com/Jhakami/rastro-finanzas/issues/12), [#13](https://github.com/Jhakami/rastro-finanzas/issues/13), [#14](https://github.com/Jhakami/rastro-finanzas/issues/14) y [#15](https://github.com/Jhakami/rastro-finanzas/issues/15).
 
-## Sprint 4 — Análisis avanzado · 35 % · En curso
+## Sprint 4 — Análisis avanzado · 40 % · En curso
 
 - Implementado: dona por categoría específica, tendencia de área o barras en 7/14/30 días y
-  dispersión monto-hora con muestra mínima.
+  dispersión monto-hora con muestra mínima. Cada segmento, barra o punto permite consultar su
+  valor y la dispersión explica sus colores relativos.
 - Implementado: promedio histórico, gasto atípico, racha creciente, cambio de participación,
   proyección mensual y cumplimiento de límites. Sus umbrales se pueden configurar.
 - Cada hallazgo presenta periodo, muestra, evidencia y fórmula utilizada.

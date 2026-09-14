@@ -25,6 +25,7 @@ export interface CreateTransactionInput {
   location?: ApproximateCell | null;
   microOverride?: boolean | null;
   refundOfId?: string | null;
+  favoriteId?: string | null;
 }
 
 export interface SaveSpendingLimitInput {
@@ -308,13 +309,19 @@ export class LocalRepository {
         now,
         now,
       );
+      if (input.favoriteId) {
+        await db.runAsync(
+          'UPDATE favorites SET usage_count=usage_count+1 WHERE id=? AND is_archived=0',
+          input.favoriteId,
+        );
+      }
       await db.runAsync(
         'INSERT INTO audit_events(id,entity_type,entity_id,action,payload,occurred_at) VALUES(?,?,?,?,?,?)',
         Crypto.randomUUID(),
         'transaction',
         id,
         'created',
-        JSON.stringify({ kind: input.kind }),
+        JSON.stringify({ kind: input.kind, favoriteId: input.favoriteId ?? null }),
         now,
       );
     });

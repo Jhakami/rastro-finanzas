@@ -192,7 +192,7 @@ export default function DashboardScreen() {
                   <Text style={styles.summaryLabel}>TOTAL DEL MES</Text>
                   <Text style={styles.summaryValue}>{formatPEN(expenseTotal)}</Text>
                   <Text style={styles.evidence}>
-                    Toca una categoría en Movimientos para revisar el respaldo.
+                    Toca una sección de la dona para ver su categoría y monto.
                   </Text>
                 </View>
               </View>
@@ -266,6 +266,7 @@ export default function DashboardScreen() {
               </Pressable>
             ))}
           </View>
+          <Text style={styles.chartHint}>Toca una barra o punto para consultar el monto.</Text>
           {dailyTrend.some((point) => point.amountCents > 0) ? (
             trendMode === 'area' ? (
               <AreaTrendChart data={trendData} />
@@ -280,7 +281,7 @@ export default function DashboardScreen() {
           <Text style={styles.cardKicker}>Dispersión</Text>
           <Text style={styles.cardTitle}>Monto según hora de compra</Text>
           <Text style={styles.evidence}>
-            Hasta 30 gastos del mes · arriba significa mayor monto.
+            Hasta 30 gastos del mes · toca un punto para ver monto y hora.
           </Text>
           {scatter.length >= 3 ? (
             <ScatterChart
@@ -295,6 +296,20 @@ export default function DashboardScreen() {
               Se necesitan al menos 3 gastos para evitar conclusiones engañosas.
             </Text>
           )}
+          {scatter.length >= 3 ? (
+            <View style={styles.scatterLegend}>
+              {[
+                [colors.teal, 'Monto bajo'],
+                [colors.blue, 'Monto medio'],
+                [colors.pink, 'Monto alto'],
+              ].map(([color, label]) => (
+                <View key={label} style={styles.legendItem}>
+                  <View style={[styles.legendDot, { backgroundColor: color }]} />
+                  <Text style={styles.legendText}>{label}</Text>
+                </View>
+              ))}
+            </View>
+          ) : null}
         </Card>
         <View style={styles.sectionHeader}>
           <Text style={styles.sectionTitle}>Patrones verificables</Text>
@@ -419,6 +434,10 @@ const styles = StyleSheet.create({
   periodChipActive: { backgroundColor: colors.blue },
   periodText: { color: colors.muted, fontSize: 11, fontWeight: '800' },
   periodTextActive: { color: colors.crust },
+  chartHint: { color: colors.muted, fontSize: 11, marginTop: 9 },
+  scatterLegend: { flexDirection: 'row', flexWrap: 'wrap', gap: 12, marginTop: 4 },
+  legendItem: { flexDirection: 'row', alignItems: 'center', gap: 5 },
+  legendText: { color: colors.muted, fontSize: 10, fontWeight: '700' },
   sectionHeader: { flexDirection: 'row', alignItems: 'baseline', justifyContent: 'space-between' },
   link: { color: colors.green, fontWeight: '800' },
   insight: { gap: 7 },
