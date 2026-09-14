@@ -62,3 +62,54 @@ describe('LocalRepository.createTransaction', () => {
     );
   });
 });
+
+describe('LocalRepository.listFavorites', () => {
+  it('prioriza categorías frecuentes reales y completa hasta tres con accesos iniciales', async () => {
+    const getAllAsync = jest
+      .fn()
+      .mockResolvedValueOnce([
+        {
+          id: 'adaptive-category-games',
+          name: 'Videojuegos',
+          accountId: 'account-bank',
+          categoryId: 'category-games',
+          usageCount: 4,
+        },
+      ])
+      .mockResolvedValueOnce([
+        {
+          id: 'favorite-water',
+          name: 'Agua',
+          accountId: 'account-yape',
+          categoryId: 'category-food-water',
+          usageCount: 0,
+        },
+        {
+          id: 'favorite-games',
+          name: 'Juegos',
+          accountId: 'account-bank',
+          categoryId: 'category-games',
+          usageCount: 0,
+        },
+        {
+          id: 'favorite-pasaje',
+          name: 'Pasaje',
+          accountId: 'account-yape',
+          categoryId: 'category-transport-public',
+          usageCount: 0,
+        },
+      ]);
+    jest.mocked(openDatabase).mockResolvedValue({ getAllAsync } as never);
+
+    const favorites = await new LocalRepository().listFavorites();
+
+    expect(getAllAsync.mock.calls[0]?.[0]).toContain("t.kind='expense'");
+    expect(getAllAsync.mock.calls[0]?.[0]).toContain('t.deleted_at IS NULL');
+    expect(getAllAsync.mock.calls[0]?.[0]).toContain('COUNT(*) OVER');
+    expect(favorites.map((favorite) => favorite.id)).toEqual([
+      'adaptive-category-games',
+      'favorite-water',
+      'favorite-pasaje',
+    ]);
+  });
+});

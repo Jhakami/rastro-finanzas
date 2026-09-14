@@ -250,7 +250,10 @@ export default function NewTransactionScreen() {
           </View>
           {kind === 'expense' ? (
             <>
-              <Text style={styles.label}>Favoritos</Text>
+              <Text style={styles.label}>Favoritos automáticos</Text>
+              <Text style={styles.favoriteHint}>
+                Tus 3 categorías más usadas; los movimientos eliminados no cuentan.
+              </Text>
               <ScrollView
                 horizontal
                 showsHorizontalScrollIndicator={false}
@@ -259,7 +262,11 @@ export default function NewTransactionScreen() {
                 {favorites.map((favorite) => (
                   <Chip
                     key={favorite.id}
-                    label={favorite.name}
+                    label={
+                      favorite.usageCount > 0
+                        ? `${favorite.name} · ${favorite.usageCount} usos`
+                        : favorite.name
+                    }
                     selected={selectedFavoriteId === favorite.id}
                     color={
                       categories.find((category) => category.id === favorite.categoryId)?.color ??
@@ -638,6 +645,7 @@ const styles = StyleSheet.create({
   },
   categoryHint: { color: colors.muted, fontSize: 12, lineHeight: 18, marginVertical: 9 },
   favoriteApplied: { color: colors.green, fontSize: 12, fontWeight: '700', marginTop: spacing.xs },
+  favoriteHint: { color: colors.muted, fontSize: 12, lineHeight: 18, marginBottom: spacing.xs },
   noCategoryResult: { width: '100%', gap: 6 },
   createCategory: {
     flexDirection: 'row',
