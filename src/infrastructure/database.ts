@@ -98,6 +98,9 @@ async function migrate(db: SQLite.SQLiteDatabase): Promise<void> {
   if (version < 2) {
     await migrateCategoryCatalog(db);
   }
+  if (version < 3) {
+    await migrateCatppuccinPalette(db);
+  }
 }
 
 type CategorySeed = readonly [
@@ -375,12 +378,50 @@ async function migrateCategoryCatalog(db: SQLite.SQLiteDatabase): Promise<void> 
   });
 }
 
+function categoryPaletteColor(id: string): string {
+  if (id === 'category-other') return '#7F849C';
+  if (id.startsWith('category-food')) return '#FAB387';
+  if (id.startsWith('category-transport')) return '#74C7EC';
+  if (id.startsWith('category-home')) return '#F5E0DC';
+  if (id.startsWith('category-services')) return '#F9E2AF';
+  if (id.startsWith('category-health')) return '#A6E3A1';
+  if (id.startsWith('category-education')) return '#89B4FA';
+  if (id.startsWith('category-games')) return '#CBA6F7';
+  if (id.startsWith('category-technology')) return '#89DCEB';
+  if (id.startsWith('category-personal')) return '#F5C2E7';
+  if (id.startsWith('category-family')) return '#F2CDCD';
+  if (id.startsWith('category-pets')) return '#EBA0AC';
+  if (id.startsWith('category-travel')) return '#94E2D5';
+  if (id.startsWith('category-projects')) return '#B4BEFE';
+  return '#A6ADC8';
+}
+
+async function migrateCatppuccinPalette(db: SQLite.SQLiteDatabase): Promise<void> {
+  await db.withTransactionAsync(async () => {
+    for (const item of CATEGORY_CATALOG) {
+      await db.runAsync(
+        'UPDATE categories SET color=? WHERE id=?',
+        categoryPaletteColor(item[0]),
+        item[0],
+      );
+    }
+    await db.runAsync(`
+      UPDATE categories
+      SET color=(SELECT parent.color FROM categories parent WHERE parent.id=categories.parent_id)
+      WHERE id LIKE 'category-custom-%' AND parent_id IS NOT NULL
+    `);
+    await db.runAsync("UPDATE accounts SET color='#89B4FA' WHERE id='account-bank'");
+    await db.runAsync("UPDATE accounts SET color='#A6E3A1' WHERE id='account-cash'");
+    await db.execAsync('PRAGMA user_version = 3;');
+  });
+}
+
 async function seed(db: SQLite.SQLiteDatabase): Promise<void> {
   await db.withTransactionAsync(async () => {
     const accounts = [
       ['account-yape', 'Yape', '#742284', 1, 0],
-      ['account-bank', 'Banco', '#2E5E8C', 0, 1],
-      ['account-cash', 'Efectivo', '#477A43', 0, 2],
+      ['account-bank', 'Banco', '#89B4FA', 0, 1],
+      ['account-cash', 'Efectivo', '#A6E3A1', 0, 2],
     ] as const;
     for (const item of accounts) {
       await db.runAsync(
@@ -391,7 +432,11 @@ async function seed(db: SQLite.SQLiteDatabase): Promise<void> {
     for (const item of CATEGORY_CATALOG) {
       await db.runAsync(
         'INSERT OR IGNORE INTO categories(id,name,icon,color,parent_id) VALUES(?,?,?,?,?)',
-        ...item,
+        item[0],
+        item[1],
+        item[2],
+        categoryPaletteColor(item[0]),
+        item[4],
       );
     }
     const favorites = [

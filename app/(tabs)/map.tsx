@@ -90,7 +90,7 @@ export default function MapScreen() {
           <View style={styles.mapWrap}>
             <MapLibreMap
               style={styles.map}
-              mapStyle="https://tiles.openfreemap.org/styles/positron"
+              mapStyle="https://tiles.openfreemap.org/styles/dark"
               attribution
               logo={false}
             >
@@ -108,20 +108,20 @@ export default function MapScreen() {
                       ['linear'],
                       ['heatmap-density'],
                       0,
-                      'rgba(23,107,77,0)',
+                      'rgba(148,226,213,0)',
                       0.35,
-                      '#D6F06F',
+                      colors.sky,
                       0.65,
-                      '#F0A34A',
+                      colors.peach,
                       1,
-                      '#B8493E',
+                      colors.red,
                     ],
                   }}
                 />
               </GeoJSONSource>
             </MapLibreMap>
             <View style={styles.privacy}>
-              <Text style={styles.privacyText}>Solo celdas aproximadas de 200 m</Text>
+              <Text style={styles.privacyText}>Solo celdas aproximadas de 50 m</Text>
             </View>
           </View>
         ) : (
@@ -132,7 +132,7 @@ export default function MapScreen() {
                 <View style={styles.zoneText}>
                   <Text style={styles.zoneTitle}>{zone.label}</Text>
                   <Text style={styles.zoneMeta}>
-                    {zone.count} compra{zone.count === 1 ? '' : 's'} · celda de 200 m
+                    {zone.count} compra{zone.count === 1 ? '' : 's'} · celda de 50 m
                   </Text>
                 </View>
                 <Text style={styles.zoneAmount}>{formatPEN(zone.amount)}</Text>
@@ -162,7 +162,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     left: 12,
     bottom: 24,
-    backgroundColor: '#17211BDD',
+    backgroundColor: '#11111BDD',
     borderRadius: radius.pill,
     paddingHorizontal: 12,
     paddingVertical: 8,

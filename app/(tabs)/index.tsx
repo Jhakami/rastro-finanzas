@@ -1,19 +1,32 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { Link } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { getCategoryParent, getCategoryPath } from '@/domain/categories';
+import { buildDailyExpenseTrend } from '@/application/analytics';
 import { formatPEN } from '@/domain/money';
 import { Card, EmptyState, LoadingView, MetricCard, ScreenHeader } from '@/presentation/components';
+import { AreaTrendChart, DonutChart, PastelBarChart, ScatterChart } from '@/presentation/charts';
 import { useFinance } from '@/presentation/finance-provider';
 import { colors, radius, spacing } from '@/theme';
 
 const weekdays = ['domingo', 'lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado'];
+const weekdayShort = ['D', 'L', 'M', 'X', 'J', 'V', 'S'];
 
 export default function DashboardScreen() {
-  const { accounts, balances, metrics, insights, categories, monthlyTransactions, loading, error } =
-    useFinance();
+  const [trendDays, setTrendDays] = useState<7 | 14 | 30>(7);
+  const [trendMode, setTrendMode] = useState<'area' | 'bars'>('area');
+  const {
+    accounts,
+    balances,
+    metrics,
+    insights,
+    categories,
+    transactions,
+    monthlyTransactions,
+    loading,
+    error,
+  } = useFinance();
   const totalBalance = Object.values(balances).reduce((sum, value) => sum + value, 0);
   const pendingClassification = monthlyTransactions.filter(
     (item) => item.kind === 'expense' && item.categoryId === 'category-other',
@@ -24,11 +37,10 @@ export default function DashboardScreen() {
       .filter((item) => item.kind === 'expense')
       .forEach((item) => {
         if (item.categoryId) {
-          const familyId = getCategoryParent(item.categoryId, categories)?.id ?? item.categoryId;
-          totals.set(familyId, (totals.get(familyId) ?? 0) + item.amountCents);
+          totals.set(item.categoryId, (totals.get(item.categoryId) ?? 0) + item.amountCents);
         }
       });
-    const rows = [...totals.entries()].sort((a, b) => b[1] - a[1]).slice(0, 4);
+    const rows = [...totals.entries()].sort((a, b) => b[1] - a[1]);
     const maximum = rows[0]?.[1] ?? 1;
     return rows.map(([categoryId, amount]) => ({
       category: categories.find((item) => item.id === categoryId),
@@ -36,6 +48,37 @@ export default function DashboardScreen() {
       width: `${Math.max(8, (amount / maximum) * 100)}%` as `${number}%`,
     }));
   }, [categories, monthlyTransactions]);
+  const expenseTotal = categoryBars.reduce((sum, row) => sum + row.amount, 0);
+  const dailyTrend = useMemo(
+    () => buildDailyExpenseTrend(transactions, trendDays),
+    [transactions, trendDays],
+  );
+  const trendData = dailyTrend.map((point) => ({
+    label:
+      trendDays === 7
+        ? (weekdayShort[point.weekday] ?? '?')
+        : String(Number(point.dateKey.slice(-2))),
+    value: point.amountCents,
+    color: point.count > 1 ? colors.mauve : colors.blue,
+  }));
+  const scatter = useMemo(
+    () =>
+      monthlyTransactions
+        .filter((item) => item.kind === 'expense')
+        .slice(0, 30)
+        .map((item) => {
+          const date = new Date(item.occurredAt);
+          return {
+            id: item.id,
+            amountCents: item.amountCents,
+            hour: date.getHours() + date.getMinutes() / 60,
+          };
+        }),
+    [monthlyTransactions],
+  );
+  const topCategoryName = metrics.topCategoryId
+    ? (categories.find((item) => item.id === metrics.topCategoryId)?.name ?? 'Sin categoría')
+    : 'Sin datos';
 
   if (loading) return <LoadingView />;
 
@@ -48,7 +91,7 @@ export default function DashboardScreen() {
           action={
             <Link href="/new" asChild>
               <Pressable accessibilityLabel="Registrar movimiento" style={styles.add}>
-                <Ionicons name="add" size={26} color={colors.white} />
+                <Ionicons name="add" size={26} color={colors.onAccent} />
               </Pressable>
             </Link>
           }
@@ -107,11 +150,7 @@ export default function DashboardScreen() {
           </View>
           <View style={styles.factRow}>
             <Text style={styles.factLabel}>Categoría principal</Text>
-            <Text style={styles.factValue}>
-              {metrics.topCategoryId
-                ? getCategoryPath(metrics.topCategoryId, categories)
-                : 'Sin datos'}
-            </Text>
+            <Text style={styles.factValue}>{topCategoryName}</Text>
           </View>
           <View style={styles.factRow}>
             <Text style={styles.factLabel}>Hora con más compras</Text>
@@ -135,15 +174,44 @@ export default function DashboardScreen() {
           ) : null}
         </Card>
         <Card>
-          <Text style={styles.cardKicker}>Distribución</Text>
-          <Text style={styles.cardTitle}>Gasto por familia</Text>
+          <Text style={styles.cardKicker}>Composición</Text>
+          <Text style={styles.cardTitle}>En qué se fue el dinero</Text>
           {categoryBars.length ? (
             <View style={styles.bars}>
+              <View style={styles.donutRow}>
+                <DonutChart
+                  data={categoryBars.map((bar) => ({
+                    label: bar.category?.name ?? 'Sin categoría',
+                    value: bar.amount,
+                    color: bar.category?.color ?? colors.green,
+                  }))}
+                  centerValue={categoryBars.length.toString()}
+                  centerLabel={categoryBars.length === 1 ? 'categoría' : 'categorías'}
+                />
+                <View style={styles.donutSummary}>
+                  <Text style={styles.summaryLabel}>TOTAL DEL MES</Text>
+                  <Text style={styles.summaryValue}>{formatPEN(expenseTotal)}</Text>
+                  <Text style={styles.evidence}>
+                    Toca una categoría en Movimientos para revisar el respaldo.
+                  </Text>
+                </View>
+              </View>
               {categoryBars.map((bar) => (
                 <View key={bar.category?.id ?? 'unknown'}>
                   <View style={styles.barLabel}>
-                    <Text style={styles.factLabel}>{bar.category?.name ?? 'Sin categoría'}</Text>
-                    <Text style={styles.factValue}>{formatPEN(bar.amount)}</Text>
+                    <View style={styles.legendLabel}>
+                      <View
+                        style={[
+                          styles.legendDot,
+                          { backgroundColor: bar.category?.color ?? colors.green },
+                        ]}
+                      />
+                      <Text style={styles.factLabel}>{bar.category?.name ?? 'Sin categoría'}</Text>
+                    </View>
+                    <Text style={styles.factValue}>
+                      {expenseTotal ? `${Math.round((bar.amount / expenseTotal) * 100)} %` : '0 %'}{' '}
+                      · {formatPEN(bar.amount)}
+                    </Text>
                   </View>
                   <View style={styles.barTrack}>
                     <View
@@ -161,6 +229,71 @@ export default function DashboardScreen() {
             </View>
           ) : (
             <Text style={styles.evidence}>Registra gastos para ver la distribución.</Text>
+          )}
+        </Card>
+        <Card>
+          <View style={styles.chartHeader}>
+            <View>
+              <Text style={styles.cardKicker}>Tendencia</Text>
+              <Text style={styles.cardTitle}>Evolución del gasto diario</Text>
+            </View>
+            <View style={styles.modeRow}>
+              {(['area', 'bars'] as const).map((mode) => (
+                <Pressable
+                  key={mode}
+                  onPress={() => setTrendMode(mode)}
+                  style={[styles.iconToggle, trendMode === mode && styles.toggleActive]}
+                >
+                  <Ionicons
+                    name={mode === 'area' ? 'trending-up' : 'bar-chart'}
+                    size={16}
+                    color={trendMode === mode ? colors.crust : colors.muted}
+                  />
+                </Pressable>
+              ))}
+            </View>
+          </View>
+          <View style={styles.periodRow}>
+            {([7, 14, 30] as const).map((days) => (
+              <Pressable
+                key={days}
+                onPress={() => setTrendDays(days)}
+                style={[styles.periodChip, trendDays === days && styles.periodChipActive]}
+              >
+                <Text style={[styles.periodText, trendDays === days && styles.periodTextActive]}>
+                  {days} días
+                </Text>
+              </Pressable>
+            ))}
+          </View>
+          {dailyTrend.some((point) => point.amountCents > 0) ? (
+            trendMode === 'area' ? (
+              <AreaTrendChart data={trendData} />
+            ) : (
+              <PastelBarChart data={trendData} />
+            )
+          ) : (
+            <Text style={styles.evidence}>Registra gastos para observar su evolución diaria.</Text>
+          )}
+        </Card>
+        <Card>
+          <Text style={styles.cardKicker}>Dispersión</Text>
+          <Text style={styles.cardTitle}>Monto según hora de compra</Text>
+          <Text style={styles.evidence}>
+            Hasta 30 gastos del mes · arriba significa mayor monto.
+          </Text>
+          {scatter.length >= 3 ? (
+            <ScatterChart
+              points={scatter.map((point) => ({
+                id: point.id,
+                x: point.hour,
+                y: point.amountCents,
+              }))}
+            />
+          ) : (
+            <Text style={styles.evidence}>
+              Se necesitan al menos 3 gastos para evitar conclusiones engañosas.
+            </Text>
           )}
         </Card>
         <View style={styles.sectionHeader}>
@@ -241,11 +374,23 @@ const styles = StyleSheet.create({
     borderBottomWidth: StyleSheet.hairlineWidth,
     borderColor: colors.line,
   },
-  factLabel: { color: colors.muted },
-  factValue: { color: colors.ink, fontWeight: '800' },
+  factLabel: { color: colors.muted, flexShrink: 1 },
+  factValue: {
+    color: colors.ink,
+    fontWeight: '800',
+    textAlign: 'right',
+    flexShrink: 1,
+    marginLeft: 12,
+  },
   warningValue: { color: colors.red, fontWeight: '900' },
   bars: { gap: 13, marginTop: 16 },
+  donutRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+  donutSummary: { flex: 1, gap: 5 },
+  summaryLabel: { color: colors.muted, fontSize: 10, fontWeight: '900', letterSpacing: 0.8 },
+  summaryValue: { color: colors.ink, fontSize: 22, fontWeight: '900' },
   barLabel: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 6 },
+  legendLabel: { flexDirection: 'row', alignItems: 'center', gap: 7, flex: 1 },
+  legendDot: { width: 9, height: 9, borderRadius: 5 },
   barTrack: {
     height: 9,
     borderRadius: 5,
@@ -253,6 +398,27 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   barFill: { height: 9, borderRadius: 5 },
+  chartHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  modeRow: { flexDirection: 'row', gap: 6 },
+  iconToggle: {
+    width: 34,
+    height: 34,
+    borderRadius: 11,
+    backgroundColor: colors.surface1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  toggleActive: { backgroundColor: colors.mauve },
+  periodRow: { flexDirection: 'row', gap: 7, marginTop: 14 },
+  periodChip: {
+    paddingHorizontal: 11,
+    paddingVertical: 7,
+    borderRadius: radius.pill,
+    backgroundColor: colors.surface1,
+  },
+  periodChipActive: { backgroundColor: colors.blue },
+  periodText: { color: colors.muted, fontSize: 11, fontWeight: '800' },
+  periodTextActive: { color: colors.crust },
   sectionHeader: { flexDirection: 'row', alignItems: 'baseline', justifyContent: 'space-between' },
   link: { color: colors.green, fontWeight: '800' },
   insight: { gap: 7 },

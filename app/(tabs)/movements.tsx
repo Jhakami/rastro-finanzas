@@ -39,7 +39,7 @@ export default function MovementsScreen() {
           action={
             <Link href="/new" asChild>
               <Pressable style={styles.add}>
-                <Ionicons name="add" size={24} color={colors.white} />
+                <Ionicons name="add" size={24} color={colors.onAccent} />
               </Pressable>
             </Link>
           }
@@ -56,6 +56,7 @@ export default function MovementsScreen() {
         </View>
         <ScrollView
           horizontal
+          style={styles.filterScroller}
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={styles.filters}
         >
@@ -75,7 +76,7 @@ export default function MovementsScreen() {
             />
           ))}
         </ScrollView>
-        <ScrollView contentContainerStyle={styles.list}>
+        <ScrollView style={styles.listScroller} contentContainerStyle={styles.list}>
           {visible.length ? (
             visible.map((item) => {
               const account = accounts.find((candidate) => candidate.id === item.accountId);
@@ -170,15 +171,17 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
   },
   searchInput: { flex: 1, color: colors.ink, paddingVertical: 13, marginLeft: 8 },
-  filters: { gap: 8, paddingVertical: 12 },
+  filterScroller: { flexGrow: 0, flexShrink: 0, height: 54 },
+  filters: { gap: 8, paddingVertical: 8, alignItems: 'center' },
+  listScroller: { flex: 1 },
   list: { gap: 8, paddingBottom: 100 },
   row: { flexDirection: 'row', alignItems: 'center', padding: 12 },
   icon: { width: 42, height: 42, borderRadius: 14, alignItems: 'center', justifyContent: 'center' },
-  rowText: { flex: 1, marginLeft: 11 },
+  rowText: { flex: 1, minWidth: 0, marginLeft: 11, marginRight: 8 },
   rowTitle: { color: colors.ink, fontWeight: '800' },
   rowMeta: { color: colors.muted, fontSize: 12, marginTop: 4 },
   categoryPath: { color: colors.green, fontSize: 11, marginTop: 3, fontWeight: '700' },
-  amount: { color: colors.red, fontWeight: '900', fontSize: 14 },
+  amount: { color: colors.red, fontWeight: '900', fontSize: 14, flexShrink: 0 },
   income: { color: colors.green },
   tip: { color: colors.muted, textAlign: 'center', fontSize: 12, padding: spacing.md },
 });

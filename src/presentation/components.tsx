@@ -84,21 +84,35 @@ export function Chip({
   selected,
   onPress,
   color,
+  variant = 'default',
 }: {
   label: string;
   selected?: boolean;
   onPress(): void;
   color?: string;
+  variant?: 'default' | 'family';
 }) {
   return (
     <Pressable
       onPress={onPress}
       style={[
         styles.chip,
+        variant === 'family' && {
+          backgroundColor: `${color ?? colors.mauve}22`,
+          borderColor: color ?? colors.mauve,
+        },
         selected && { backgroundColor: color ?? colors.green, borderColor: color ?? colors.green },
       ]}
     >
-      <Text style={[styles.chipText, selected && styles.chipTextSelected]}>{label}</Text>
+      <Text
+        style={[
+          styles.chipText,
+          variant === 'family' && { color: color ?? colors.mauve },
+          selected && styles.chipTextSelected,
+        ]}
+      >
+        {label}
+      </Text>
     </Pressable>
   );
 }
@@ -135,13 +149,13 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.line,
   },
-  metricDark: { backgroundColor: colors.ink, borderColor: colors.ink },
+  metricDark: { backgroundColor: colors.mantle, borderColor: colors.surface1 },
   metricGreen: { backgroundColor: colors.greenSoft, borderColor: colors.greenSoft },
   metricLabel: { color: colors.muted, fontSize: 12, fontWeight: '700' },
   metricValue: { color: colors.ink, fontSize: 22, fontWeight: '800', marginTop: 8 },
   metricHint: { color: colors.muted, fontSize: 12, marginTop: 4 },
   onDark: { color: colors.white },
-  onDarkMuted: { color: '#B9C5BD' },
+  onDarkMuted: { color: colors.subtext0 },
   empty: { alignItems: 'center', padding: spacing.xl },
   emptyIcon: {
     width: 48,
@@ -161,6 +175,11 @@ const styles = StyleSheet.create({
   },
   loading: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: spacing.sm },
   chip: {
+    flexGrow: 0,
+    flexShrink: 0,
+    alignSelf: 'flex-start',
+    minHeight: 38,
+    justifyContent: 'center',
     paddingHorizontal: 14,
     paddingVertical: 9,
     borderRadius: radius.pill,
@@ -169,5 +188,5 @@ const styles = StyleSheet.create({
     backgroundColor: colors.surface,
   },
   chipText: { color: colors.ink, fontSize: 13, fontWeight: '700' },
-  chipTextSelected: { color: colors.white },
+  chipTextSelected: { color: colors.onAccent },
 });

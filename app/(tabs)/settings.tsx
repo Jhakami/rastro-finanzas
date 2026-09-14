@@ -11,10 +11,11 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import * as LocalAuthentication from 'expo-local-authentication';
+import { publishBiometricPreference } from '@/application/biometric-lock';
 import { createEncryptedBackup } from '@/application/backup-service';
 import { exportTransactionsCsv } from '@/application/export-service';
 import { formatPEN, parseAmountToCents } from '@/domain/money';
-import { Card, ScreenHeader } from '@/presentation/components';
+import { Card, Chip, ScreenHeader } from '@/presentation/components';
 import { useFinance } from '@/presentation/finance-provider';
 import { repository } from '@/infrastructure/repository';
 import { colors, radius, spacing } from '@/theme';
@@ -25,13 +26,29 @@ export default function SettingsScreen() {
     balances,
     transactions,
     categories,
+    limits,
     microThresholdCents,
+    behaviorSettings,
     updateMicroThreshold,
+    updateBehaviorSettings,
+    saveSpendingLimit,
+    deleteSpendingLimit,
   } = useFinance();
   const [threshold, setThreshold] = useState((microThresholdCents / 100).toFixed(2));
   const [biometric, setBiometric] = useState(false);
+  const [changingBiometric, setChangingBiometric] = useState(false);
   const [backupPassword, setBackupPassword] = useState('');
   const [busy, setBusy] = useState(false);
+  const [historyMonths, setHistoryMonths] = useState<3 | 6>(behaviorSettings.historyMonths);
+  const [elevatedPercent, setElevatedPercent] = useState(String(behaviorSettings.elevatedPercent));
+  const [outlierSigma, setOutlierSigma] = useState(
+    String(behaviorSettings.outlierStandardDeviations),
+  );
+  const [growthMonths, setGrowthMonths] = useState(String(behaviorSettings.growthMonths));
+  const [sharePoints, setSharePoints] = useState(String(behaviorSettings.shareIncreasePoints));
+  const [limitAmount, setLimitAmount] = useState('');
+  const [limitWarning, setLimitWarning] = useState('80');
+  const [limitCategoryId, setLimitCategoryId] = useState<string | null>(null);
   useEffect(() => {
     repository
       .getSetting('biometricEnabled', 'false')
@@ -39,17 +56,30 @@ export default function SettingsScreen() {
   }, []);
 
   async function toggleBiometric(value: boolean) {
-    if (value) {
-      const available =
-        (await LocalAuthentication.hasHardwareAsync()) &&
-        (await LocalAuthentication.isEnrolledAsync());
-      if (!available) {
-        Alert.alert('Biometría no disponible', 'Configura huella o bloqueo seguro en Android.');
-        return;
+    setChangingBiometric(true);
+    try {
+      if (value) {
+        const available =
+          (await LocalAuthentication.hasHardwareAsync()) &&
+          (await LocalAuthentication.isEnrolledAsync());
+        if (!available) {
+          Alert.alert('Biometría no disponible', 'Configura huella o bloqueo seguro en Android.');
+          return;
+        }
+        const result = await LocalAuthentication.authenticateAsync({
+          promptMessage: 'Confirma el bloqueo de Rastro',
+          fallbackLabel: 'Usar PIN del dispositivo',
+        });
+        if (!result.success) return;
       }
+      await repository.setSetting('biometricEnabled', String(value));
+      setBiometric(value);
+      publishBiometricPreference(value);
+    } catch {
+      Alert.alert('No se cambió la biometría', 'Intenta nuevamente.');
+    } finally {
+      setChangingBiometric(false);
     }
-    await repository.setSetting('biometricEnabled', String(value));
-    setBiometric(value);
   }
   async function saveThreshold() {
     const cents = parseAmountToCents(threshold);
@@ -62,6 +92,33 @@ export default function SettingsScreen() {
       'Guardado',
       `Las compras de hasta ${formatPEN(cents)} se analizarán como pequeñas.`,
     );
+  }
+  async function saveAnalysisSettings() {
+    await updateBehaviorSettings({
+      historyMonths,
+      elevatedPercent: Number(elevatedPercent),
+      outlierStandardDeviations: Number(outlierSigma),
+      growthMonths: Number(growthMonths),
+      shareIncreasePoints: Number(sharePoints),
+    });
+    Alert.alert('Análisis actualizado', 'Los hallazgos se recalcularon con tus parámetros.');
+  }
+
+  async function saveLimit() {
+    const amountCents = parseAmountToCents(limitAmount);
+    if (!amountCents || amountCents <= 0) {
+      Alert.alert('Límite inválido', 'Ingresa un monto mayor que cero.');
+      return;
+    }
+    const category = categories.find((item) => item.id === limitCategoryId);
+    await saveSpendingLimit({
+      name: category ? `Límite de ${category.name}` : 'Límite general',
+      amountCents,
+      categoryId: limitCategoryId,
+      warningPercent: Number(limitWarning),
+    });
+    setLimitAmount('');
+    Alert.alert('Límite guardado', 'Se evaluará cada mes y aparecerá en Patrones.');
   }
   async function backup() {
     setBusy(true);
@@ -97,6 +154,104 @@ export default function SettingsScreen() {
             </View>
           ))}
         </Card>
+        <Card>
+          <Text style={styles.label}>Reglas de patrones</Text>
+          <Text style={styles.hint}>
+            Se exigen al menos 10 movimientos en 3 días antes de concluir un patrón.
+          </Text>
+          <Text style={styles.miniLabel}>Historial de comparación</Text>
+          <View style={styles.chips}>
+            {[3, 6].map((months) => (
+              <Chip
+                key={months}
+                label={`${months} meses`}
+                selected={historyMonths === months}
+                onPress={() => setHistoryMonths(months as 3 | 6)}
+              />
+            ))}
+          </View>
+          <View style={styles.parameterGrid}>
+            <ParameterInput
+              label="Gasto elevado (%)"
+              value={elevatedPercent}
+              onChangeText={setElevatedPercent}
+            />
+            <ParameterInput
+              label="Atípico (σ)"
+              value={outlierSigma}
+              onChangeText={setOutlierSigma}
+            />
+            <ParameterInput
+              label="Racha (meses)"
+              value={growthMonths}
+              onChangeText={setGrowthMonths}
+            />
+            <ParameterInput
+              label="Cambio de peso (p.p.)"
+              value={sharePoints}
+              onChangeText={setSharePoints}
+            />
+          </View>
+          <Pressable onPress={() => void saveAnalysisSettings()} style={styles.primaryButton}>
+            <Text style={styles.primaryText}>Guardar reglas de análisis</Text>
+          </Pressable>
+        </Card>
+        <Card>
+          <Text style={styles.label}>Límites mensuales</Text>
+          <Text style={styles.hint}>
+            Configura un límite general o elige una categoría específica.
+          </Text>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.limitScopes}
+          >
+            <Chip
+              label="General"
+              selected={limitCategoryId === null}
+              onPress={() => setLimitCategoryId(null)}
+            />
+            {categories
+              .filter((item) => item.parentId)
+              .map((category) => (
+                <Chip
+                  key={category.id}
+                  label={category.name}
+                  color={category.color}
+                  selected={limitCategoryId === category.id}
+                  onPress={() => setLimitCategoryId(category.id)}
+                />
+              ))}
+          </ScrollView>
+          <View style={styles.parameterGrid}>
+            <ParameterInput label="Monto S/" value={limitAmount} onChangeText={setLimitAmount} />
+            <ParameterInput
+              label="Avisar al (%)"
+              value={limitWarning}
+              onChangeText={setLimitWarning}
+            />
+          </View>
+          <Pressable onPress={() => void saveLimit()} style={styles.primaryButton}>
+            <Text style={styles.primaryText}>Guardar límite</Text>
+          </Pressable>
+          {limits.map((limit) => (
+            <View key={limit.id} style={[styles.limitRow, styles.divider]}>
+              <View style={styles.grow}>
+                <Text style={styles.label}>{limit.name}</Text>
+                <Text style={styles.hint}>
+                  {formatPEN(limit.amountCents)} · aviso al {limit.warningPercent}%
+                </Text>
+              </View>
+              <Pressable
+                accessibilityLabel={`Eliminar ${limit.name}`}
+                onPress={() => void deleteSpendingLimit(limit.id)}
+                style={styles.deleteButton}
+              >
+                <Text style={styles.deleteText}>Eliminar</Text>
+              </Pressable>
+            </View>
+          ))}
+        </Card>
         <Text style={styles.section}>Análisis</Text>
         <Card>
           <Text style={styles.label}>Umbral de compras pequeñas</Text>
@@ -125,16 +280,18 @@ export default function SettingsScreen() {
             </View>
             <Switch
               value={biometric}
+              disabled={changingBiometric}
               onValueChange={(value) => void toggleBiometric(value)}
-              trackColor={{ true: colors.greenSoft }}
-              thumbColor={biometric ? colors.green : '#AAA'}
+              trackColor={{ false: colors.line, true: colors.accentActive }}
+              thumbColor={biometric ? colors.accent : colors.muted}
             />
           </View>
           <View style={[styles.switchRow, styles.divider]}>
             <View style={styles.grow}>
               <Text style={styles.label}>Ubicación responsable</Text>
               <Text style={styles.hint}>
-                Solo permiso aproximado al guardar; nunca en segundo plano.
+                Se usa precisión solo al guardar y se descarta al crear una celda de 50 m; nunca en
+                segundo plano.
               </Text>
             </View>
             <Text style={styles.ok}>ACTIVA</Text>
@@ -192,9 +349,31 @@ export default function SettingsScreen() {
             <Text style={styles.primaryText}>{busy ? 'Cifrando…' : 'Crear copia .finbackup'}</Text>
           </Pressable>
         </Card>
-        <Text style={styles.version}>Rastro 0.1.0 · local-first · PEN</Text>
+        <Text style={styles.version}>Rastro 0.1.4 · local-first · PEN</Text>
       </ScrollView>
     </SafeAreaView>
+  );
+}
+
+function ParameterInput({
+  label,
+  value,
+  onChangeText,
+}: {
+  label: string;
+  value: string;
+  onChangeText(value: string): void;
+}) {
+  return (
+    <View style={styles.parameter}>
+      <Text style={styles.miniLabel}>{label}</Text>
+      <TextInput
+        value={value}
+        onChangeText={onChangeText}
+        keyboardType="decimal-pad"
+        style={styles.parameterInput}
+      />
+    </View>
   );
 }
 
@@ -215,6 +394,24 @@ const styles = StyleSheet.create({
   },
   label: { color: colors.ink, fontWeight: '800' },
   inline: { flexDirection: 'row', gap: 10, marginTop: 12 },
+  chips: { flexDirection: 'row', gap: 8, marginTop: 8 },
+  miniLabel: { color: colors.muted, fontSize: 11, fontWeight: '800', marginTop: 14 },
+  parameterGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 9, marginTop: 2 },
+  parameter: { width: '48%', flexGrow: 1 },
+  parameterInput: {
+    color: colors.ink,
+    backgroundColor: colors.canvas,
+    borderWidth: 1,
+    borderColor: colors.line,
+    borderRadius: radius.sm,
+    padding: 11,
+    marginTop: 5,
+    fontWeight: '800',
+  },
+  limitScopes: { gap: 8, paddingVertical: 12, paddingRight: 12 },
+  limitRow: { flexDirection: 'row', alignItems: 'center' },
+  deleteButton: { padding: 8 },
+  deleteText: { color: colors.red, fontSize: 12, fontWeight: '800' },
   inputWrap: {
     flex: 1,
     flexDirection: 'row',
@@ -229,11 +426,11 @@ const styles = StyleSheet.create({
   input: { flex: 1, padding: 11, color: colors.ink, fontWeight: '800' },
   smallButton: {
     justifyContent: 'center',
-    backgroundColor: colors.ink,
+    backgroundColor: colors.primary,
     borderRadius: radius.sm,
     paddingHorizontal: 16,
   },
-  smallButtonText: { color: colors.white, fontWeight: '800' },
+  smallButtonText: { color: colors.onAccent, fontWeight: '800' },
   switchRow: { flexDirection: 'row', alignItems: 'center' },
   ok: { color: colors.green, fontSize: 10, fontWeight: '900' },
   buttonStack: { gap: 8, marginTop: 12 },
@@ -261,6 +458,6 @@ const styles = StyleSheet.create({
     backgroundColor: colors.green,
     borderRadius: radius.sm,
   },
-  primaryText: { color: colors.white, fontWeight: '900' },
+  primaryText: { color: colors.onAccent, fontWeight: '900' },
   version: { color: colors.muted, fontSize: 11, textAlign: 'center' },
 });

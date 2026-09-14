@@ -11,7 +11,7 @@ El seguimiento operativo se realiza mediante los [hitos](https://github.com/Jhak
 - SQLite con SQLCipher, SecureStore, migración y auditoría.
 - Calidad automática, Dependabot y documentación RUP/ADR.
 
-## Sprint 1 — Trazabilidad diaria · Hecho, pendiente de prueba en dispositivo
+## Sprint 1 — Trazabilidad diaria · 100 % · Hecho
 
 - Yape como cuenta principal, banco y efectivo.
 - Gastos, ingresos variables y transferencias.
@@ -21,11 +21,12 @@ El seguimiento operativo se realiza mediante los [hitos](https://github.com/Jhak
 - Ubicación aproximada opcional, mapa de calor y lista offline.
 - Patrones con evidencia mínima, CSV, biometría y copia cifrada.
 
-**Cierre pendiente:** compilar e instalar el APK con Android SDK y ejecutar el flujo Maestro en un teléfono o emulador.
+La aceptación de movimientos, biometría, tema y ubicación en primer plano se completó en un
+POCO X7 Pro con Android 16. El ajuste posterior a celdas de 50 m se valida como mejora de 0.1.3.
 
 Seguimiento: [#6](https://github.com/Jhakami/rastro-finanzas/issues/6).
 
-## Sprint 2 — Parametrización completa · En curso
+## Sprint 2 — Parametrización completa · 40 % · En curso
 
 - Crear, editar, ordenar, archivar y restaurar cuentas.
 - Categorías jerárquicas: catálogo inicial detallado, búsqueda, selección por familia y
@@ -33,9 +34,30 @@ Seguimiento: [#6](https://github.com/Jhakami/rastro-finanzas/issues/6).
 - Pendiente del CRUD de categorías: editar, ordenar, archivar y restaurar; además de etiquetas.
 - CRUD de favoritos con monto fijo, sugerido o variable.
 - Conciliación guiada con motivo y vista de auditoría.
-- Límites generales, por cuenta y por categoría con alertas configurables.
+- Límites mensuales generales y por categoría con umbral de aviso configurable ya
+  implementados. Falta la selección por cuenta y una administración más completa.
 
 Seguimiento: [#7](https://github.com/Jhakami/rastro-finanzas/issues/7), [#8](https://github.com/Jhakami/rastro-finanzas/issues/8), [#9](https://github.com/Jhakami/rastro-finanzas/issues/9), [#10](https://github.com/Jhakami/rastro-finanzas/issues/10) y [#11](https://github.com/Jhakami/rastro-finanzas/issues/11).
+
+El porcentaje es orientativo y se calcula con criterios de aceptación terminados, no por tiempo
+transcurrido. El catálogo, la navegación jerárquica, la búsqueda y la creación de una categoría
+propia están disponibles; todavía falta administrar todo su ciclo de vida y los demás módulos del
+sprint.
+
+## Estado global orientativo
+
+| Alcance      | Avance | Condición para aumentar                                      |
+| ------------ | -----: | ------------------------------------------------------------ |
+| Sprint 0     |  100 % | Cerrado                                                      |
+| Sprint 1     |  100 % | Cerrado en dispositivo                                       |
+| Sprint 2     |   40 % | CRUD de categorías, cuentas, favoritos y conciliación        |
+| Sprint 3     |    0 % | Aún no iniciado                                              |
+| Sprint 4     |   35 % | Validar gráficos y patrones nuevos; faltan periodos globales |
+| Sprint 5     |    0 % | Aún no iniciado                                              |
+| MVP completo |   46 % | Promedio simple de los seis sprints; no representa una fecha |
+
+La guía de comprobación de cada incremento está en
+[`DEVICE_VALIDATION.md`](./DEVICE_VALIDATION.md).
 
 ## Sprint 3 — Automatización y documentos · Pendiente
 
@@ -46,7 +68,13 @@ Seguimiento: [#7](https://github.com/Jhakami/rastro-finanzas/issues/7), [#8](htt
 
 Seguimiento: [#12](https://github.com/Jhakami/rastro-finanzas/issues/12), [#13](https://github.com/Jhakami/rastro-finanzas/issues/13), [#14](https://github.com/Jhakami/rastro-finanzas/issues/14) y [#15](https://github.com/Jhakami/rastro-finanzas/issues/15).
 
-## Sprint 4 — Análisis avanzado · Pendiente
+## Sprint 4 — Análisis avanzado · 35 % · En curso
+
+- Implementado: dona por categoría específica, tendencia de área o barras en 7/14/30 días y
+  dispersión monto-hora con muestra mínima.
+- Implementado: promedio histórico, gasto atípico, racha creciente, cambio de participación,
+  proyección mensual y cumplimiento de límites. Sus umbrales se pueden configurar.
+- Cada hallazgo presenta periodo, muestra, evidencia y fórmula utilizada.
 
 - Periodos hoy/semana/3 meses/6 meses/año/rango personalizado.
 - Comparación contra el periodo equivalente anterior.

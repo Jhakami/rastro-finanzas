@@ -73,6 +73,16 @@ export interface Insight {
   sampleSize: number;
   confidence: 'insufficient' | 'emerging' | 'strong';
   relatedTransactionIds: string[];
+  period: string;
+  calculation: string;
+}
+
+export interface BehaviorSettings {
+  historyMonths: 3 | 6;
+  elevatedPercent: number;
+  outlierStandardDeviations: number;
+  growthMonths: number;
+  shareIncreasePoints: number;
 }
 
 export interface DashboardMetrics {

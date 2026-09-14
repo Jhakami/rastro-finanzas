@@ -1,6 +1,6 @@
 {
   "name": "rastro-finanzas",
-  "version": "0.1.0",
+  "version": "0.1.4",
   "main": "expo-router/entry",
   "private": true,
   "scripts": {
@@ -44,6 +44,7 @@
     "react-native-quick-crypto": "^1.1.7",
     "react-native-safe-area-context": "~5.7.0",
     "react-native-screens": "~4.26.0",
+    "react-native-svg": "15.15.4",
     "react-native-zip-archive": "^9.5.1",
     "zod": "^4.6.4",
     "zustand": "^5.0.15"

@@ -35,6 +35,14 @@ export default function InsightsScreen() {
               <Ionicons name="flask-outline" size={18} color={colors.blue} />
               <Text style={styles.evidenceText}>{insight.evidence}</Text>
             </View>
+            <View style={styles.detailRow}>
+              <Ionicons name="calendar-outline" size={16} color={colors.mauve} />
+              <Text style={styles.detailText}>{insight.period}</Text>
+            </View>
+            <View style={styles.detailRow}>
+              <Ionicons name="calculator-outline" size={16} color={colors.teal} />
+              <Text style={styles.detailText}>{insight.calculation}</Text>
+            </View>
             <Text style={styles.level}>
               Evidencia:{' '}
               {insight.confidence === 'strong'
@@ -78,10 +86,12 @@ const styles = StyleSheet.create({
   evidence: {
     flexDirection: 'row',
     gap: 8,
-    backgroundColor: '#EAF1F5',
+    backgroundColor: colors.surface1,
     borderRadius: radius.sm,
     padding: 12,
   },
   evidenceText: { color: colors.blue, flex: 1, lineHeight: 19 },
+  detailRow: { flexDirection: 'row', gap: 8, alignItems: 'flex-start' },
+  detailText: { color: colors.muted, flex: 1, fontSize: 12, lineHeight: 18 },
   level: { color: colors.muted, fontSize: 12 },
 });
