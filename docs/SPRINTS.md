@@ -11,7 +11,7 @@ El seguimiento operativo se realiza mediante los [hitos](https://github.com/Jhak
 - SQLite con SQLCipher, SecureStore, migración y auditoría.
 - Calidad automática, Dependabot y documentación RUP/ADR.
 
-## Sprint 1 — Trazabilidad diaria · 90 % · Estabilización en dispositivo
+## Sprint 1 — Trazabilidad diaria · 100 % · Hecho
 
 - Yape como cuenta principal, banco y efectivo.
 - Gastos, ingresos variables y transferencias.
@@ -21,13 +21,12 @@ El seguimiento operativo se realiza mediante los [hitos](https://github.com/Jhak
 - Ubicación aproximada opcional, mapa de calor y lista offline.
 - Patrones con evidencia mínima, CSV, biometría y copia cifrada.
 
-**Cierre pendiente:** repetir en un teléfono la aceptación de movimientos, biometría y ubicación
-después de las correcciones encontradas durante la primera prueba. Las pruebas automáticas no
-sustituyen esta comprobación.
+La aceptación de movimientos, biometría, tema y ubicación en primer plano se completó en un
+POCO X7 Pro con Android 16. El ajuste posterior a celdas de 50 m se valida como mejora de 0.1.3.
 
 Seguimiento: [#6](https://github.com/Jhakami/rastro-finanzas/issues/6).
 
-## Sprint 2 — Parametrización completa · 25 % · En curso
+## Sprint 2 — Parametrización completa · 30 % · En curso
 
 - Crear, editar, ordenar, archivar y restaurar cuentas.
 - Categorías jerárquicas: catálogo inicial detallado, búsqueda, selección por familia y
@@ -46,13 +45,15 @@ sprint.
 
 ## Estado global orientativo
 
-| Alcance       | Avance | Condición para aumentar                                        |
-| ------------- | -----: | -------------------------------------------------------------- |
-| Sprint 0      |  100 % | Cerrado                                                        |
-| Sprint 1      |   90 % | Validación manual completa en Android                          |
-| Sprint 2      |   25 % | CRUD de categorías, cuentas, favoritos, conciliación y límites |
-| Sprints 3 a 5 |    0 % | Aún no iniciados                                               |
-| MVP completo  |   36 % | Promedio simple de los seis sprints; no representa una fecha   |
+| Alcance      | Avance | Condición para aumentar                                        |
+| ------------ | -----: | -------------------------------------------------------------- |
+| Sprint 0     |  100 % | Cerrado                                                        |
+| Sprint 1     |  100 % | Cerrado en dispositivo                                         |
+| Sprint 2     |   30 % | CRUD de categorías, cuentas, favoritos, conciliación y límites |
+| Sprint 3     |    0 % | Aún no iniciado                                                |
+| Sprint 4     |   10 % | Base visual de composición, tendencia y dispersión             |
+| Sprint 5     |    0 % | Aún no iniciado                                                |
+| MVP completo |   40 % | Promedio simple de los seis sprints; no representa una fecha   |
 
 La guía de comprobación de cada incremento está en
 [`DEVICE_VALIDATION.md`](./DEVICE_VALIDATION.md).
@@ -66,7 +67,10 @@ La guía de comprobación de cada incremento está en
 
 Seguimiento: [#12](https://github.com/Jhakami/rastro-finanzas/issues/12), [#13](https://github.com/Jhakami/rastro-finanzas/issues/13), [#14](https://github.com/Jhakami/rastro-finanzas/issues/14) y [#15](https://github.com/Jhakami/rastro-finanzas/issues/15).
 
-## Sprint 4 — Análisis avanzado · Pendiente
+## Sprint 4 — Análisis avanzado · 10 % · En curso
+
+- Implementado: composición por categoría específica, tendencia diaria de siete días y
+  dispersión monto-hora con muestra mínima.
 
 - Periodos hoy/semana/3 meses/6 meses/año/rango personalizado.
 - Comparación contra el periodo equivalente anterior.

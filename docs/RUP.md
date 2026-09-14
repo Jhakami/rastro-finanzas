@@ -16,7 +16,7 @@
 - SQLite cifrada como fuente de verdad.
 - Montos enteros en céntimos y escrituras transaccionales.
 - Patrones con umbral mínimo de 10 movimientos en 3 días.
-- Coordenadas cuantizadas a celdas de 200 m y descarte del punto exacto.
+- Coordenadas cuantizadas a celdas de 50 m y descarte del punto exacto.
 - Vista de lista independiente del proveedor cartográfico.
 
 ## Construcción

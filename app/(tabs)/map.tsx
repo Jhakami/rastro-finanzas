@@ -121,7 +121,7 @@ export default function MapScreen() {
               </GeoJSONSource>
             </MapLibreMap>
             <View style={styles.privacy}>
-              <Text style={styles.privacyText}>Solo celdas aproximadas de 200 m</Text>
+              <Text style={styles.privacyText}>Solo celdas aproximadas de 50 m</Text>
             </View>
           </View>
         ) : (
@@ -132,7 +132,7 @@ export default function MapScreen() {
                 <View style={styles.zoneText}>
                   <Text style={styles.zoneTitle}>{zone.label}</Text>
                   <Text style={styles.zoneMeta}>
-                    {zone.count} compra{zone.count === 1 ? '' : 's'} · celda de 200 m
+                    {zone.count} compra{zone.count === 1 ? '' : 's'} · celda de 50 m
                   </Text>
                 </View>
                 <Text style={styles.zoneAmount}>{formatPEN(zone.amount)}</Text>

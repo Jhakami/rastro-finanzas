@@ -1,112 +1,64 @@
 # Guía de validación en Android
 
-Cada cambio se informa con tres estados separados:
+Cada incremento se mide por separado: implementación **50 %**, validación automática **30 %**
+y aceptación en un teléfono **20 %**. Solo alcanza 100 % al aprobar las tres partes.
 
-1. **Implementación (50 %):** el código y la migración están terminados.
-2. **Validación automática (30 %):** pasan formato, ESLint, TypeScript, Jest y bundle Android.
-3. **Aceptación en dispositivo (20 %):** el flujo se prueba en un teléfono sin perder datos.
+## Incremento 0.1.2: estabilidad, biometría y tema · 100 %
 
-Un incremento solo llega al **100 %** cuando las tres partes están aprobadas. Este porcentaje mide
-la terminación técnica del incremento, no el porcentaje total del producto.
+Ejecución registrada en POCO X7 Pro, Android 16 (`BP2A.250605.031.A3`):
 
-## Incremento: estabilidad visual, biometría y ubicación
+- MOV-UI-01, filtros de movimientos: **APROBADO**.
+- BIO-01, desactivación persistente: **APROBADO**.
+- BIO-02, activación confirmada: **APROBADO**.
+- LOC-01, ubicación independiente del bloqueo: **APROBADO**.
+- LOC-02, captura en primer plano: **APROBADO**; se solicitó una celda menor.
+- THEME-02, Catppuccin Mocha oscuro: **APROBADO**.
+- CAT-01, clasificación precisa y categorías propias: **APROBADO**.
+- CAT-02: **FALLÓ EN 0.1.2** al intentar borrar una categoría cuya única referencia era un
+  movimiento borrado lógicamente. La corrección se valida como CAT-03.
 
-Estado antes de la prueba manual: **80 %** (implementación y validación automática).
+## Incremento 0.1.3: categorías, precisión y dashboard · 80 %
 
-## Ejecución registrada — POCO X7 Pro
+- **Implementación (50 %):** terminada.
+- **Validación automática (30 %):** aprobada: TypeScript, ESLint, Prettier, 18 pruebas,
+  bundle Hermes y APK Android arm64. Expo Doctor aprobó 19/21 comprobaciones; las dos restantes
+  no pudieron consultar sus servicios externos por un fallo DNS, no por una incompatibilidad local.
+- **Aceptación en dispositivo (20 %):** pendiente.
 
-- Dispositivo: POCO X7 Pro.
-- Sistema: Android 16, compilación `BP2A.250605.031.A3`.
-- MOV-UI-01: **APROBADO**.
-- BIO-01: **FUNCIONAL**, pendiente de confirmar que desapareció el destello inicial en 0.1.2.
-- BIO-02: **APROBADO**.
-- LOC-01: **FALLÓ EN 0.1.1**, captura corregida y pendiente de repetición en 0.1.2.
-- THEME-01: reemplazado a petición del usuario por THEME-02.
-- CAT-01: creación aprobada; borrado propio pendiente en CAT-02.
+Instalar el APK nuevo encima del anterior, sin desinstalar Rastro, para comprobar también que la
+actualización conserva los datos.
 
-### Preparación
+### CAT-03 — Categoría usada solo por movimientos eliminados
 
-- Instalar el nuevo APK encima del anterior; no desinstalar la aplicación.
-- Abrir Rastro y comprobar que los movimientos anteriores continúan visibles.
-- Tener al menos cinco movimientos. Si faltan, crear movimientos de prueba con montos pequeños.
+1. Crear una categoría propia y usarla en un gasto de prueba.
+2. Eliminar el gasto desde **Movimientos**.
+3. Volver a **Nuevo movimiento** y eliminar la categoría.
 
-### MOV-UI-01 — Filtros de movimientos
+**Se acepta si:** la categoría desaparece. El movimiento borrado se conserva para auditoría con
+`Por clasificar`, de modo que no queda una referencia rota. Si existe un movimiento activo, un
+favorito o un límite que todavía la usa, Rastro debe impedir el borrado.
 
-1. Abrir **Movimientos** con cinco o más registros.
-2. Deslizar horizontalmente la fila `Todos · Gastos · Ingresos · Transferencias`.
-3. Pulsar cada filtro y regresar a `Todos`.
-4. Desplazar verticalmente la lista.
+### LOC-03 — Celda aproximada de 50 m
 
-**Se acepta si:** ningún filtro queda cortado, las burbujas conservan la misma altura, la lista usa
-el espacio restante y cada filtro muestra únicamente el tipo correspondiente.
-
-### BIO-01 — Desactivación persistente
-
-1. Abrir **Ajustes** y desactivar `Bloqueo biométrico`.
-2. Enviar la aplicación al fondo, volver a abrirla y luego cerrarla desde aplicaciones recientes.
-3. Abrir Rastro nuevamente.
-
-**Se acepta si:** el interruptor continúa desactivado y no aparece ninguna solicitud de huella o
-PIN.
-
-### BIO-02 — Activación confirmada
-
-1. Activar `Bloqueo biométrico`.
-2. Completar la verificación solicitada para confirmar la activación.
-3. Enviar Rastro al fondo y volver a abrirlo.
-
-**Se acepta si:** una cancelación no activa el interruptor y, después de una confirmación exitosa,
-Rastro solicita autenticación al regresar a la aplicación.
-
-### LOC-01 — Ubicación independiente del bloqueo
-
-1. Mantener la biometría activada y desbloquear Rastro.
-2. Abrir **Nuevo movimiento** y activar `Zona aproximada`.
-3. Aceptar o denegar el permiso de ubicación.
-
-**Se acepta si:** el diálogo de Android no conduce a la pantalla `Rastro está protegido`; aceptar o
-denegar el permiso permite continuar registrando el movimiento.
-
-### LOC-02 — Precisión en primer plano
-
-1. En Android, abrir los permisos de Rastro y permitir ubicación precisa mientras se usa la app.
+1. En los permisos de Android, permitir ubicación precisa solo mientras se usa Rastro.
 2. Activar GPS y Wi-Fi.
-3. Abrir **Nuevo movimiento** y activar `Zona aproximada`.
-4. Esperar hasta 20 segundos, preferiblemente cerca de una ventana en la primera lectura.
+3. Registrar dos compras desde un mismo lugar y abrir **Zonas**.
 
-**Se acepta si:** se obtiene una zona, el interruptor queda activo y el movimiento guarda solamente
-el centro de una celda de 200 m. Rastro no debe solicitar ni declarar ubicación en segundo plano.
+**Se acepta si:** ambas aparecen aproximadamente en la misma celda, Rastro indica 50 m y Android
+confirma que la aplicación no dispone de ubicación en segundo plano. La precisión real puede variar
+por interiores, edificios y condiciones del GPS.
 
-### THEME-02 — Catppuccin Mocha oscuro
+### DASH-01 — Lectura y gráficos
 
-Revisar Resumen, Movimientos, Nuevo movimiento, Zonas y Ajustes.
+1. Abrir **Resumen** con gastos de varias categorías, días, horas y montos.
+2. Revisar Lectura rápida, composición, tendencia de siete días y dispersión.
 
-**Se acepta si:** no quedan superficies blancas propias de Rastro, los textos mantienen contraste,
-el mapa usa un estilo oscuro y los acentos pastel Catppuccin distinguen acciones, ingresos, avisos
-y errores.
-
-### CAT-01 — Categorías precisas
-
-1. Crear un gasto y buscar `agua`, `pasaje` o `videojuego`.
-2. Elegir una categoría específica y guardar.
-3. Crear también una categoría propia dentro de una familia.
-4. Revisar el movimiento en historial y dashboard.
-
-**Se acepta si:** la ruta completa se conserva, la categoría propia reaparece y no se usa `Otros`.
-
-### CAT-02 — Eliminar una categoría propia
-
-1. Crear una categoría de prueba y seleccionarla.
-2. Pulsar la papelera que aparece junto a su nombre y confirmar.
-3. Comprobar que ya no aparece en la familia ni en la búsqueda.
-4. Seleccionar una categoría predeterminada y comprobar que no aparece la papelera.
-5. Crear otra categoría, usarla en un movimiento e intentar eliminarla.
-
-**Se acepta si:** una categoría propia sin uso se elimina; las categorías predeterminadas están
-protegidas y una categoría referenciada no puede destruirse hasta reclasificar sus datos.
+**Se acepta si:** Lectura rápida muestra solo la categoría específica (por ejemplo `Perfume`),
+ningún texto desborda y los valores coinciden con los movimientos. La dispersión debe pedir al
+menos tres gastos cuando todavía no hay muestra suficiente.
 
 ## Registro del resultado
 
-Para cada identificador (`MOV-UI-01`, `BIO-01`, etc.) anotar **APROBADO** o **FALLÓ**, modelo del
-teléfono, versión de Android y una breve descripción. Al aprobar todos los casos, este incremento
-pasa de 80 % a 100 % y Sprint 1 queda cerrado.
+Para cada caso anotar **APROBADO** o **FALLÓ**, modelo, versión de Android y una descripción breve.
+Después de generar el APK, el incremento pasa a 80 %; tras aprobar CAT-03, LOC-03 y DASH-01 llega
+a 100 %.

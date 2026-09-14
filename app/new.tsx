@@ -460,7 +460,7 @@ export default function NewTransactionScreen() {
               <Text style={styles.locationTitle}>Zona aproximada</Text>
               <Text style={styles.locationHint}>
                 {location
-                  ? 'Lista: se guardará en una celda de 200 m'
+                  ? 'Lista: se guardará en una celda aproximada de 50 m'
                   : locating
                     ? 'Buscando con GPS solo mientras usas esta pantalla…'
                     : (locationError ?? 'Opcional; nunca rastrea en segundo plano')}

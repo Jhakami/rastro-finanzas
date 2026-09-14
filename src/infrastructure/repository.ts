@@ -108,21 +108,42 @@ export class LocalRepository {
 
     const references = await db.getFirstAsync<{ total: number }>(
       `SELECT
-        (SELECT count(*) FROM transactions WHERE category_id=?) +
-        (SELECT count(*) FROM favorites WHERE category_id=?) +
-        (SELECT count(*) FROM spending_limits WHERE category_id=?) AS total`,
+        (SELECT count(*) FROM transactions WHERE category_id=? AND deleted_at IS NULL) +
+        (SELECT count(*) FROM favorites WHERE category_id=? AND is_archived=0) +
+        (SELECT count(*) FROM spending_limits WHERE category_id=? AND enabled=1) AS total`,
       id,
       id,
       id,
     );
     if ((references?.total ?? 0) > 0) {
       throw new Error(
-        'No se puede eliminar porque ya está utilizada. Reclasifica sus movimientos o favoritos primero.',
+        'No se puede eliminar porque está en uso. Reclasifica sus movimientos activos, favoritos o límites primero.',
       );
     }
 
     const now = new Date().toISOString();
     await db.withTransactionAsync(async () => {
+      const detached = await db.getFirstAsync<{ total: number }>(
+        'SELECT count(*) AS total FROM transactions WHERE category_id=? AND deleted_at IS NOT NULL',
+        id,
+      );
+      // Deleted records remain for audit/recovery, so detach their foreign key before deleting
+      // the user-created category. If restored later, they intentionally return as unclassified.
+      await db.runAsync(
+        `UPDATE transactions SET category_id='category-other',updated_at=?
+         WHERE category_id=? AND deleted_at IS NOT NULL`,
+        now,
+        id,
+      );
+      await db.runAsync(
+        `UPDATE favorites SET category_id='category-other'
+         WHERE category_id=? AND is_archived=1`,
+        id,
+      );
+      await db.runAsync(
+        'UPDATE spending_limits SET category_id=NULL WHERE category_id=? AND enabled=0',
+        id,
+      );
       await db.runAsync('DELETE FROM categories WHERE id=?', id);
       await db.runAsync(
         'INSERT INTO audit_events(id,entity_type,entity_id,action,payload,occurred_at) VALUES(?,?,?,?,?,?)',
@@ -130,7 +151,11 @@ export class LocalRepository {
         'category',
         id,
         'deleted',
-        JSON.stringify({ name: category.name, parentId: category.parentId }),
+        JSON.stringify({
+          name: category.name,
+          parentId: category.parentId,
+          detachedDeletedTransactions: detached?.total ?? 0,
+        }),
         now,
       );
     });

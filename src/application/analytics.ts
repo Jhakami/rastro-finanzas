@@ -1,8 +1,47 @@
-import { differenceInCalendarDays, endOfMonth, getDate } from 'date-fns';
+import { differenceInCalendarDays, endOfMonth, getDate, startOfDay, subDays } from 'date-fns';
 import type { DashboardMetrics, FinanceTransaction, Insight } from '@/domain/types';
 
 const MIN_PATTERN_SAMPLE = 10;
 const MIN_PATTERN_DAYS = 3;
+
+export interface DailyExpensePoint {
+  dateKey: string;
+  weekday: number;
+  amountCents: number;
+  count: number;
+}
+
+function localDateKey(date: Date): string {
+  return [
+    date.getFullYear(),
+    String(date.getMonth() + 1).padStart(2, '0'),
+    String(date.getDate()).padStart(2, '0'),
+  ].join('-');
+}
+
+export function buildDailyExpenseTrend(
+  transactions: FinanceTransaction[],
+  days = 7,
+  now = new Date(),
+): DailyExpensePoint[] {
+  const safeDays = Math.max(1, Math.min(31, Math.trunc(days)));
+  const points = Array.from({ length: safeDays }, (_, index) => {
+    const date = subDays(startOfDay(now), safeDays - index - 1);
+    return { dateKey: localDateKey(date), weekday: date.getDay(), amountCents: 0, count: 0 };
+  });
+  const byDate = new Map(points.map((point) => [point.dateKey, point]));
+
+  transactions
+    .filter((item) => item.kind === 'expense' && !item.deletedAt)
+    .forEach((item) => {
+      const point = byDate.get(localDateKey(new Date(item.occurredAt)));
+      if (point) {
+        point.amountCents += item.amountCents;
+        point.count += 1;
+      }
+    });
+  return points;
+}
 
 export function isMicroExpense(transaction: FinanceTransaction, thresholdCents: number): boolean {
   if (transaction.kind !== 'expense' || transaction.deletedAt) return false;

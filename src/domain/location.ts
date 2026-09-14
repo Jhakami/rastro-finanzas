@@ -1,5 +1,5 @@
 const EARTH_METERS_PER_DEGREE = 111_320;
-export const LOCATION_CELL_SIZE_METERS = 200;
+export const LOCATION_CELL_SIZE_METERS = 50;
 
 export interface ApproximateCell {
   id: string;
@@ -7,7 +7,7 @@ export interface ApproximateCell {
   centerLongitude: number;
 }
 
-/** Converts a precise coordinate into a ~200 m grid and never returns the raw point. */
+/** Converts a precise coordinate into a ~50 m grid and never returns the raw point. */
 export function approximateLocation(latitude: number, longitude: number): ApproximateCell {
   const latStep = LOCATION_CELL_SIZE_METERS / EARTH_METERS_PER_DEGREE;
   const longitudeScale = Math.max(Math.cos((latitude * Math.PI) / 180), 0.2);
@@ -18,7 +18,7 @@ export function approximateLocation(latitude: number, longitude: number): Approx
   const centerLongitude = (lngIndex + 0.5) * lngStep;
 
   return {
-    id: `cell:${latIndex}:${lngIndex}`,
+    id: `cell:${LOCATION_CELL_SIZE_METERS}:${latIndex}:${lngIndex}`,
     centerLatitude: Number(centerLatitude.toFixed(5)),
     centerLongitude: Number(centerLongitude.toFixed(5)),
   };

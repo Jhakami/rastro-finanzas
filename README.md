@@ -13,7 +13,7 @@ La iteración 1 incluye:
 - gastos, ingresos y transferencias con auditoría y borrado lógico;
 - registro rápido mediante favoritos y categorías;
 - dashboard mensual, proyección, microgastos y patrones con evidencia;
-- ubicación opcional reducida inmediatamente a celdas de 200 m;
+- ubicación opcional reducida inmediatamente a celdas de 50 m;
 - mapa de calor con alternativa en lista;
 - exportación CSV y copia de la base cifrada con contraseña;
 - bloqueo biométrico opcional.

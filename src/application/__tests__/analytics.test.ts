@@ -1,4 +1,9 @@
-import { buildInsights, calculateMetrics, isMicroExpense } from '../analytics';
+import {
+  buildDailyExpenseTrend,
+  buildInsights,
+  calculateMetrics,
+  isMicroExpense,
+} from '../analytics';
 import type { FinanceTransaction } from '@/domain/types';
 
 const expense = (index: number, amountCents = 100): FinanceTransaction => ({
@@ -45,5 +50,16 @@ describe('analytics', () => {
       500,
     );
     expect(insights.some((item) => item.id === 'micro-accumulation')).toBe(true);
+  });
+
+  it('construye una tendencia diaria completa sin inventar gasto en días vacíos', () => {
+    const trend = buildDailyExpenseTrend(
+      [expense(1, 250), { ...expense(2, 150), occurredAt: new Date(2026, 8, 9, 22).toISOString() }],
+      3,
+      new Date(2026, 8, 10, 12),
+    );
+    expect(trend.map((point) => point.dateKey)).toEqual(['2026-09-08', '2026-09-09', '2026-09-10']);
+    expect(trend.map((point) => point.amountCents)).toEqual([0, 150, 0]);
+    expect(trend.map((point) => point.count)).toEqual([0, 1, 0]);
   });
 });

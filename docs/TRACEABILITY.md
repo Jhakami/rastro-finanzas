@@ -15,4 +15,5 @@
 | Clasificación precisa       | CU-11 Clasificar gasto          | Familias, subcategorías y búsqueda         | `categories.test.ts`           |
 | Categoría propia            | CU-12 Crear subcategoría        | `createCategory` con auditoría             | Prueba manual y validación     |
 | Borrado seguro              | CU-13 Eliminar categoría propia | Protección del catálogo y referencias      | Prueba manual y repositorio    |
-| Ubicación precisa y privada | CU-14 Capturar zona             | GPS en primer plano + celda de 200 m       | Servicio y prueba en Android   |
+| Ubicación precisa y privada | CU-14 Capturar zona             | GPS en primer plano + celda de 50 m        | Servicio y prueba en Android   |
+| Dashboard analítico         | CU-15 Analizar gastos           | Composición, tendencia y dispersión        | Analytics unitario + Android   |
