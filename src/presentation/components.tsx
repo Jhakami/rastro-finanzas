@@ -135,13 +135,13 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.line,
   },
-  metricDark: { backgroundColor: colors.primary, borderColor: colors.primary },
+  metricDark: { backgroundColor: colors.mantle, borderColor: colors.surface1 },
   metricGreen: { backgroundColor: colors.greenSoft, borderColor: colors.greenSoft },
   metricLabel: { color: colors.muted, fontSize: 12, fontWeight: '700' },
   metricValue: { color: colors.ink, fontSize: 22, fontWeight: '800', marginTop: 8 },
   metricHint: { color: colors.muted, fontSize: 12, marginTop: 4 },
   onDark: { color: colors.white },
-  onDarkMuted: { color: '#B9C5BD' },
+  onDarkMuted: { color: colors.subtext0 },
   empty: { alignItems: 'center', padding: spacing.xl },
   emptyIcon: {
     width: 48,
@@ -174,5 +174,5 @@ const styles = StyleSheet.create({
     backgroundColor: colors.surface,
   },
   chipText: { color: colors.ink, fontSize: 13, fontWeight: '700' },
-  chipTextSelected: { color: colors.white },
+  chipTextSelected: { color: colors.onAccent },
 });

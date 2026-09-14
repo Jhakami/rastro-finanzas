@@ -4,6 +4,7 @@ import { z } from 'zod';
 import {
   Alert,
   KeyboardAvoidingView,
+  Linking,
   Platform,
   Pressable,
   ScrollView,
@@ -16,7 +17,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
-import { captureApproximateLocation } from '@/application/location-service';
+import { captureApproximateLocation, LocationCaptureError } from '@/application/location-service';
 import { getCategoryParent, getCategoryPath, groupCategories } from '@/domain/categories';
 import { parseAmountToCents } from '@/domain/money';
 import type { ApproximateCell } from '@/domain/location';
@@ -34,7 +35,8 @@ const formSchema = z.object({
 type FormValues = z.infer<typeof formSchema>;
 
 export default function NewTransactionScreen() {
-  const { accounts, categories, favorites, addTransaction, addCategory } = useFinance();
+  const { accounts, categories, favorites, addTransaction, addCategory, deleteCategory } =
+    useFinance();
   const [kind, setKind] = useState<TransactionKind>('expense');
   const [accountId, setAccountId] = useState(
     accounts.find((item) => item.isDefault)?.id ?? accounts[0]?.id ?? 'account-yape',
@@ -48,6 +50,7 @@ export default function NewTransactionScreen() {
   const [creatingCategory, setCreatingCategory] = useState(false);
   const [location, setLocation] = useState<ApproximateCell | null>(null);
   const [locating, setLocating] = useState(false);
+  const [locationError, setLocationError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const { control, handleSubmit, setValue } = useForm<FormValues>({
     defaultValues: { amount: '', merchant: '', note: '', source: 'Padres' },
@@ -92,22 +95,60 @@ export default function NewTransactionScreen() {
     }
   }
 
+  function confirmDeleteCategory() {
+    const category = categories.find((item) => item.id === categoryId);
+    if (!category || !category.id.startsWith('category-custom-')) return;
+    Alert.alert(
+      'Eliminar categoría propia',
+      `¿Quieres eliminar “${category.name}”? Esta acción solo está disponible si todavía no se utilizó.`,
+      [
+        { text: 'Cancelar', style: 'cancel' },
+        {
+          text: 'Eliminar',
+          style: 'destructive',
+          onPress: () => {
+            void deleteCategory(category.id)
+              .then(() => {
+                setCategoryId('');
+                setCategoryQuery('');
+              })
+              .catch((cause: unknown) =>
+                Alert.alert(
+                  'No se eliminó',
+                  cause instanceof Error ? cause.message : 'Intenta nuevamente.',
+                ),
+              );
+          },
+        },
+      ],
+    );
+  }
+
   async function toggleLocation(enabled: boolean) {
     if (!enabled) {
       setLocation(null);
+      setLocationError(null);
       return;
     }
     setLocating(true);
+    setLocationError(null);
     try {
       const cell = await captureApproximateLocation();
-      if (!cell)
-        Alert.alert(
-          'Ubicación no guardada',
-          'Puedes seguir registrando el movimiento sin ubicación.',
-        );
       setLocation(cell);
-    } catch {
-      Alert.alert('No se obtuvo la zona', 'Revisa el permiso o continúa sin ubicación.');
+    } catch (cause) {
+      const message =
+        cause instanceof Error
+          ? cause.message
+          : 'No se pudo consultar la ubicación en este momento.';
+      setLocationError(message);
+      if (cause instanceof LocationCaptureError && cause.code === 'permission-blocked') {
+        Alert.alert('Permiso bloqueado', message, [
+          { text: 'Continuar sin zona', style: 'cancel' },
+          { text: 'Abrir ajustes', onPress: () => void Linking.openSettings() },
+        ]);
+      } else {
+        Alert.alert('No se obtuvo la zona', message);
+      }
     } finally {
       setLocating(false);
     }
@@ -243,7 +284,7 @@ export default function NewTransactionScreen() {
                   autoFocus
                   keyboardType="decimal-pad"
                   placeholder="0.00"
-                  placeholderTextColor="#9AA098"
+                  placeholderTextColor={colors.overlay0}
                   style={styles.amountInput}
                 />
               )}
@@ -292,7 +333,7 @@ export default function NewTransactionScreen() {
                 value={categoryQuery}
                 onChangeText={setCategoryQuery}
                 placeholder="Buscar: agua, pasaje, videojuego…"
-                placeholderTextColor="#9AA098"
+                placeholderTextColor={colors.overlay0}
                 style={styles.input}
               />
               {categoryId ? (
@@ -301,6 +342,16 @@ export default function NewTransactionScreen() {
                   <Text style={styles.categorySelectionText}>
                     {getCategoryPath(categoryId, categories)}
                   </Text>
+                  {categoryId.startsWith('category-custom-') ? (
+                    <Pressable
+                      accessibilityLabel="Eliminar categoría personalizada"
+                      hitSlop={10}
+                      onPress={confirmDeleteCategory}
+                      style={styles.deleteCategory}
+                    >
+                      <Ionicons name="trash-outline" size={18} color={colors.red} />
+                    </Pressable>
+                  ) : null}
                 </View>
               ) : (
                 <Text style={styles.categoryHint}>
@@ -331,7 +382,7 @@ export default function NewTransactionScreen() {
                         onPress={() => void createMissingCategory()}
                         style={styles.createCategory}
                       >
-                        <Ionicons name="add-circle" size={18} color={colors.white} />
+                        <Ionicons name="add-circle" size={18} color={colors.onAccent} />
                         <Text style={styles.createCategoryText}>
                           {creatingCategory
                             ? 'Creando…'
@@ -411,8 +462,8 @@ export default function NewTransactionScreen() {
                 {location
                   ? 'Lista: se guardará en una celda de 200 m'
                   : locating
-                    ? 'Buscando solo mientras usas la app…'
-                    : 'Opcional; nunca rastrea en segundo plano'}
+                    ? 'Buscando con GPS solo mientras usas esta pantalla…'
+                    : (locationError ?? 'Opcional; nunca rastrea en segundo plano')}
               </Text>
             </View>
             <Switch
@@ -468,7 +519,7 @@ function Field({
             onChangeText={field.onChange}
             onBlur={field.onBlur}
             placeholder={placeholder}
-            placeholderTextColor="#9AA098"
+            placeholderTextColor={colors.overlay0}
             multiline={multiline}
             style={[styles.input, multiline && styles.multiline]}
           />
@@ -538,6 +589,14 @@ const styles = StyleSheet.create({
     backgroundColor: colors.greenSoft,
   },
   categorySelectionText: { color: colors.green, fontWeight: '800', flex: 1 },
+  deleteCategory: {
+    width: 34,
+    height: 34,
+    borderRadius: 12,
+    backgroundColor: colors.surface0,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   categoryHint: { color: colors.muted, fontSize: 12, lineHeight: 18, marginVertical: 9 },
   noCategoryResult: { width: '100%', gap: 6 },
   createCategory: {
@@ -550,7 +609,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 9,
   },
-  createCategoryText: { color: colors.white, fontWeight: '800', fontSize: 12 },
+  createCategoryText: { color: colors.onAccent, fontWeight: '800', fontSize: 12 },
   classifyLater: { alignSelf: 'flex-start', marginTop: 12, paddingVertical: 5 },
   classifyLaterText: { color: colors.muted, fontSize: 12, textDecorationLine: 'underline' },
   multiline: { minHeight: 80, textAlignVertical: 'top' },
@@ -574,6 +633,6 @@ const styles = StyleSheet.create({
     padding: 16,
     alignItems: 'center',
   },
-  saveText: { color: colors.white, fontWeight: '900', fontSize: 16 },
+  saveText: { color: colors.onAccent, fontWeight: '900', fontSize: 16 },
   disabled: { opacity: 0.55 },
 });

@@ -78,7 +78,7 @@ const styles = StyleSheet.create({
   evidence: {
     flexDirection: 'row',
     gap: 8,
-    backgroundColor: '#EAF1F5',
+    backgroundColor: colors.surface1,
     borderRadius: radius.sm,
     padding: 12,
   },

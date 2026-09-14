@@ -27,7 +27,7 @@ sustituyen esta comprobación.
 
 Seguimiento: [#6](https://github.com/Jhakami/rastro-finanzas/issues/6).
 
-## Sprint 2 — Parametrización completa · 20 % · En curso
+## Sprint 2 — Parametrización completa · 25 % · En curso
 
 - Crear, editar, ordenar, archivar y restaurar cuentas.
 - Categorías jerárquicas: catálogo inicial detallado, búsqueda, selección por familia y
@@ -50,9 +50,9 @@ sprint.
 | ------------- | -----: | -------------------------------------------------------------- |
 | Sprint 0      |  100 % | Cerrado                                                        |
 | Sprint 1      |   90 % | Validación manual completa en Android                          |
-| Sprint 2      |   20 % | CRUD de categorías, cuentas, favoritos, conciliación y límites |
+| Sprint 2      |   25 % | CRUD de categorías, cuentas, favoritos, conciliación y límites |
 | Sprints 3 a 5 |    0 % | Aún no iniciados                                               |
-| MVP completo  |   35 % | Promedio simple de los seis sprints; no representa una fecha   |
+| MVP completo  |   36 % | Promedio simple de los seis sprints; no representa una fecha   |
 
 La guía de comprobación de cada incremento está en
 [`DEVICE_VALIDATION.md`](./DEVICE_VALIDATION.md).

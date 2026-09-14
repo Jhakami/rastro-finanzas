@@ -48,7 +48,7 @@ export default function DashboardScreen() {
           action={
             <Link href="/new" asChild>
               <Pressable accessibilityLabel="Registrar movimiento" style={styles.add}>
-                <Ionicons name="add" size={26} color={colors.white} />
+                <Ionicons name="add" size={26} color={colors.onAccent} />
               </Pressable>
             </Link>
           }

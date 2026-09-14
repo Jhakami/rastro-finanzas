@@ -39,7 +39,7 @@ export default function MovementsScreen() {
           action={
             <Link href="/new" asChild>
               <Pressable style={styles.add}>
-                <Ionicons name="add" size={24} color={colors.white} />
+                <Ionicons name="add" size={24} color={colors.onAccent} />
               </Pressable>
             </Link>
           }

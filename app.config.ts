@@ -4,10 +4,11 @@ const config: ExpoConfig = {
   name: 'Rastro',
   slug: 'rastro-finanzas',
   scheme: 'rastro',
-  version: '0.1.1',
+  version: '0.1.2',
   orientation: 'portrait',
   icon: './assets/icon.png',
-  userInterfaceStyle: 'light',
+  backgroundColor: '#1E1E2E',
+  userInterfaceStyle: 'dark',
   plugins: [
     'expo-router',
     ['expo-sqlite', { useSQLCipher: true, enableFTS: true }],
@@ -34,16 +35,20 @@ const config: ExpoConfig = {
   ],
   android: {
     package: 'pe.rastro.finanzas',
-    versionCode: 2,
+    versionCode: 3,
     adaptiveIcon: {
-      backgroundColor: '#F4F7FA',
+      backgroundColor: '#1E1E2E',
       foregroundImage: './assets/android-icon-foreground.png',
       backgroundImage: './assets/android-icon-background.png',
       monochromeImage: './assets/android-icon-monochrome.png',
     },
-    permissions: ['ACCESS_COARSE_LOCATION', 'USE_BIOMETRIC', 'POST_NOTIFICATIONS'],
+    permissions: [
+      'ACCESS_COARSE_LOCATION',
+      'ACCESS_FINE_LOCATION',
+      'USE_BIOMETRIC',
+      'POST_NOTIFICATIONS',
+    ],
     blockedPermissions: [
-      'android.permission.ACCESS_FINE_LOCATION',
       'android.permission.ACCESS_BACKGROUND_LOCATION',
       'android.permission.RECORD_AUDIO',
     ],

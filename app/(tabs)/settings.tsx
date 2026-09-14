@@ -208,7 +208,7 @@ export default function SettingsScreen() {
             <Text style={styles.primaryText}>{busy ? 'Cifrando…' : 'Crear copia .finbackup'}</Text>
           </Pressable>
         </Card>
-        <Text style={styles.version}>Rastro 0.1.1 · local-first · PEN</Text>
+        <Text style={styles.version}>Rastro 0.1.2 · local-first · PEN</Text>
       </ScrollView>
     </SafeAreaView>
   );
@@ -245,11 +245,11 @@ const styles = StyleSheet.create({
   input: { flex: 1, padding: 11, color: colors.ink, fontWeight: '800' },
   smallButton: {
     justifyContent: 'center',
-    backgroundColor: colors.ink,
+    backgroundColor: colors.primary,
     borderRadius: radius.sm,
     paddingHorizontal: 16,
   },
-  smallButtonText: { color: colors.white, fontWeight: '800' },
+  smallButtonText: { color: colors.onAccent, fontWeight: '800' },
   switchRow: { flexDirection: 'row', alignItems: 'center' },
   ok: { color: colors.green, fontSize: 10, fontWeight: '900' },
   buttonStack: { gap: 8, marginTop: 12 },
@@ -277,6 +277,6 @@ const styles = StyleSheet.create({
     backgroundColor: colors.green,
     borderRadius: radius.sm,
   },
-  primaryText: { color: colors.white, fontWeight: '900' },
+  primaryText: { color: colors.onAccent, fontWeight: '900' },
   version: { color: colors.muted, fontSize: 11, textAlign: 'center' },
 });

@@ -13,6 +13,17 @@ la terminación técnica del incremento, no el porcentaje total del producto.
 
 Estado antes de la prueba manual: **80 %** (implementación y validación automática).
 
+## Ejecución registrada — POCO X7 Pro
+
+- Dispositivo: POCO X7 Pro.
+- Sistema: Android 16, compilación `BP2A.250605.031.A3`.
+- MOV-UI-01: **APROBADO**.
+- BIO-01: **FUNCIONAL**, pendiente de confirmar que desapareció el destello inicial en 0.1.2.
+- BIO-02: **APROBADO**.
+- LOC-01: **FALLÓ EN 0.1.1**, captura corregida y pendiente de repetición en 0.1.2.
+- THEME-01: reemplazado a petición del usuario por THEME-02.
+- CAT-01: creación aprobada; borrado propio pendiente en CAT-02.
+
 ### Preparación
 
 - Instalar el nuevo APK encima del anterior; no desinstalar la aplicación.
@@ -56,13 +67,23 @@ Rastro solicita autenticación al regresar a la aplicación.
 **Se acepta si:** el diálogo de Android no conduce a la pantalla `Rastro está protegido`; aceptar o
 denegar el permiso permite continuar registrando el movimiento.
 
-### THEME-01 — Paleta visual
+### LOC-02 — Precisión en primer plano
+
+1. En Android, abrir los permisos de Rastro y permitir ubicación precisa mientras se usa la app.
+2. Activar GPS y Wi-Fi.
+3. Abrir **Nuevo movimiento** y activar `Zona aproximada`.
+4. Esperar hasta 20 segundos, preferiblemente cerca de una ventana en la primera lectura.
+
+**Se acepta si:** se obtiene una zona, el interruptor queda activo y el movimiento guarda solamente
+el centro de una celda de 200 m. Rastro no debe solicitar ni declarar ubicación en segundo plano.
+
+### THEME-02 — Catppuccin Mocha oscuro
 
 Revisar Resumen, Movimientos, Nuevo movimiento, Zonas y Ajustes.
 
-**Se acepta si:** los textos mantienen contraste, los botones principales usan azul noche, el
-acento turquesa identifica acciones y estados positivos, y los errores se ven en rojo sin ocultar
-contenido.
+**Se acepta si:** no quedan superficies blancas propias de Rastro, los textos mantienen contraste,
+el mapa usa un estilo oscuro y los acentos pastel Catppuccin distinguen acciones, ingresos, avisos
+y errores.
 
 ### CAT-01 — Categorías precisas
 
@@ -72,6 +93,17 @@ contenido.
 4. Revisar el movimiento en historial y dashboard.
 
 **Se acepta si:** la ruta completa se conserva, la categoría propia reaparece y no se usa `Otros`.
+
+### CAT-02 — Eliminar una categoría propia
+
+1. Crear una categoría de prueba y seleccionarla.
+2. Pulsar la papelera que aparece junto a su nombre y confirmar.
+3. Comprobar que ya no aparece en la familia ni en la búsqueda.
+4. Seleccionar una categoría predeterminada y comprobar que no aparece la papelera.
+5. Crear otra categoría, usarla en un movimiento e intentar eliminarla.
+
+**Se acepta si:** una categoría propia sin uso se elimina; las categorías predeterminadas están
+protegidas y una categoría referenciada no puede destruirse hasta reclasificar sus datos.
 
 ## Registro del resultado
 

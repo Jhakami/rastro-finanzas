@@ -94,6 +94,48 @@ export class LocalRepository {
     return id;
   }
 
+  async deleteCustomCategory(id: string): Promise<void> {
+    if (!id.startsWith('category-custom-')) {
+      throw new Error('Las categorías incluidas con Rastro están protegidas y no se eliminan.');
+    }
+    const db = await this.db();
+    const category = await db.getFirstAsync<Category>(
+      `SELECT id,name,icon,color,parent_id AS parentId
+       FROM categories WHERE id=? AND parent_id IS NOT NULL AND is_archived=0`,
+      id,
+    );
+    if (!category) throw new Error('La categoría personalizada ya no existe.');
+
+    const references = await db.getFirstAsync<{ total: number }>(
+      `SELECT
+        (SELECT count(*) FROM transactions WHERE category_id=?) +
+        (SELECT count(*) FROM favorites WHERE category_id=?) +
+        (SELECT count(*) FROM spending_limits WHERE category_id=?) AS total`,
+      id,
+      id,
+      id,
+    );
+    if ((references?.total ?? 0) > 0) {
+      throw new Error(
+        'No se puede eliminar porque ya está utilizada. Reclasifica sus movimientos o favoritos primero.',
+      );
+    }
+
+    const now = new Date().toISOString();
+    await db.withTransactionAsync(async () => {
+      await db.runAsync('DELETE FROM categories WHERE id=?', id);
+      await db.runAsync(
+        'INSERT INTO audit_events(id,entity_type,entity_id,action,payload,occurred_at) VALUES(?,?,?,?,?,?)',
+        Crypto.randomUUID(),
+        'category',
+        id,
+        'deleted',
+        JSON.stringify({ name: category.name, parentId: category.parentId }),
+        now,
+      );
+    });
+  }
+
   async listFavorites(): Promise<FavoriteTemplate[]> {
     const db = await this.db();
     return db.getAllAsync<FavoriteTemplate>(`
