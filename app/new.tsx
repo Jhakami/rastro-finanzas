@@ -280,6 +280,12 @@ export default function NewTransactionScreen() {
                   />
                 ))}
               </ScrollView>
+              {selectedFavoriteId ? (
+                <Text style={styles.favoriteApplied}>
+                  {favorites.find((favorite) => favorite.id === selectedFavoriteId)?.name} aplicado
+                  · contará al guardar este gasto
+                </Text>
+              ) : null}
             </>
           ) : null}
           <Text style={styles.label}>Monto</Text>
@@ -291,10 +297,7 @@ export default function NewTransactionScreen() {
               render={({ field }) => (
                 <TextInput
                   {...field}
-                  onChangeText={(value) => {
-                    setSelectedFavoriteId(null);
-                    field.onChange(value);
-                  }}
+                  onChangeText={field.onChange}
                   autoFocus
                   keyboardType="decimal-pad"
                   placeholder="0.00"
@@ -634,6 +637,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   categoryHint: { color: colors.muted, fontSize: 12, lineHeight: 18, marginVertical: 9 },
+  favoriteApplied: { color: colors.green, fontSize: 12, fontWeight: '700', marginTop: spacing.xs },
   noCategoryResult: { width: '100%', gap: 6 },
   createCategory: {
     flexDirection: 'row',
