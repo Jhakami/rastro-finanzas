@@ -63,7 +63,7 @@ export function DonutChart({
               strokeDasharray={`${item.length} ${circumference - item.length}`}
               strokeDashoffset={item.dashOffset}
               fill="none"
-              onPress={() => setSelectedIndex(index)}
+              onPress={() => setSelectedIndex((current) => (current === index ? null : index))}
             />
           );
         })}
@@ -145,7 +145,7 @@ export function AreaTrendChart({ data }: { data: ChartDatum[] }) {
           fill={colors.teal}
           stroke={colors.crust}
           strokeWidth="1.5"
-          onPress={() => setSelectedIndex(index)}
+          onPress={() => setSelectedIndex((current) => (current === index ? null : index))}
         />
       ))}
       {selectedIndex !== null && points[selectedIndex] ? (
@@ -216,7 +216,7 @@ export function PastelBarChart({ data }: { data: ChartDatum[] }) {
               rx="4"
               fill={item.color ?? colors.blue}
               fillOpacity={selectedIndex === null || selectedIndex === index ? 1 : 0.45}
-              onPress={() => setSelectedIndex(index)}
+              onPress={() => setSelectedIndex((current) => (current === index ? null : index))}
             />
             <SvgText
               x={x + barWidth / 2}
@@ -288,7 +288,7 @@ export function ScatterChart({ points }: { points: { id: string; x: number; y: n
           fillOpacity={selectedId === null || selectedId === point.id ? 0.95 : 0.4}
           stroke={colors.crust}
           strokeWidth="1"
-          onPress={() => setSelectedId(point.id)}
+          onPress={() => setSelectedId((current) => (current === point.id ? null : point.id))}
         />
       ))}
       {selectedId ? (

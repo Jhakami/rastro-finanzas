@@ -192,7 +192,7 @@ export default function DashboardScreen() {
                   <Text style={styles.summaryLabel}>TOTAL DEL MES</Text>
                   <Text style={styles.summaryValue}>{formatPEN(expenseTotal)}</Text>
                   <Text style={styles.evidence}>
-                    Toca una sección de la dona para ver su categoría y monto.
+                    Toca una sección para ver su monto; tócala otra vez para cerrarlo.
                   </Text>
                 </View>
               </View>
@@ -266,7 +266,9 @@ export default function DashboardScreen() {
               </Pressable>
             ))}
           </View>
-          <Text style={styles.chartHint}>Toca una barra o punto para consultar el monto.</Text>
+          <Text style={styles.chartHint}>
+            Toca una barra o punto para consultar el monto; repite el toque para cerrarlo.
+          </Text>
           {dailyTrend.some((point) => point.amountCents > 0) ? (
             trendMode === 'area' ? (
               <AreaTrendChart data={trendData} />
