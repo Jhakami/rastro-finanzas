@@ -17,3 +17,6 @@
 | Borrado seguro              | CU-13 Eliminar categoría propia | Protección del catálogo y referencias      | Prueba manual y repositorio    |
 | Ubicación precisa y privada | CU-14 Capturar zona             | GPS en primer plano + celda de 50 m        | Servicio y prueba en Android   |
 | Dashboard analítico         | CU-15 Analizar gastos           | Composición, tendencia y dispersión        | Analytics unitario + Android   |
+| Patrones estadísticos       | CU-16 Comprender variaciones    | `buildInsights` y reglas configurables     | `analytics.test.ts` + PAT-01   |
+| Límite mensual              | CU-17 Controlar presupuesto     | `spending_limits` y alertas por porcentaje | Analytics unitario + LIM-01    |
+| Jerarquía visual            | CU-18 Clasificar sin confusión  | Chips diferenciados de familia y categoría | CAT-04                         |

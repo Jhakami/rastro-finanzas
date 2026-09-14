@@ -27,6 +27,14 @@ export interface CreateTransactionInput {
   refundOfId?: string | null;
 }
 
+export interface SaveSpendingLimitInput {
+  name: string;
+  amountCents: number;
+  categoryId?: string | null;
+  accountId?: string | null;
+  warningPercent: number;
+}
+
 export class LocalRepository {
   private async db(): Promise<SQLiteDatabase> {
     return openDatabase();
@@ -177,6 +185,61 @@ export class LocalRepository {
         account_id AS accountId,warning_percent AS warningPercent,enabled
       FROM spending_limits WHERE enabled=1 ORDER BY name
     `);
+  }
+
+  async saveSpendingLimit(input: SaveSpendingLimitInput): Promise<string> {
+    if (!Number.isSafeInteger(input.amountCents) || input.amountCents <= 0) {
+      throw new Error('El límite debe ser mayor que cero.');
+    }
+    const warningPercent = Math.min(120, Math.max(50, Math.round(input.warningPercent)));
+    const db = await this.db();
+    const existing = await db.getFirstAsync<{ id: string }>(
+      `SELECT id FROM spending_limits
+       WHERE enabled=1 AND category_id IS ? AND account_id IS ?`,
+      input.categoryId ?? null,
+      input.accountId ?? null,
+    );
+    const id = existing?.id ?? Crypto.randomUUID();
+    await db.withTransactionAsync(async () => {
+      await db.runAsync(
+        `INSERT INTO spending_limits(id,name,amount_cents,category_id,account_id,warning_percent,enabled)
+         VALUES(?,?,?,?,?,?,1)
+         ON CONFLICT(id) DO UPDATE SET name=excluded.name,amount_cents=excluded.amount_cents,
+           category_id=excluded.category_id,account_id=excluded.account_id,
+           warning_percent=excluded.warning_percent,enabled=1`,
+        id,
+        input.name.trim() || 'Límite mensual',
+        input.amountCents,
+        input.categoryId ?? null,
+        input.accountId ?? null,
+        warningPercent,
+      );
+      await db.runAsync(
+        'INSERT INTO audit_events(id,entity_type,entity_id,action,payload,occurred_at) VALUES(?,?,?,?,?,?)',
+        Crypto.randomUUID(),
+        'spending_limit',
+        id,
+        existing ? 'updated' : 'created',
+        JSON.stringify({ amountCents: input.amountCents, warningPercent }),
+        new Date().toISOString(),
+      );
+    });
+    return id;
+  }
+
+  async disableSpendingLimit(id: string): Promise<void> {
+    const db = await this.db();
+    await db.withTransactionAsync(async () => {
+      await db.runAsync('UPDATE spending_limits SET enabled=0 WHERE id=?', id);
+      await db.runAsync(
+        'INSERT INTO audit_events(id,entity_type,entity_id,action,occurred_at) VALUES(?,?,?,?,?)',
+        Crypto.randomUUID(),
+        'spending_limit',
+        id,
+        'disabled',
+        new Date().toISOString(),
+      );
+    });
   }
 
   async listTransactions(): Promise<FinanceTransaction[]> {

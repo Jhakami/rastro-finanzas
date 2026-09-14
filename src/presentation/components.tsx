@@ -84,21 +84,35 @@ export function Chip({
   selected,
   onPress,
   color,
+  variant = 'default',
 }: {
   label: string;
   selected?: boolean;
   onPress(): void;
   color?: string;
+  variant?: 'default' | 'family';
 }) {
   return (
     <Pressable
       onPress={onPress}
       style={[
         styles.chip,
+        variant === 'family' && {
+          backgroundColor: `${color ?? colors.mauve}22`,
+          borderColor: color ?? colors.mauve,
+        },
         selected && { backgroundColor: color ?? colors.green, borderColor: color ?? colors.green },
       ]}
     >
-      <Text style={[styles.chipText, selected && styles.chipTextSelected]}>{label}</Text>
+      <Text
+        style={[
+          styles.chipText,
+          variant === 'family' && { color: color ?? colors.mauve },
+          selected && styles.chipTextSelected,
+        ]}
+      >
+        {label}
+      </Text>
     </Pressable>
   );
 }

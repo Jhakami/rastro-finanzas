@@ -397,7 +397,7 @@ export default function NewTransactionScreen() {
                   <ScrollView
                     horizontal
                     showsHorizontalScrollIndicator={false}
-                    contentContainerStyle={styles.chips}
+                    contentContainerStyle={[styles.chips, styles.familyChips]}
                   >
                     {categoryGroups.map(({ parent }) => (
                       <Chip
@@ -405,6 +405,7 @@ export default function NewTransactionScreen() {
                         label={parent.name}
                         selected={activeFamilyId === parent.id}
                         color={parent.color}
+                        variant="family"
                         onPress={() => {
                           setCategoryFamilyId(parent.id);
                           if (selectedFamily?.id !== parent.id) setCategoryId('');
@@ -412,6 +413,9 @@ export default function NewTransactionScreen() {
                       />
                     ))}
                   </ScrollView>
+                  <Text style={styles.categoryLevelLabel}>
+                    Opciones de {activeGroup?.parent.name ?? 'la familia seleccionada'}
+                  </Text>
                   <View style={styles.chips}>
                     {activeGroup?.children.map((category) => (
                       <Chip
@@ -552,6 +556,15 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   chips: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+  familyChips: { paddingBottom: 14, flexWrap: 'nowrap' },
+  categoryLevelLabel: {
+    color: colors.muted,
+    fontSize: 11,
+    fontWeight: '800',
+    letterSpacing: 0.4,
+    marginBottom: 9,
+    textTransform: 'uppercase',
+  },
   amountBox: {
     flexDirection: 'row',
     alignItems: 'center',

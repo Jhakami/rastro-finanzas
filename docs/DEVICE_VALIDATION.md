@@ -17,13 +17,14 @@ Ejecución registrada en POCO X7 Pro, Android 16 (`BP2A.250605.031.A3`):
 - CAT-02: **FALLÓ EN 0.1.2** al intentar borrar una categoría cuya única referencia era un
   movimiento borrado lógicamente. La corrección se valida como CAT-03.
 
-## Incremento 0.1.3: categorías, precisión y dashboard · 80 %
+## Incremento 0.1.3: categorías, precisión y dashboard · 100 %
 
 - **Implementación (50 %):** terminada.
 - **Validación automática (30 %):** aprobada: TypeScript, ESLint, Prettier, 18 pruebas,
   bundle Hermes y APK Android arm64. Expo Doctor aprobó 19/21 comprobaciones; las dos restantes
   no pudieron consultar sus servicios externos por un fallo DNS, no por una incompatibilidad local.
-- **Aceptación en dispositivo (20 %):** pendiente.
+- **Aceptación en dispositivo (20 %):** CAT-03, LOC-03 y DASH-01 aprobados por el usuario
+  en POCO X7 Pro con Android 16.
 
 Instalar el APK nuevo encima del anterior, sin desinstalar Rastro, para comprobar también que la
 actualización conserva los datos.
@@ -62,3 +63,36 @@ menos tres gastos cuando todavía no hay muestra suficiente.
 Para cada caso anotar **APROBADO** o **FALLÓ**, modelo, versión de Android y una descripción breve.
 Después de generar el APK, el incremento pasa a 80 %; tras aprobar CAT-03, LOC-03 y DASH-01 llega
 a 100 %.
+
+## Incremento 0.1.4: visualización y patrones parametrizables · 80 %
+
+- **Implementación (50 %):** terminada.
+- **Validación automática (30 %):** TypeScript, ESLint, 22 pruebas y Expo Doctor 21/21.
+- **Aceptación en dispositivo (20 %):** pendiente del APK 0.1.4.
+
+### DASH-02 — Gráficos interactivos
+
+1. Abrir **Resumen** con gastos de distintas categorías.
+2. Confirmar que la dona coincide con los porcentajes de su leyenda.
+3. Cambiar la tendencia entre área y barras, y entre 7, 14 y 30 días.
+4. Revisar que la dispersión ubique las compras por hora y monto sin desbordes.
+
+### PAT-01 — Patrones explicables
+
+1. Abrir **Ajustes > Reglas de patrones**, modificar un umbral y guardarlo.
+2. Abrir **Tus patrones**.
+3. Confirmar que cada hallazgo muestra periodo, muestra, evidencia y cálculo.
+4. Con pocos datos debe indicar que sigue aprendiendo, sin inventar conclusiones.
+
+### LIM-01 — Límite mensual
+
+1. Crear un límite general y otro para una categoría.
+2. Verificar que reemplazar el mismo alcance no crea un duplicado.
+3. Alcanzar el porcentaje de aviso y comprobar su hallazgo en **Tus patrones**.
+4. Eliminar el límite y comprobar que deja de evaluarse.
+
+### CAT-04 — Jerarquía visual
+
+1. Abrir un gasto nuevo.
+2. Comprobar que las familias tienen borde y tinte propios.
+3. Confirmar que existe separación y un rótulo antes de las categorías específicas.

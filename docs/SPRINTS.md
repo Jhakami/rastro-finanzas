@@ -26,7 +26,7 @@ POCO X7 Pro con Android 16. El ajuste posterior a celdas de 50 m se valida como 
 
 Seguimiento: [#6](https://github.com/Jhakami/rastro-finanzas/issues/6).
 
-## Sprint 2 — Parametrización completa · 30 % · En curso
+## Sprint 2 — Parametrización completa · 40 % · En curso
 
 - Crear, editar, ordenar, archivar y restaurar cuentas.
 - Categorías jerárquicas: catálogo inicial detallado, búsqueda, selección por familia y
@@ -34,7 +34,8 @@ Seguimiento: [#6](https://github.com/Jhakami/rastro-finanzas/issues/6).
 - Pendiente del CRUD de categorías: editar, ordenar, archivar y restaurar; además de etiquetas.
 - CRUD de favoritos con monto fijo, sugerido o variable.
 - Conciliación guiada con motivo y vista de auditoría.
-- Límites generales, por cuenta y por categoría con alertas configurables.
+- Límites mensuales generales y por categoría con umbral de aviso configurable ya
+  implementados. Falta la selección por cuenta y una administración más completa.
 
 Seguimiento: [#7](https://github.com/Jhakami/rastro-finanzas/issues/7), [#8](https://github.com/Jhakami/rastro-finanzas/issues/8), [#9](https://github.com/Jhakami/rastro-finanzas/issues/9), [#10](https://github.com/Jhakami/rastro-finanzas/issues/10) y [#11](https://github.com/Jhakami/rastro-finanzas/issues/11).
 
@@ -45,15 +46,15 @@ sprint.
 
 ## Estado global orientativo
 
-| Alcance      | Avance | Condición para aumentar                                        |
-| ------------ | -----: | -------------------------------------------------------------- |
-| Sprint 0     |  100 % | Cerrado                                                        |
-| Sprint 1     |  100 % | Cerrado en dispositivo                                         |
-| Sprint 2     |   30 % | CRUD de categorías, cuentas, favoritos, conciliación y límites |
-| Sprint 3     |    0 % | Aún no iniciado                                                |
-| Sprint 4     |   10 % | Base visual de composición, tendencia y dispersión             |
-| Sprint 5     |    0 % | Aún no iniciado                                                |
-| MVP completo |   40 % | Promedio simple de los seis sprints; no representa una fecha   |
+| Alcance      | Avance | Condición para aumentar                                      |
+| ------------ | -----: | ------------------------------------------------------------ |
+| Sprint 0     |  100 % | Cerrado                                                      |
+| Sprint 1     |  100 % | Cerrado en dispositivo                                       |
+| Sprint 2     |   40 % | CRUD de categorías, cuentas, favoritos y conciliación        |
+| Sprint 3     |    0 % | Aún no iniciado                                              |
+| Sprint 4     |   35 % | Validar gráficos y patrones nuevos; faltan periodos globales |
+| Sprint 5     |    0 % | Aún no iniciado                                              |
+| MVP completo |   46 % | Promedio simple de los seis sprints; no representa una fecha |
 
 La guía de comprobación de cada incremento está en
 [`DEVICE_VALIDATION.md`](./DEVICE_VALIDATION.md).
@@ -67,10 +68,13 @@ La guía de comprobación de cada incremento está en
 
 Seguimiento: [#12](https://github.com/Jhakami/rastro-finanzas/issues/12), [#13](https://github.com/Jhakami/rastro-finanzas/issues/13), [#14](https://github.com/Jhakami/rastro-finanzas/issues/14) y [#15](https://github.com/Jhakami/rastro-finanzas/issues/15).
 
-## Sprint 4 — Análisis avanzado · 10 % · En curso
+## Sprint 4 — Análisis avanzado · 35 % · En curso
 
-- Implementado: composición por categoría específica, tendencia diaria de siete días y
+- Implementado: dona por categoría específica, tendencia de área o barras en 7/14/30 días y
   dispersión monto-hora con muestra mínima.
+- Implementado: promedio histórico, gasto atípico, racha creciente, cambio de participación,
+  proyección mensual y cumplimiento de límites. Sus umbrales se pueden configurar.
+- Cada hallazgo presenta periodo, muestra, evidencia y fórmula utilizada.
 
 - Periodos hoy/semana/3 meses/6 meses/año/rango personalizado.
 - Comparación contra el periodo equivalente anterior.

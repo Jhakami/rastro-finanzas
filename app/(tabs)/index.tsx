@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { Link } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
@@ -6,6 +6,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { buildDailyExpenseTrend } from '@/application/analytics';
 import { formatPEN } from '@/domain/money';
 import { Card, EmptyState, LoadingView, MetricCard, ScreenHeader } from '@/presentation/components';
+import { AreaTrendChart, DonutChart, PastelBarChart, ScatterChart } from '@/presentation/charts';
 import { useFinance } from '@/presentation/finance-provider';
 import { colors, radius, spacing } from '@/theme';
 
@@ -13,6 +14,8 @@ const weekdays = ['domingo', 'lunes', 'martes', 'miércoles', 'jueves', 'viernes
 const weekdayShort = ['D', 'L', 'M', 'X', 'J', 'V', 'S'];
 
 export default function DashboardScreen() {
+  const [trendDays, setTrendDays] = useState<7 | 14 | 30>(7);
+  const [trendMode, setTrendMode] = useState<'area' | 'bars'>('area');
   const {
     accounts,
     balances,
@@ -46,8 +49,18 @@ export default function DashboardScreen() {
     }));
   }, [categories, monthlyTransactions]);
   const expenseTotal = categoryBars.reduce((sum, row) => sum + row.amount, 0);
-  const dailyTrend = useMemo(() => buildDailyExpenseTrend(transactions, 7), [transactions]);
-  const trendMaximum = Math.max(...dailyTrend.map((point) => point.amountCents), 1);
+  const dailyTrend = useMemo(
+    () => buildDailyExpenseTrend(transactions, trendDays),
+    [transactions, trendDays],
+  );
+  const trendData = dailyTrend.map((point) => ({
+    label:
+      trendDays === 7
+        ? (weekdayShort[point.weekday] ?? '?')
+        : String(Number(point.dateKey.slice(-2))),
+    value: point.amountCents,
+    color: point.count > 1 ? colors.mauve : colors.blue,
+  }));
   const scatter = useMemo(
     () =>
       monthlyTransactions
@@ -63,7 +76,6 @@ export default function DashboardScreen() {
         }),
     [monthlyTransactions],
   );
-  const scatterMaximum = Math.max(...scatter.map((point) => point.amountCents), 1);
   const topCategoryName = metrics.topCategoryId
     ? (categories.find((item) => item.id === metrics.topCategoryId)?.name ?? 'Sin categoría')
     : 'Sin datos';
@@ -166,19 +178,23 @@ export default function DashboardScreen() {
           <Text style={styles.cardTitle}>En qué se fue el dinero</Text>
           {categoryBars.length ? (
             <View style={styles.bars}>
-              <View style={styles.compositionTrack} accessibilityLabel="Composición del gasto">
-                {categoryBars.map((bar) => (
-                  <View
-                    key={`segment-${bar.category?.id ?? 'unknown'}`}
-                    style={[
-                      styles.compositionSegment,
-                      {
-                        flex: bar.amount,
-                        backgroundColor: bar.category?.color ?? colors.green,
-                      },
-                    ]}
-                  />
-                ))}
+              <View style={styles.donutRow}>
+                <DonutChart
+                  data={categoryBars.map((bar) => ({
+                    label: bar.category?.name ?? 'Sin categoría',
+                    value: bar.amount,
+                    color: bar.category?.color ?? colors.green,
+                  }))}
+                  centerValue={categoryBars.length.toString()}
+                  centerLabel={categoryBars.length === 1 ? 'categoría' : 'categorías'}
+                />
+                <View style={styles.donutSummary}>
+                  <Text style={styles.summaryLabel}>TOTAL DEL MES</Text>
+                  <Text style={styles.summaryValue}>{formatPEN(expenseTotal)}</Text>
+                  <Text style={styles.evidence}>
+                    Toca una categoría en Movimientos para revisar el respaldo.
+                  </Text>
+                </View>
               </View>
               {categoryBars.map((bar) => (
                 <View key={bar.category?.id ?? 'unknown'}>
@@ -216,31 +232,46 @@ export default function DashboardScreen() {
           )}
         </Card>
         <Card>
-          <Text style={styles.cardKicker}>Tendencia</Text>
-          <Text style={styles.cardTitle}>Gasto diario · últimos 7 días</Text>
-          {dailyTrend.some((point) => point.amountCents > 0) ? (
-            <View style={styles.trendChart}>
-              {dailyTrend.map((point) => (
-                <View key={point.dateKey} style={styles.trendColumn}>
-                  <Text style={styles.trendAmount} numberOfLines={1}>
-                    {point.amountCents ? formatPEN(point.amountCents).replace('S/\u00a0', '') : '—'}
-                  </Text>
-                  <View style={styles.trendBarArea}>
-                    <View
-                      style={[
-                        styles.trendBar,
-                        {
-                          height: point.amountCents
-                            ? Math.max(8, (point.amountCents / trendMaximum) * 82)
-                            : 2,
-                        },
-                      ]}
-                    />
-                  </View>
-                  <Text style={styles.axisLabel}>{weekdayShort[point.weekday]}</Text>
-                </View>
+          <View style={styles.chartHeader}>
+            <View>
+              <Text style={styles.cardKicker}>Tendencia</Text>
+              <Text style={styles.cardTitle}>Evolución del gasto diario</Text>
+            </View>
+            <View style={styles.modeRow}>
+              {(['area', 'bars'] as const).map((mode) => (
+                <Pressable
+                  key={mode}
+                  onPress={() => setTrendMode(mode)}
+                  style={[styles.iconToggle, trendMode === mode && styles.toggleActive]}
+                >
+                  <Ionicons
+                    name={mode === 'area' ? 'trending-up' : 'bar-chart'}
+                    size={16}
+                    color={trendMode === mode ? colors.crust : colors.muted}
+                  />
+                </Pressable>
               ))}
             </View>
+          </View>
+          <View style={styles.periodRow}>
+            {([7, 14, 30] as const).map((days) => (
+              <Pressable
+                key={days}
+                onPress={() => setTrendDays(days)}
+                style={[styles.periodChip, trendDays === days && styles.periodChipActive]}
+              >
+                <Text style={[styles.periodText, trendDays === days && styles.periodTextActive]}>
+                  {days} días
+                </Text>
+              </Pressable>
+            ))}
+          </View>
+          {dailyTrend.some((point) => point.amountCents > 0) ? (
+            trendMode === 'area' ? (
+              <AreaTrendChart data={trendData} />
+            ) : (
+              <PastelBarChart data={trendData} />
+            )
           ) : (
             <Text style={styles.evidence}>Registra gastos para observar su evolución diaria.</Text>
           )}
@@ -252,32 +283,13 @@ export default function DashboardScreen() {
             Hasta 30 gastos del mes · arriba significa mayor monto.
           </Text>
           {scatter.length >= 3 ? (
-            <>
-              <View style={styles.scatterPlot}>
-                <View style={[styles.gridLine, { bottom: '33%' }]} />
-                <View style={[styles.gridLine, { bottom: '66%' }]} />
-                {scatter.map((point) => (
-                  <View
-                    key={point.id}
-                    accessibilityLabel={`${formatPEN(point.amountCents)} a las ${Math.floor(point.hour)} horas`}
-                    style={[
-                      styles.scatterDot,
-                      {
-                        left: `${Math.min(96, (point.hour / 24) * 96)}%`,
-                        bottom: `${Math.min(92, (point.amountCents / scatterMaximum) * 92)}%`,
-                      },
-                    ]}
-                  />
-                ))}
-              </View>
-              <View style={styles.axisRow}>
-                {['00 h', '06 h', '12 h', '18 h', '24 h'].map((label) => (
-                  <Text key={label} style={styles.axisLabel}>
-                    {label}
-                  </Text>
-                ))}
-              </View>
-            </>
+            <ScatterChart
+              points={scatter.map((point) => ({
+                id: point.id,
+                x: point.hour,
+                y: point.amountCents,
+              }))}
+            />
           ) : (
             <Text style={styles.evidence}>
               Se necesitan al menos 3 gastos para evitar conclusiones engañosas.
@@ -372,16 +384,11 @@ const styles = StyleSheet.create({
   },
   warningValue: { color: colors.red, fontWeight: '900' },
   bars: { gap: 13, marginTop: 16 },
+  donutRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+  donutSummary: { flex: 1, gap: 5 },
+  summaryLabel: { color: colors.muted, fontSize: 10, fontWeight: '900', letterSpacing: 0.8 },
+  summaryValue: { color: colors.ink, fontSize: 22, fontWeight: '900' },
   barLabel: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 6 },
-  compositionTrack: {
-    height: 16,
-    flexDirection: 'row',
-    borderRadius: 8,
-    overflow: 'hidden',
-    backgroundColor: colors.line,
-    marginBottom: 4,
-  },
-  compositionSegment: { minWidth: 2 },
   legendLabel: { flexDirection: 'row', alignItems: 'center', gap: 7, flex: 1 },
   legendDot: { width: 9, height: 9, borderRadius: 5 },
   barTrack: {
@@ -391,39 +398,27 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   barFill: { height: 9, borderRadius: 5 },
-  trendChart: { flexDirection: 'row', height: 138, marginTop: 14, gap: 5 },
-  trendColumn: { flex: 1, alignItems: 'center' },
-  trendAmount: { color: colors.muted, fontSize: 9, width: '100%', textAlign: 'center' },
-  trendBarArea: { flex: 1, width: '70%', justifyContent: 'flex-end', marginVertical: 5 },
-  trendBar: { width: '100%', borderRadius: 6, backgroundColor: colors.mauve },
-  scatterPlot: {
-    height: 150,
-    marginTop: 16,
-    marginHorizontal: 6,
-    borderLeftWidth: 1,
-    borderBottomWidth: 1,
-    borderColor: colors.line,
+  chartHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  modeRow: { flexDirection: 'row', gap: 6 },
+  iconToggle: {
+    width: 34,
+    height: 34,
+    borderRadius: 11,
+    backgroundColor: colors.surface1,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  gridLine: {
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    borderTopWidth: StyleSheet.hairlineWidth,
-    borderColor: colors.line,
+  toggleActive: { backgroundColor: colors.mauve },
+  periodRow: { flexDirection: 'row', gap: 7, marginTop: 14 },
+  periodChip: {
+    paddingHorizontal: 11,
+    paddingVertical: 7,
+    borderRadius: radius.pill,
+    backgroundColor: colors.surface1,
   },
-  scatterDot: {
-    position: 'absolute',
-    width: 9,
-    height: 9,
-    marginLeft: -4,
-    marginBottom: -4,
-    borderRadius: 5,
-    backgroundColor: colors.teal,
-    borderWidth: 1,
-    borderColor: colors.crust,
-  },
-  axisRow: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 6 },
-  axisLabel: { color: colors.muted, fontSize: 10, fontWeight: '700' },
+  periodChipActive: { backgroundColor: colors.blue },
+  periodText: { color: colors.muted, fontSize: 11, fontWeight: '800' },
+  periodTextActive: { color: colors.crust },
   sectionHeader: { flexDirection: 'row', alignItems: 'baseline', justifyContent: 'space-between' },
   link: { color: colors.green, fontWeight: '800' },
   insight: { gap: 7 },
