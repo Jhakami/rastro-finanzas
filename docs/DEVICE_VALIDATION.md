@@ -128,3 +128,33 @@ dos mejoras pasan a 0.1.5.
 2. Confirmar que selecciona automáticamente cuenta, familia y categoría específica.
 3. Guardar varias compras con otro favorito, cerrar y abrir el formulario.
 4. Comprobar que el favorito más utilizado aparece primero.
+
+Resultado en POCO X7 Pro: LIM-02 aprobado; DASH-03 requiere cerrar el valor con un segundo toque;
+FAV-01 falló porque escribir el monto variable anulaba la selección. Las correcciones pasan a
+0.1.6.
+
+## Incremento 0.1.6: interacción reversible y favorito persistente · 80 %
+
+- **Implementación (50 %):** terminada.
+- **Validación automática (30 %):** TypeScript, ESLint, Prettier, 23 pruebas y compilación
+  Android release ARM64 aprobadas. APK `0.1.6` (`versionCode 7`), firma v2 verificada y sin
+  ubicación en segundo plano.
+- **Aceptación en dispositivo (20 %):** pendiente.
+
+### DASH-04 — Cerrar valor consultado
+
+1. Tocar una sección, barra o punto para mostrar su valor.
+2. Tocar nuevamente el mismo elemento.
+
+**Se acepta si:** el detalle desaparece y el gráfico vuelve a su estado inicial. Tocar otro dato
+debe cambiar la selección directamente.
+
+### FAV-02 — Favorito con monto variable
+
+1. Elegir un favorito y comprobar su color y el texto `aplicado`.
+2. Escribir o modificar el monto: el favorito debe seguir seleccionado.
+3. Guardar el gasto y volver a **Nuevo movimiento**.
+4. Repetirlo con otro favorito hasta superar su frecuencia.
+
+**Se acepta si:** cada gasto guardado con el favorito aumenta su uso y el más utilizado aparece
+primero. Cambiar manualmente la cuenta o categoría sí debe anular la selección.

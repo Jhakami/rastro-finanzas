@@ -351,7 +351,7 @@ export default function SettingsScreen() {
             <Text style={styles.primaryText}>{busy ? 'Cifrando…' : 'Crear copia .finbackup'}</Text>
           </Pressable>
         </Card>
-        <Text style={styles.version}>Rastro 0.1.5 · local-first · PEN</Text>
+        <Text style={styles.version}>Rastro 0.1.6 · local-first · PEN</Text>
       </ScrollView>
     </SafeAreaView>
   );
