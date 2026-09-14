@@ -104,7 +104,9 @@ dos mejoras pasan a 0.1.5.
 ## Incremento 0.1.5: gráficos consultables y selección eficiente · 80 %
 
 - **Implementación (50 %):** terminada.
-- **Validación automática (30 %):** TypeScript, ESLint, Prettier y 23 pruebas aprobadas.
+- **Validación automática (30 %):** TypeScript, ESLint, Prettier, 23 pruebas y compilación
+  Android release ARM64 aprobadas. APK `0.1.5` (`versionCode 6`), firmado para pruebas con el
+  mismo certificado de desarrollo y sin permiso de ubicación en segundo plano.
 - **Aceptación en dispositivo (20 %):** pendiente.
 
 ### DASH-03 — Consultar valores del gráfico
