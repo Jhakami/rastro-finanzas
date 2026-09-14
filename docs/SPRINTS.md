@@ -4,6 +4,18 @@ Cada sprint termina únicamente cuando pasan TypeScript, ESLint, Jest, Expo Doct
 
 El seguimiento operativo se realiza mediante los [hitos](https://github.com/Jhakami/rastro-finanzas/milestones) y las [incidencias](https://github.com/Jhakami/rastro-finanzas/issues) de GitHub. Este archivo define el alcance; GitHub refleja su ejecución.
 
+## Política de ejecución
+
+- Se mantiene un solo incremento funcional activo hasta terminar implementación, validación
+  automática y aceptación en Android.
+- Dentro del incremento se avanza criterio por criterio; no se abren simultáneamente varios
+  módulos incompletos de distintos sprints.
+- Las correcciones urgentes pueden interrumpir el incremento y deben quedar trazadas con su prueba
+  de regresión.
+- Dependabot propone automáticamente actualizaciones menores y parches. Los saltos mayores de
+  Expo, React Native y su ecosistema se agrupan en un sprint técnico con compilación de APK y
+  prueba de actualización sin pérdida de datos.
+
 ## Sprint 0 — Base técnica · Hecho
 
 - Expo 57, React Native 0.86 y TypeScript estricto.
