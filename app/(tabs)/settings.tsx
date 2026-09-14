@@ -199,7 +199,8 @@ export default function SettingsScreen() {
         <Card>
           <Text style={styles.label}>Límites mensuales</Text>
           <Text style={styles.hint}>
-            Configura un límite general o elige una categoría específica.
+            Configura un límite general o elige una familia principal. La familia sumará todas sus
+            categorías específicas.
           </Text>
           <ScrollView
             horizontal
@@ -212,12 +213,13 @@ export default function SettingsScreen() {
               onPress={() => setLimitCategoryId(null)}
             />
             {categories
-              .filter((item) => item.parentId)
+              .filter((item) => !item.parentId)
               .map((category) => (
                 <Chip
                   key={category.id}
                   label={category.name}
                   color={category.color}
+                  variant="family"
                   selected={limitCategoryId === category.id}
                   onPress={() => setLimitCategoryId(category.id)}
                 />
@@ -349,7 +351,7 @@ export default function SettingsScreen() {
             <Text style={styles.primaryText}>{busy ? 'Cifrando…' : 'Crear copia .finbackup'}</Text>
           </Pressable>
         </Card>
-        <Text style={styles.version}>Rastro 0.1.4 · local-first · PEN</Text>
+        <Text style={styles.version}>Rastro 0.1.5 · local-first · PEN</Text>
       </ScrollView>
     </SafeAreaView>
   );

@@ -70,6 +70,10 @@ a 100 %.
 - **Validación automática (30 %):** TypeScript, ESLint, 22 pruebas y Expo Doctor 21/21.
 - **Aceptación en dispositivo (20 %):** pendiente del APK 0.1.4.
 
+Resultado en POCO X7 Pro: PAT-01 y CAT-04 aprobados; DASH-02 aprobado con solicitud de valores al
+tocar; LIM-01 aprobó el alcance general, pero la lista específica resultó demasiado extensa. Las
+dos mejoras pasan a 0.1.5.
+
 ### DASH-02 — Gráficos interactivos
 
 1. Abrir **Resumen** con gastos de distintas categorías.
@@ -96,3 +100,31 @@ a 100 %.
 1. Abrir un gasto nuevo.
 2. Comprobar que las familias tienen borde y tinte propios.
 3. Confirmar que existe separación y un rótulo antes de las categorías específicas.
+
+## Incremento 0.1.5: gráficos consultables y selección eficiente · 80 %
+
+- **Implementación (50 %):** terminada.
+- **Validación automática (30 %):** TypeScript, ESLint, Prettier, 23 pruebas y compilación
+  Android release ARM64 aprobadas. APK `0.1.5` (`versionCode 6`), firmado para pruebas con el
+  mismo certificado de desarrollo y sin permiso de ubicación en segundo plano.
+- **Aceptación en dispositivo (20 %):** pendiente.
+
+### DASH-03 — Consultar valores del gráfico
+
+1. Tocar una sección de la dona y comprobar categoría y monto central.
+2. Tocar barras y puntos de la tendencia y comprobar día y monto.
+3. Tocar un punto de dispersión y comprobar monto y hora.
+4. Verificar la leyenda: verde bajo, azul medio y rosado alto, relativos al mayor monto mostrado.
+
+### LIM-02 — Límite por familia
+
+1. Abrir **Ajustes > Límites mensuales** y confirmar que solo aparecen familias principales.
+2. Crear un límite para Alimentación.
+3. Registrar gastos en dos categorías hijas distintas y confirmar que ambas suman al límite.
+
+### FAV-01 — Favoritos adaptativos
+
+1. Tocar un favorito y comprobar que queda coloreado.
+2. Confirmar que selecciona automáticamente cuenta, familia y categoría específica.
+3. Guardar varias compras con otro favorito, cerrar y abrir el formulario.
+4. Comprobar que el favorito más utilizado aparece primero.

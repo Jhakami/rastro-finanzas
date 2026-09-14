@@ -381,7 +381,10 @@ export function buildInsights(
   limits.forEach((limit) => {
     const related = currentExpenses.filter(
       (item) =>
-        (!limit.categoryId || item.categoryId === limit.categoryId) &&
+        (!limit.categoryId ||
+          item.categoryId === limit.categoryId ||
+          categories.find((category) => category.id === item.categoryId)?.parentId ===
+            limit.categoryId) &&
         (!limit.accountId || item.accountId === limit.accountId),
     );
     const spent = related.reduce((sum, item) => sum + item.amountCents, 0);

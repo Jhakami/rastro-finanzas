@@ -38,3 +38,27 @@ describe('LocalRepository.deleteCustomCategory', () => {
     );
   });
 });
+
+describe('LocalRepository.createTransaction', () => {
+  it('incrementa el uso del favorito elegido dentro de la misma transacción', async () => {
+    const runAsync = jest.fn().mockResolvedValue({ changes: 1 });
+    const database = {
+      runAsync,
+      withTransactionAsync: jest.fn(async (operation: () => Promise<void>) => operation()),
+    };
+    jest.mocked(openDatabase).mockResolvedValue(database as never);
+
+    await new LocalRepository().createTransaction({
+      kind: 'expense',
+      amountCents: 250,
+      accountId: 'account-yape',
+      categoryId: 'category-food-water',
+      favoriteId: 'favorite-water',
+    });
+
+    expect(runAsync).toHaveBeenCalledWith(
+      expect.stringContaining('usage_count=usage_count+1'),
+      'favorite-water',
+    );
+  });
+});
