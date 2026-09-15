@@ -166,14 +166,20 @@ nueva desplaza a la menos frecuente, los empates se resuelven por uso más recie
 movimientos eliminados dejan de contar. La cuenta propuesta será la utilizada más recientemente
 para esa categoría.
 
-## Incremento 0.1.8: CRUD de cuentas · 80 %
+## Incremento 0.1.8: CRUD de cuentas · validación interrumpida
+
+- **Resultado en dispositivo:** ACC-01 no pudo ejecutarse porque la pantalla se cerró al recibir
+  `isDefault` como `0/1` de SQLite en `accessibilityState.disabled`. ACC-02 a ACC-05 quedaron
+  bloqueados por el mismo cierre. La regresión se corrige y vuelve a validarse en `0.1.9`.
+
+## Incremento 0.1.9: corrección del CRUD de cuentas · 80 %
 
 - **Implementación (50 %):** terminada.
-- **Validación automática (30 %):** TypeScript, ESLint, Prettier, Expo Doctor 21/21,
-  27 pruebas y compilación Android release ARM64 aprobadas. APK `0.1.8` (`versionCode 9`),
-  firma v2 verificada, ubicación precisa disponible solo en primer plano y sin permiso de
-  ubicación en segundo plano. SHA-256:
-  `9A954D5027E46BCEBEA8C2ACF621E899494247764F0E4BCFD4179448B5E5BEB5`.
+- **Validación automática (30 %):** TypeScript, ESLint, Prettier, 28 pruebas y compilación
+  Android release ARM64 aprobadas. Incluye una regresión que exige convertir los indicadores
+  SQLite `0/1` en booleanos antes de entregarlos a React Native. APK `0.1.9` (`versionCode 10`),
+  firma v2 verificada y sin permiso de ubicación en segundo plano. SHA-256:
+  `5776BE62369FA10CC491569433B3B6101791B3387B82EF1ECF141863DB5CFC4C`.
 - **Aceptación en dispositivo (20 %):** pendiente en POCO X7 Pro.
 
 ### ACC-01 — Crear y editar

@@ -174,8 +174,8 @@ export default function AccountsScreen() {
         <Text style={styles.section}>Activas · {accounts.length}</Text>
         <Card>
           {accounts.map((account, index) => {
-            const cannotMoveUp = index === 0 || accounts[index - 1]?.isDefault;
-            const cannotMoveDown = index === accounts.length - 1 || account.isDefault;
+            const cannotMoveUp = Boolean(index === 0 || accounts[index - 1]?.isDefault);
+            const cannotMoveDown = Boolean(index === accounts.length - 1 || account.isDefault);
             return (
               <View key={account.id} style={[styles.accountRow, index > 0 && styles.divider]}>
                 <View style={[styles.accountDot, { backgroundColor: account.color }]} />
@@ -214,7 +214,7 @@ export default function AccountsScreen() {
                   </Pressable>
                   <Pressable
                     accessibilityLabel={`Archivar ${account.name}`}
-                    disabled={account.isDefault}
+                    disabled={Boolean(account.isDefault)}
                     onPress={() => confirmArchive(account)}
                     style={[styles.iconButton, account.isDefault && styles.disabled]}
                   >
