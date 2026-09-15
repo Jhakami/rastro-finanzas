@@ -14,7 +14,13 @@ import { colors, radius, spacing } from '@/theme';
 type Filter = 'all' | 'expense' | 'income' | 'transfer';
 
 export default function MovementsScreen() {
-  const { transactions, accounts, categories, deleteTransaction, loading } = useFinance();
+  const {
+    transactions,
+    allAccounts: accounts,
+    categories,
+    deleteTransaction,
+    loading,
+  } = useFinance();
   const [filter, setFilter] = useState<Filter>('all');
   const [query, setQuery] = useState('');
   const visible = useMemo(

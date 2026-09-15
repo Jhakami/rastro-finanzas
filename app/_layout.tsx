@@ -98,6 +98,7 @@ export default function RootLayout() {
           >
             <Stack.Screen name="(tabs)" />
             <Stack.Screen name="new" options={{ presentation: 'modal' }} />
+            <Stack.Screen name="accounts" options={{ presentation: 'modal' }} />
             <Stack.Screen name="insights" />
           </Stack>
         </LockGate>

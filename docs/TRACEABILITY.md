@@ -23,3 +23,4 @@
 | Gráficos consultables       | CU-19 Consultar un dato visual  | Selección SVG, valor contextual y leyendas | DASH-03                        |
 | Límite familiar             | CU-20 Limitar un rubro          | Familia incluye sus categorías hijas       | Analytics unitario + LIM-02    |
 | Favorito adaptativo         | CU-21 Repetir una compra        | Ranking del historial activo y recencia    | Repositorio + FAV-02           |
+| Administrar cuentas         | CU-22 Configurar mis cuentas    | Repositorio, proveedor y pantalla cuentas  | Unitarias + ACC-01 a ACC-05    |

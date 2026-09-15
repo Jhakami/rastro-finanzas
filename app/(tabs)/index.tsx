@@ -102,9 +102,9 @@ export default function DashboardScreen() {
           </Card>
         ) : null}
         <MetricCard
-          label="Saldo disponible"
+          label="Patrimonio registrado"
           value={formatPEN(totalBalance)}
-          hint="Yape + banco + efectivo"
+          hint="Incluye cuentas archivadas para no ocultar saldo"
           tone="dark"
         />
         <Text style={styles.sectionTitle}>Tus cuentas</Text>

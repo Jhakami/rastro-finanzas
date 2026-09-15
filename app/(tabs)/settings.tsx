@@ -11,6 +11,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import * as LocalAuthentication from 'expo-local-authentication';
+import { Link } from 'expo-router';
 import { publishBiometricPreference } from '@/application/biometric-lock';
 import { createEncryptedBackup } from '@/application/backup-service';
 import { exportTransactionsCsv } from '@/application/export-service';
@@ -23,6 +24,7 @@ import { colors, radius, spacing } from '@/theme';
 export default function SettingsScreen() {
   const {
     accounts,
+    allAccounts,
     balances,
     transactions,
     categories,
@@ -153,6 +155,11 @@ export default function SettingsScreen() {
               </View>
             </View>
           ))}
+          <Link href="/accounts" asChild>
+            <Pressable style={[styles.outlineButton, styles.manageAccounts]}>
+              <Text style={styles.outlineText}>Administrar cuentas</Text>
+            </Pressable>
+          </Link>
         </Card>
         <Card>
           <Text style={styles.label}>Reglas de patrones</Text>
@@ -308,7 +315,9 @@ export default function SettingsScreen() {
           <View style={styles.buttonStack}>
             <Pressable
               style={styles.outlineButton}
-              onPress={() => void exportTransactionsCsv(transactions, accounts, categories, false)}
+              onPress={() =>
+                void exportTransactionsCsv(transactions, allAccounts, categories, false)
+              }
             >
               <Text style={styles.outlineText}>CSV sin ubicaciones</Text>
             </Pressable>
@@ -323,7 +332,7 @@ export default function SettingsScreen() {
                     {
                       text: 'Incluir',
                       onPress: () =>
-                        void exportTransactionsCsv(transactions, accounts, categories, true),
+                        void exportTransactionsCsv(transactions, allAccounts, categories, true),
                     },
                   ],
                 )
@@ -351,7 +360,7 @@ export default function SettingsScreen() {
             <Text style={styles.primaryText}>{busy ? 'Cifrando…' : 'Crear copia .finbackup'}</Text>
           </Pressable>
         </Card>
-        <Text style={styles.version}>Rastro 0.1.7 · local-first · PEN</Text>
+        <Text style={styles.version}>Rastro 0.1.8 · local-first · PEN</Text>
       </ScrollView>
     </SafeAreaView>
   );
@@ -444,6 +453,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   outlineText: { color: colors.green, fontWeight: '800' },
+  manageAccounts: { marginTop: 12 },
   password: {
     marginTop: 10,
     padding: 12,
