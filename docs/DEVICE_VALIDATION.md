@@ -133,13 +133,15 @@ Resultado en POCO X7 Pro: LIM-02 aprobado; DASH-03 requirió cerrar el valor con
 FAV-01 no correspondía al comportamiento adaptativo solicitado. DASH-04 fue aprobado en 0.1.6; el
 criterio de favoritos corregido pasa a 0.1.7.
 
-## Incremento 0.1.7: favoritos derivados del comportamiento · 80 %
+## Incremento 0.1.7: favoritos derivados del comportamiento · 100 %
 
 - **Implementación (50 %):** terminada.
 - **Validación automática (30 %):** TypeScript, ESLint, Prettier, 24 pruebas y compilación
   Android release ARM64 aprobadas. APK `0.1.7` (`versionCode 8`), firma v2 verificada y sin
   ubicación en segundo plano.
-- **Aceptación en dispositivo (20 %):** pendiente.
+- **Aceptación en dispositivo (20 %):** aprobada en POCO X7 Pro. FAV-02 reemplaza
+  automáticamente la opción menos frecuente cuando otra categoría acumula más movimientos
+  activos; DASH-04 también fue aprobado.
 
 ### DASH-04 — Cerrar valor consultado
 
