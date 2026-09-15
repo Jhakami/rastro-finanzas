@@ -40,7 +40,7 @@ Seguimiento: [#6](https://github.com/Jhakami/rastro-finanzas/issues/6).
 
 ## Sprint 2 — Parametrización completa · 45 % · En curso
 
-- Crear, editar, ordenar, archivar y restaurar cuentas implementado en `0.1.8`; falta su
+- Crear, editar, ordenar, archivar y restaurar cuentas implementado en `0.1.9`; falta su
   aceptación en Android para marcar este criterio como terminado.
 - Categorías jerárquicas: catálogo inicial detallado, búsqueda, selección por familia y
   creación inmediata de subcategorías propias implementadas.

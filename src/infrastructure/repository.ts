@@ -41,6 +41,11 @@ export interface SaveAccountInput {
   color: string;
 }
 
+type AccountRow = Omit<Account, 'isDefault' | 'isArchived'> & {
+  isDefault: boolean | number;
+  isArchived: boolean | number;
+};
+
 export class LocalRepository {
   private async db(): Promise<SQLiteDatabase> {
     return openDatabase();
@@ -48,12 +53,17 @@ export class LocalRepository {
 
   async listAccounts(includeArchived = false): Promise<Account[]> {
     const db = await this.db();
-    return db.getAllAsync<Account>(`
+    const rows = await db.getAllAsync<AccountRow>(`
       SELECT id,name,color,initial_balance_cents AS initialBalanceCents,
         is_default AS isDefault,is_archived AS isArchived,sort_order AS sortOrder
       FROM accounts ${includeArchived ? '' : 'WHERE is_archived=0'}
       ORDER BY is_archived,sort_order,name
     `);
+    return rows.map((account) => ({
+      ...account,
+      isDefault: Boolean(account.isDefault),
+      isArchived: Boolean(account.isArchived),
+    }));
   }
 
   async createAccount(input: SaveAccountInput): Promise<string> {

@@ -116,6 +116,28 @@ describe('LocalRepository.listFavorites', () => {
 });
 
 describe('LocalRepository account CRUD', () => {
+  it('convierte los indicadores SQLite 0/1 en booleanos antes de exponerlos a la interfaz', async () => {
+    const getAllAsync = jest.fn().mockResolvedValue([
+      {
+        id: 'account-yape',
+        name: 'Yape',
+        color: '#CBA6F7',
+        initialBalanceCents: 0,
+        isDefault: 1,
+        isArchived: 0,
+        sortOrder: 0,
+      },
+    ]);
+    jest.mocked(openDatabase).mockResolvedValue({ getAllAsync } as never);
+
+    const [account] = await new LocalRepository().listAccounts(true);
+
+    expect(account?.isDefault).toBe(true);
+    expect(account?.isArchived).toBe(false);
+    expect(typeof account?.isDefault).toBe('boolean');
+    expect(typeof account?.isArchived).toBe('boolean');
+  });
+
   it('crea una cuenta normalizada al final y registra auditoría', async () => {
     const runAsync = jest.fn().mockResolvedValue({ changes: 1 });
     const getFirstAsync = jest
