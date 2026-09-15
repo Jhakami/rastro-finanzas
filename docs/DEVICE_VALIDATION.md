@@ -129,17 +129,19 @@ dos mejoras pasan a 0.1.5.
 3. Guardar varias compras con otro favorito, cerrar y abrir el formulario.
 4. Comprobar que el favorito más utilizado aparece primero.
 
-Resultado en POCO X7 Pro: LIM-02 aprobado; DASH-03 requiere cerrar el valor con un segundo toque;
-FAV-01 falló porque escribir el monto variable anulaba la selección. Las correcciones pasan a
-0.1.6.
+Resultado en POCO X7 Pro: LIM-02 aprobado; DASH-03 requirió cerrar el valor con un segundo toque y
+FAV-01 no correspondía al comportamiento adaptativo solicitado. DASH-04 fue aprobado en 0.1.6; el
+criterio de favoritos corregido pasa a 0.1.7.
 
-## Incremento 0.1.6: interacción reversible y favorito persistente · 80 %
+## Incremento 0.1.7: favoritos derivados del comportamiento · 100 %
 
 - **Implementación (50 %):** terminada.
-- **Validación automática (30 %):** TypeScript, ESLint, Prettier, 23 pruebas y compilación
-  Android release ARM64 aprobadas. APK `0.1.6` (`versionCode 7`), firma v2 verificada y sin
+- **Validación automática (30 %):** TypeScript, ESLint, Prettier, 24 pruebas y compilación
+  Android release ARM64 aprobadas. APK `0.1.7` (`versionCode 8`), firma v2 verificada y sin
   ubicación en segundo plano.
-- **Aceptación en dispositivo (20 %):** pendiente.
+- **Aceptación en dispositivo (20 %):** aprobada en POCO X7 Pro. FAV-02 reemplaza
+  automáticamente la opción menos frecuente cuando otra categoría acumula más movimientos
+  activos; DASH-04 también fue aprobado.
 
 ### DASH-04 — Cerrar valor consultado
 
@@ -149,12 +151,17 @@ FAV-01 falló porque escribir el monto variable anulaba la selección. Las corre
 **Se acepta si:** el detalle desaparece y el gráfico vuelve a su estado inicial. Tocar otro dato
 debe cambiar la selección directamente.
 
-### FAV-02 — Favorito con monto variable
+### FAV-02 — Favoritos derivados del comportamiento
 
-1. Elegir un favorito y comprobar su color y el texto `aplicado`.
-2. Escribir o modificar el monto: el favorito debe seguir seleccionado.
-3. Guardar el gasto y volver a **Nuevo movimiento**.
-4. Repetirlo con otro favorito hasta superar su frecuencia.
+La interpretación inicial basada en pulsaciones fue rechazada. La regla corregida utiliza todos
+los gastos activos, incluso si la categoría se eligió manualmente.
 
-**Se acepta si:** cada gasto guardado con el favorito aumenta su uso y el más utilizado aparece
-primero. Cambiar manualmente la cuenta o categoría sí debe anular la selección.
+1. Registrar varias veces una categoría específica que no aparezca entre los tres favoritos.
+2. Volver a **Nuevo movimiento** y revisar el número de usos mostrado.
+3. Superar la frecuencia de la opción menos utilizada.
+4. Eliminar uno de esos movimientos y volver a abrir el formulario.
+
+**Se acepta si:** se muestran como máximo las tres categorías específicas con más movimientos; la
+nueva desplaza a la menos frecuente, los empates se resuelven por uso más reciente y los
+movimientos eliminados dejan de contar. La cuenta propuesta será la utilizada más recientemente
+para esa categoría.

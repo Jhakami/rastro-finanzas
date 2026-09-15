@@ -172,11 +172,36 @@ export class LocalRepository {
 
   async listFavorites(): Promise<FavoriteTemplate[]> {
     const db = await this.db();
-    return db.getAllAsync<FavoriteTemplate>(`
-      SELECT id,name,amount_cents AS amountCents,account_id AS accountId,
-        category_id AS categoryId,merchant,note,usage_count AS usageCount
-      FROM favorites WHERE is_archived=0 ORDER BY usage_count DESC,sort_order,name
+    const adaptive = await db.getAllAsync<FavoriteTemplate>(`
+      WITH expense_options AS (
+        SELECT t.category_id AS categoryId,t.account_id AS accountId,c.name,
+          COUNT(*) OVER (PARTITION BY t.category_id) AS usageCount,
+          MAX(t.occurred_at) OVER (PARTITION BY t.category_id) AS lastUsedAt,
+          ROW_NUMBER() OVER (
+            PARTITION BY t.category_id ORDER BY t.occurred_at DESC,t.id DESC
+          ) AS recencyRank
+        FROM transactions t
+        INNER JOIN categories c ON c.id=t.category_id
+        WHERE t.kind='expense' AND t.deleted_at IS NULL AND t.category_id IS NOT NULL
+      )
+      SELECT 'adaptive-' || categoryId AS id,name,NULL AS amountCents,accountId,categoryId,
+        NULL AS merchant,NULL AS note,usageCount
+      FROM expense_options WHERE recencyRank=1
+      ORDER BY usageCount DESC,lastUsedAt DESC,name
+      LIMIT 3
     `);
+    if (adaptive.length >= 3) return adaptive;
+
+    const initial = await db.getAllAsync<FavoriteTemplate>(`
+      SELECT id,name,amount_cents AS amountCents,account_id AS accountId,
+        category_id AS categoryId,merchant,note,0 AS usageCount
+      FROM favorites WHERE is_archived=0 ORDER BY sort_order,name
+    `);
+    const represented = new Set(adaptive.map((favorite) => favorite.categoryId));
+    return [
+      ...adaptive,
+      ...initial.filter((favorite) => !represented.has(favorite.categoryId)),
+    ].slice(0, 3);
   }
 
   async listLimits(): Promise<SpendingLimit[]> {

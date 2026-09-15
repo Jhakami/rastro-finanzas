@@ -44,8 +44,8 @@ Seguimiento: [#6](https://github.com/Jhakami/rastro-finanzas/issues/6).
 - Categorías jerárquicas: catálogo inicial detallado, búsqueda, selección por familia y
   creación inmediata de subcategorías propias implementadas.
 - Pendiente del CRUD de categorías: editar, ordenar, archivar y restaurar; además de etiquetas.
-- Los favoritos resaltan la selección, completan cuenta/familia/categoría y suben de posición
-  según su uso. Falta su CRUD con monto fijo, sugerido o variable.
+- Los tres favoritos se derivan de las categorías con más movimientos activos, desempatan por
+  recencia y completan cuenta/familia/categoría. Falta su CRUD y permitir fijar opciones manuales.
 - Conciliación guiada con motivo y vista de auditoría.
 - Límites mensuales generales y por familia con umbral de aviso configurable ya implementados.
   Cada familia suma sus categorías hijas. Falta la selección por cuenta y una administración más
