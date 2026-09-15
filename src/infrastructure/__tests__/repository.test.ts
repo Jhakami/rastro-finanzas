@@ -2,6 +2,7 @@ import { LocalRepository } from '../repository';
 import { openDatabase } from '../database';
 
 jest.mock('../database', () => ({ openDatabase: jest.fn() }));
+jest.mock('expo-crypto', () => ({ randomUUID: jest.fn(() => 'test-uuid') }));
 
 describe('LocalRepository.deleteCustomCategory', () => {
   it('ignora referencias de movimientos borrados y las reclasifica antes de eliminar', async () => {
@@ -111,5 +112,87 @@ describe('LocalRepository.listFavorites', () => {
       'favorite-water',
       'favorite-pasaje',
     ]);
+  });
+});
+
+describe('LocalRepository account CRUD', () => {
+  it('crea una cuenta normalizada al final y registra auditoría', async () => {
+    const runAsync = jest.fn().mockResolvedValue({ changes: 1 });
+    const getFirstAsync = jest
+      .fn()
+      .mockResolvedValueOnce(null)
+      .mockResolvedValueOnce({ sortOrder: 2 });
+    const database = {
+      getFirstAsync,
+      runAsync,
+      withTransactionAsync: jest.fn(async (operation: () => Promise<void>) => operation()),
+    };
+    jest.mocked(openDatabase).mockResolvedValue(database as never);
+
+    const id = await new LocalRepository().createAccount({
+      name: '  Ahorros   personales ',
+      color: '#cba6f7',
+    });
+
+    expect(id).toContain('account-custom-');
+    expect(runAsync).toHaveBeenCalledWith(
+      expect.stringContaining('INSERT INTO accounts'),
+      id,
+      'Ahorros personales',
+      '#CBA6F7',
+      3,
+    );
+    expect(runAsync).toHaveBeenCalledWith(
+      expect.stringContaining('INSERT INTO audit_events'),
+      expect.any(String),
+      'account',
+      id,
+      'created',
+      expect.any(String),
+      expect.any(String),
+    );
+  });
+
+  it('protege la cuenta principal frente al archivado', async () => {
+    const database = {
+      getFirstAsync: jest.fn().mockResolvedValue({
+        id: 'account-yape',
+        name: 'Yape',
+        isDefault: 1,
+        isArchived: 0,
+      }),
+    };
+    jest.mocked(openDatabase).mockResolvedValue(database as never);
+
+    await expect(new LocalRepository().setAccountArchived('account-yape', true)).rejects.toThrow(
+      'no se puede archivar',
+    );
+  });
+
+  it('archiva una cuenta conservando sus referencias y deja auditoría', async () => {
+    const runAsync = jest.fn().mockResolvedValue({ changes: 1 });
+    const getFirstAsync = jest
+      .fn()
+      .mockResolvedValueOnce({
+        id: 'account-bank',
+        name: 'Banco',
+        isDefault: 0,
+        isArchived: 0,
+      })
+      .mockResolvedValueOnce({ total: 3 });
+    const database = {
+      getFirstAsync,
+      runAsync,
+      withTransactionAsync: jest.fn(async (operation: () => Promise<void>) => operation()),
+    };
+    jest.mocked(openDatabase).mockResolvedValue(database as never);
+
+    await new LocalRepository().setAccountArchived('account-bank', true);
+
+    expect(runAsync).toHaveBeenCalledWith(
+      'UPDATE accounts SET is_archived=1 WHERE id=?',
+      'account-bank',
+    );
+    expect(runAsync).not.toHaveBeenCalledWith(expect.stringContaining('DELETE'), expect.anything());
   });
 });

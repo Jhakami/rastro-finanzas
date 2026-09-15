@@ -36,18 +36,153 @@ export interface SaveSpendingLimitInput {
   warningPercent: number;
 }
 
+export interface SaveAccountInput {
+  name: string;
+  color: string;
+}
+
 export class LocalRepository {
   private async db(): Promise<SQLiteDatabase> {
     return openDatabase();
   }
 
-  async listAccounts(): Promise<Account[]> {
+  async listAccounts(includeArchived = false): Promise<Account[]> {
     const db = await this.db();
     return db.getAllAsync<Account>(`
       SELECT id,name,color,initial_balance_cents AS initialBalanceCents,
         is_default AS isDefault,is_archived AS isArchived,sort_order AS sortOrder
+      FROM accounts ${includeArchived ? '' : 'WHERE is_archived=0'}
+      ORDER BY is_archived,sort_order,name
+    `);
+  }
+
+  async createAccount(input: SaveAccountInput): Promise<string> {
+    const name = normalizeAccountName(input.name);
+    const color = validateAccountColor(input.color);
+    const db = await this.db();
+    await ensureUniqueAccountName(db, name);
+    const last = await db.getFirstAsync<{ sortOrder: number | null }>(
+      'SELECT max(sort_order) AS sortOrder FROM accounts WHERE is_archived=0',
+    );
+    const id = `account-custom-${Crypto.randomUUID()}`;
+    const now = new Date().toISOString();
+    await db.withTransactionAsync(async () => {
+      await db.runAsync(
+        `INSERT INTO accounts(id,name,color,initial_balance_cents,is_default,is_archived,sort_order)
+         VALUES(?,?,?,0,0,0,?)`,
+        id,
+        name,
+        color,
+        (last?.sortOrder ?? -1) + 1,
+      );
+      await addAuditEvent(db, 'account', id, 'created', { name, color }, now);
+    });
+    return id;
+  }
+
+  async updateAccount(id: string, input: SaveAccountInput): Promise<void> {
+    const name = normalizeAccountName(input.name);
+    const color = validateAccountColor(input.color);
+    const db = await this.db();
+    const current = await db.getFirstAsync<Account>(
+      `SELECT id,name,color,initial_balance_cents AS initialBalanceCents,
+        is_default AS isDefault,is_archived AS isArchived,sort_order AS sortOrder
+       FROM accounts WHERE id=?`,
+      id,
+    );
+    if (!current) throw new Error('La cuenta ya no existe.');
+    await ensureUniqueAccountName(db, name, id);
+    const now = new Date().toISOString();
+    await db.withTransactionAsync(async () => {
+      await db.runAsync('UPDATE accounts SET name=?,color=? WHERE id=?', name, color, id);
+      await addAuditEvent(
+        db,
+        'account',
+        id,
+        'updated',
+        { before: { name: current.name, color: current.color }, after: { name, color } },
+        now,
+      );
+    });
+  }
+
+  async moveAccount(id: string, direction: 'up' | 'down'): Promise<void> {
+    const db = await this.db();
+    const accounts = await db.getAllAsync<Pick<Account, 'id' | 'isDefault' | 'sortOrder'>>(`
+      SELECT id,is_default AS isDefault,sort_order AS sortOrder
       FROM accounts WHERE is_archived=0 ORDER BY sort_order,name
     `);
+    const index = accounts.findIndex((account) => account.id === id);
+    if (index < 0) throw new Error('La cuenta activa ya no existe.');
+    if (accounts[index]?.isDefault) {
+      throw new Error('Yape conserva la primera posición por ser la cuenta principal.');
+    }
+    const targetIndex = direction === 'up' ? index - 1 : index + 1;
+    const target = accounts[targetIndex];
+    const current = accounts[index];
+    if (!target || !current || target.isDefault) return;
+    const now = new Date().toISOString();
+    await db.withTransactionAsync(async () => {
+      await db.runAsync(
+        'UPDATE accounts SET sort_order=? WHERE id=?',
+        target.sortOrder,
+        current.id,
+      );
+      await db.runAsync(
+        'UPDATE accounts SET sort_order=? WHERE id=?',
+        current.sortOrder,
+        target.id,
+      );
+      await addAuditEvent(db, 'account', id, 'reordered', { direction }, now);
+    });
+  }
+
+  async setAccountArchived(id: string, archived: boolean): Promise<void> {
+    const db = await this.db();
+    const account = await db.getFirstAsync<
+      Pick<Account, 'id' | 'name' | 'isDefault' | 'isArchived'>
+    >(
+      `SELECT id,name,is_default AS isDefault,is_archived AS isArchived FROM accounts WHERE id=?`,
+      id,
+    );
+    if (!account) throw new Error('La cuenta ya no existe.');
+    if (Boolean(account.isArchived) === archived) return;
+    if (archived && account.isDefault) {
+      throw new Error('Yape es la cuenta principal y no se puede archivar.');
+    }
+    if (archived) {
+      const active = await db.getFirstAsync<{ total: number }>(
+        'SELECT count(*) AS total FROM accounts WHERE is_archived=0',
+      );
+      if ((active?.total ?? 0) <= 1) throw new Error('Debe quedar al menos una cuenta activa.');
+    }
+    const last = archived
+      ? null
+      : await db.getFirstAsync<{ sortOrder: number | null }>(
+          'SELECT max(sort_order) AS sortOrder FROM accounts WHERE is_archived=0',
+        );
+    const now = new Date().toISOString();
+    await db.withTransactionAsync(async () => {
+      if (archived) {
+        await db.runAsync('UPDATE accounts SET is_archived=1 WHERE id=?', id);
+      } else {
+        await db.runAsync(
+          'UPDATE accounts SET is_archived=0,sort_order=? WHERE id=?',
+          (last?.sortOrder ?? -1) + 1,
+          id,
+        );
+      }
+      await addAuditEvent(
+        db,
+        'account',
+        id,
+        archived ? 'archived' : 'restored',
+        {
+          name: account.name,
+        },
+        now,
+      );
+    });
   }
 
   async listCategories(): Promise<Category[]> {
@@ -182,6 +317,7 @@ export class LocalRepository {
           ) AS recencyRank
         FROM transactions t
         INNER JOIN categories c ON c.id=t.category_id
+        INNER JOIN accounts a ON a.id=t.account_id AND a.is_archived=0
         WHERE t.kind='expense' AND t.deleted_at IS NULL AND t.category_id IS NOT NULL
       )
       SELECT 'adaptive-' || categoryId AS id,name,NULL AS amountCents,accountId,categoryId,
@@ -193,9 +329,10 @@ export class LocalRepository {
     if (adaptive.length >= 3) return adaptive;
 
     const initial = await db.getAllAsync<FavoriteTemplate>(`
-      SELECT id,name,amount_cents AS amountCents,account_id AS accountId,
-        category_id AS categoryId,merchant,note,0 AS usageCount
-      FROM favorites WHERE is_archived=0 ORDER BY sort_order,name
+      SELECT f.id,f.name,f.amount_cents AS amountCents,f.account_id AS accountId,
+        f.category_id AS categoryId,f.merchant,f.note,0 AS usageCount
+      FROM favorites f INNER JOIN accounts a ON a.id=f.account_id
+      WHERE f.is_archived=0 AND a.is_archived=0 ORDER BY f.sort_order,f.name
     `);
     const represented = new Set(adaptive.map((favorite) => favorite.categoryId));
     return [
@@ -414,6 +551,60 @@ function validateTransaction(input: CreateTransactionInput): void {
   if (input.kind === 'refund' && !input.refundOfId) {
     throw new Error('Un reembolso debe vincularse al gasto original.');
   }
+}
+
+function normalizeAccountName(value: string): string {
+  const name = value.trim().replace(/\s+/g, ' ');
+  if (name.length < 2 || name.length > 30) {
+    throw new Error('El nombre de la cuenta debe tener entre 2 y 30 caracteres.');
+  }
+  return name;
+}
+
+function validateAccountColor(value: string): string {
+  const color = value.trim().toUpperCase();
+  if (!/^#[0-9A-F]{6}$/.test(color)) throw new Error('Elige un color válido para la cuenta.');
+  return color;
+}
+
+async function ensureUniqueAccountName(
+  db: SQLiteDatabase,
+  name: string,
+  excludedId?: string,
+): Promise<void> {
+  const duplicate = await db.getFirstAsync<{ isArchived: boolean }>(
+    `SELECT is_archived AS isArchived FROM accounts
+     WHERE lower(trim(name))=lower(?) AND (? IS NULL OR id<>?)`,
+    name,
+    excludedId ?? null,
+    excludedId ?? null,
+  );
+  if (duplicate) {
+    throw new Error(
+      duplicate.isArchived
+        ? 'Ya existe una cuenta archivada con ese nombre. Restáurala para volver a usarla.'
+        : 'Ya existe una cuenta activa con ese nombre.',
+    );
+  }
+}
+
+async function addAuditEvent(
+  db: SQLiteDatabase,
+  entityType: string,
+  entityId: string,
+  action: string,
+  payload: unknown,
+  occurredAt: string,
+): Promise<void> {
+  await db.runAsync(
+    'INSERT INTO audit_events(id,entity_type,entity_id,action,payload,occurred_at) VALUES(?,?,?,?,?,?)',
+    Crypto.randomUUID(),
+    entityType,
+    entityId,
+    action,
+    JSON.stringify(payload),
+    occurredAt,
+  );
 }
 
 export const repository = new LocalRepository();
