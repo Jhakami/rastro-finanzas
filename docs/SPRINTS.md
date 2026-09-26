@@ -38,13 +38,16 @@ POCO X7 Pro con Android 16. El ajuste posterior a celdas de 50 m se valida como 
 
 Seguimiento: [#6](https://github.com/Jhakami/rastro-finanzas/issues/6).
 
-## Sprint 2 — Parametrización completa · 45 % · En curso
+## Sprint 2 — Parametrización completa · 50 % · En curso
 
-- Crear, editar, ordenar, archivar y restaurar cuentas implementado en `0.1.9`; falta su
-  aceptación en Android para marcar este criterio como terminado.
+- Crear, editar, ordenar, archivar y restaurar cuentas terminado y aceptado en Android en
+  `0.1.9` mediante ACC-01 a ACC-05.
 - Categorías jerárquicas: catálogo inicial detallado, búsqueda, selección por familia y
   creación inmediata de subcategorías propias implementadas.
-- Pendiente del CRUD de categorías: editar, ordenar, archivar y restaurar; además de etiquetas.
+- El ciclo de vida de categorías propias —crear, editar, cambiar de familia, ordenar, archivar y
+  restaurar— está implementado en `0.1.10` y pendiente de aceptación en Android. Las categorías
+  iniciales continúan protegidas y el historial conserva las categorías archivadas.
+- Pendiente del módulo de categorías: etiquetas ilimitadas y su administración.
 - Los tres favoritos se derivan de las categorías con más movimientos activos, desempatan por
   recencia y completan cuenta/familia/categoría. Falta su CRUD y permitir fijar opciones manuales.
 - Conciliación guiada con motivo y vista de auditoría.
@@ -55,10 +58,8 @@ Seguimiento: [#6](https://github.com/Jhakami/rastro-finanzas/issues/6).
 Seguimiento: [#7](https://github.com/Jhakami/rastro-finanzas/issues/7), [#8](https://github.com/Jhakami/rastro-finanzas/issues/8), [#9](https://github.com/Jhakami/rastro-finanzas/issues/9), [#10](https://github.com/Jhakami/rastro-finanzas/issues/10) y [#11](https://github.com/Jhakami/rastro-finanzas/issues/11).
 
 El porcentaje es orientativo y se calcula con criterios de aceptación terminados, no por tiempo
-transcurrido. El catálogo, la navegación jerárquica, la búsqueda y la creación de una categoría
-propia están disponibles; todavía falta administrar todo su ciclo de vida y los demás módulos del
-sprint. El CRUD de cuentas está al 80 % de su incremento (implementación y validación automática);
-el porcentaje del sprint no aumentará hasta la aceptación en dispositivo.
+transcurrido. El CRUD de cuentas ya está al 100 %. El incremento de categorías `0.1.10` se mantiene
+al 80 % hasta completar CAT-05 en el dispositivo; después se abordará un solo incremento a la vez.
 
 ## Estado global orientativo
 
@@ -66,7 +67,7 @@ el porcentaje del sprint no aumentará hasta la aceptación en dispositivo.
 | ------------ | -----: | ------------------------------------------------------------ |
 | Sprint 0     |  100 % | Cerrado                                                      |
 | Sprint 1     |  100 % | Cerrado en dispositivo                                       |
-| Sprint 2     |   45 % | CRUD de categorías, cuentas, favoritos y conciliación        |
+| Sprint 2     |   50 % | Aceptar categorías; etiquetas, favoritos y conciliación      |
 | Sprint 3     |    0 % | Aún no iniciado                                              |
 | Sprint 4     |   40 % | Validar interacción; faltan periodos globales y detalle      |
 | Sprint 5     |    0 % | Aún no iniciado                                              |

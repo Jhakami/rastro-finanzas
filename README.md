@@ -8,23 +8,22 @@ historial financiero a un servidor de Rastro.
 
 ## Estado actual
 
-Rastro está en construcción. La versión de prueba actual es `0.1.9` (`versionCode 10`). No debe
+Rastro está en construcción. La versión en desarrollo es `0.1.10` (`versionCode 11`). No debe
 considerarse todavía una versión final ni una aplicación publicada en una tienda.
 
 | Etapa                                  | Avance | Estado                         |
 | -------------------------------------- | -----: | ------------------------------ |
 | Sprint 0 · Base técnica                |  100 % | Terminado                      |
 | Sprint 1 · Trazabilidad diaria         |  100 % | Terminado y probado en Android |
-| Sprint 2 · Parametrización             |   45 % | En curso                       |
+| Sprint 2 · Parametrización             |   50 % | En curso                       |
 | Sprint 3 · Automatización y documentos |    0 % | Pendiente                      |
 | Sprint 4 · Análisis avanzado           |   40 % | Parcialmente implementado      |
 | Sprint 5 · Publicación personal        |    0 % | Pendiente                      |
 | MVP completo                           |   48 % | Estimación orientativa         |
 
-El CRUD de cuentas de `0.1.9` está implementado y superó 28 pruebas automáticas. Su incremento
-está al 80 % hasta completar en un POCO X7 Pro los casos manuales `ACC-01` a `ACC-05`. El cierre
-forzado observado en `0.1.8` se corrigió normalizando los indicadores `0/1` de SQLite antes de
-entregarlos a React Native.
+El CRUD de cuentas de `0.1.9` está terminado: superó 28 pruebas automáticas y los casos manuales
+`ACC-01` a `ACC-05` en un POCO X7 Pro. `0.1.10` continúa el Sprint 2 con el ciclo de vida de
+categorías propias; su aceptación en Android sigue pendiente.
 
 Consulta el [plan y avance por sprints](docs/SPRINTS.md) y la
 [guía de validación en Android](docs/DEVICE_VALIDATION.md) para ver los criterios aprobados y los
@@ -42,12 +41,12 @@ pendientes reales.
 - mapa de calor con alternativa en lista;
 - exportación CSV con o sin zonas y copia cifrada de la base de datos;
 - bloqueo biométrico opcional y tema Catppuccin Mocha oscuro;
-- creación, edición, orden, archivado y restauración de cuentas, pendiente de aceptación final
-  en dispositivo.
+- creación, edición, orden, archivado y restauración de cuentas, ya aceptadas en dispositivo;
+- administración equivalente de categorías propias, pendiente de aceptación final en Android.
 
-Todavía faltan, entre otros puntos, completar el CRUD de categorías y favoritos manuales,
-etiquetas, conciliación, recurrencias, comprobantes, restauración guiada, periodos avanzados del
-dashboard y la firma privada de una versión publicable.
+Todavía faltan, entre otros puntos, etiquetas, favoritos manuales, conciliación, recurrencias,
+comprobantes, restauración guiada, periodos avanzados del dashboard y la firma privada de una
+versión publicable.
 
 ## Desarrollo
 

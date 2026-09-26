@@ -40,6 +40,119 @@ describe('LocalRepository.deleteCustomCategory', () => {
   });
 });
 
+describe('LocalRepository category lifecycle', () => {
+  it('convierte el archivado SQLite 0/1 en booleano y conserva el orden', async () => {
+    const getAllAsync = jest.fn().mockResolvedValue([
+      {
+        id: 'category-custom-snack',
+        name: 'Empanada',
+        icon: 'pricetag',
+        color: '#FAB387',
+        parentId: 'category-food',
+        isArchived: 1,
+        sortOrder: 7,
+      },
+    ]);
+    jest.mocked(openDatabase).mockResolvedValue({ getAllAsync } as never);
+
+    const [category] = await new LocalRepository().listCategories(true);
+
+    expect(category?.isArchived).toBe(true);
+    expect(category?.sortOrder).toBe(7);
+    expect(getAllAsync.mock.calls[0]?.[0]).not.toContain('WHERE is_archived=0');
+  });
+
+  it('edita nombre y familia de una categoría propia dejando auditoría', async () => {
+    const runAsync = jest.fn().mockResolvedValue({ changes: 1 });
+    const getFirstAsync = jest
+      .fn()
+      .mockResolvedValueOnce({
+        id: 'category-custom-test',
+        name: 'Prueba',
+        parentId: 'category-food',
+        color: '#FAB387',
+        isArchived: 0,
+        sortOrder: 4,
+      })
+      .mockResolvedValueOnce({
+        id: 'category-games',
+        name: 'Juegos',
+        parentId: null,
+        color: '#CBA6F7',
+        isArchived: 0,
+        sortOrder: 2,
+      })
+      .mockResolvedValueOnce(null)
+      .mockResolvedValueOnce({ sortOrder: 8 });
+    const database = {
+      getFirstAsync,
+      runAsync,
+      withTransactionAsync: jest.fn(async (operation: () => Promise<void>) => operation()),
+    };
+    jest.mocked(openDatabase).mockResolvedValue(database as never);
+
+    await new LocalRepository().updateCustomCategory('category-custom-test', {
+      name: '  Videojuego  ',
+      parentId: 'category-games',
+    });
+
+    expect(runAsync).toHaveBeenCalledWith(
+      expect.stringContaining('UPDATE categories SET name='),
+      'Videojuego',
+      'category-games',
+      '#CBA6F7',
+      9,
+      'category-custom-test',
+    );
+    expect(runAsync).toHaveBeenCalledWith(
+      expect.stringContaining('INSERT INTO audit_events'),
+      expect.any(String),
+      'category',
+      'category-custom-test',
+      'updated',
+      expect.any(String),
+      expect.any(String),
+    );
+  });
+
+  it('archiva una categoría usada por movimientos sin borrar su historial', async () => {
+    const runAsync = jest.fn().mockResolvedValue({ changes: 1 });
+    const getFirstAsync = jest
+      .fn()
+      .mockResolvedValueOnce({
+        id: 'category-custom-test',
+        name: 'Prueba',
+        parentId: 'category-food',
+        color: '#FAB387',
+        isArchived: 0,
+        sortOrder: 5,
+      })
+      .mockResolvedValueOnce({ total: 0 });
+    const database = {
+      getFirstAsync,
+      runAsync,
+      withTransactionAsync: jest.fn(async (operation: () => Promise<void>) => operation()),
+    };
+    jest.mocked(openDatabase).mockResolvedValue(database as never);
+
+    await new LocalRepository().setCustomCategoryArchived('category-custom-test', true);
+
+    expect(runAsync).toHaveBeenCalledWith(
+      'UPDATE categories SET is_archived=?,sort_order=? WHERE id=?',
+      1,
+      5,
+      'category-custom-test',
+    );
+    expect(runAsync).not.toHaveBeenCalledWith(expect.stringContaining('DELETE'), expect.anything());
+  });
+
+  it('protege el catálogo incluido frente al archivado', async () => {
+    await expect(
+      new LocalRepository().setCustomCategoryArchived('category-food-water', true),
+    ).rejects.toThrow('protegidas');
+  });
+});
+
 describe('LocalRepository.createTransaction', () => {
   it('incrementa el uso del favorito elegido dentro de la misma transacción', async () => {
     const runAsync = jest.fn().mockResolvedValue({ changes: 1 });

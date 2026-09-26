@@ -41,8 +41,17 @@ export interface SaveAccountInput {
   color: string;
 }
 
+export interface SaveCategoryInput {
+  name: string;
+  parentId: string;
+}
+
 type AccountRow = Omit<Account, 'isDefault' | 'isArchived'> & {
   isDefault: boolean | number;
+  isArchived: boolean | number;
+};
+
+type CategoryRow = Omit<Category, 'isArchived'> & {
   isArchived: boolean | number;
 };
 
@@ -195,45 +204,43 @@ export class LocalRepository {
     });
   }
 
-  async listCategories(): Promise<Category[]> {
+  async listCategories(includeArchived = false): Promise<Category[]> {
     const db = await this.db();
-    return db.getAllAsync<Category>(`
-      SELECT id,name,icon,color,parent_id AS parentId,is_archived AS isArchived
-      FROM categories WHERE is_archived=0 ORDER BY name
+    const rows = await db.getAllAsync<CategoryRow>(`
+      SELECT id,name,icon,color,parent_id AS parentId,is_archived AS isArchived,
+        sort_order AS sortOrder
+      FROM categories ${includeArchived ? '' : 'WHERE is_archived=0'}
+      ORDER BY is_archived,parent_id,sort_order,name
     `);
+    return rows.map((category) => ({
+      ...category,
+      isArchived: Boolean(category.isArchived),
+    }));
   }
 
   async createCategory(name: string, parentId: string): Promise<string> {
-    const cleanName = name.trim().replace(/\s+/g, ' ');
-    if (cleanName.length < 2 || cleanName.length > 50) {
-      throw new Error('La categoría debe tener entre 2 y 50 caracteres.');
-    }
+    const cleanName = normalizeCategoryName(name);
     const db = await this.db();
-    const parent = await db.getFirstAsync<Category>(
-      `SELECT id,name,icon,color,parent_id AS parentId
-       FROM categories WHERE id=? AND parent_id IS NULL AND is_archived=0`,
+    const parent = await getActiveCategoryFamily(db, parentId);
+    await ensureUniqueCategoryName(db, cleanName, parentId);
+    const last = await db.getFirstAsync<{ sortOrder: number | null }>(
+      `SELECT max(sort_order) AS sortOrder FROM categories
+       WHERE parent_id=? AND is_archived=0`,
       parentId,
     );
-    if (!parent) throw new Error('Elige una familia válida.');
-    const duplicate = await db.getFirstAsync<{ id: string }>(
-      `SELECT id FROM categories
-       WHERE parent_id=? AND lower(trim(name))=lower(?) AND is_archived=0`,
-      parentId,
-      cleanName,
-    );
-    if (duplicate) throw new Error('Esa categoría ya existe dentro de la familia.');
 
     const id = `category-custom-${Crypto.randomUUID()}`;
     const now = new Date().toISOString();
     await db.withTransactionAsync(async () => {
       await db.runAsync(
-        `INSERT INTO categories(id,name,icon,color,parent_id)
-         VALUES(?,?,?,?,?)`,
+        `INSERT INTO categories(id,name,icon,color,parent_id,is_archived,sort_order)
+         VALUES(?,?,?,?,?,0,?)`,
         id,
         cleanName,
         'pricetag',
         parent.color,
         parentId,
+        (last?.sortOrder ?? -1) + 1,
       );
       await db.runAsync(
         'INSERT INTO audit_events(id,entity_type,entity_id,action,payload,occurred_at) VALUES(?,?,?,?,?,?)',
@@ -248,10 +255,125 @@ export class LocalRepository {
     return id;
   }
 
-  async deleteCustomCategory(id: string): Promise<void> {
-    if (!id.startsWith('category-custom-')) {
-      throw new Error('Las categorías incluidas con Rastro están protegidas y no se eliminan.');
+  async updateCustomCategory(id: string, input: SaveCategoryInput): Promise<void> {
+    ensureCustomCategoryId(id);
+    const name = normalizeCategoryName(input.name);
+    const db = await this.db();
+    const current = await getCustomCategory(db, id);
+    const parent = await getActiveCategoryFamily(db, input.parentId);
+    await ensureUniqueCategoryName(db, name, input.parentId, id);
+    const changedFamily = current.parentId !== input.parentId;
+    const last = changedFamily
+      ? await db.getFirstAsync<{ sortOrder: number | null }>(
+          `SELECT max(sort_order) AS sortOrder FROM categories
+           WHERE parent_id=? AND is_archived=0`,
+          input.parentId,
+        )
+      : null;
+    const now = new Date().toISOString();
+    await db.withTransactionAsync(async () => {
+      await db.runAsync(
+        `UPDATE categories SET name=?,parent_id=?,color=?,sort_order=? WHERE id=?`,
+        name,
+        input.parentId,
+        parent.color,
+        changedFamily ? (last?.sortOrder ?? -1) + 1 : (current.sortOrder ?? 0),
+        id,
+      );
+      await addAuditEvent(
+        db,
+        'category',
+        id,
+        'updated',
+        {
+          before: { name: current.name, parentId: current.parentId },
+          after: { name, parentId: input.parentId },
+        },
+        now,
+      );
+    });
+  }
+
+  async moveCustomCategory(id: string, direction: 'up' | 'down'): Promise<void> {
+    ensureCustomCategoryId(id);
+    const db = await this.db();
+    const current = await getCustomCategory(db, id);
+    if (current.isArchived) throw new Error('Restaura la categoría antes de ordenarla.');
+    const parentId = current.parentId;
+    if (!parentId) throw new Error('La categoría personalizada no tiene una familia válida.');
+    const siblings = await db.getAllAsync<Pick<Category, 'id' | 'sortOrder'>>(
+      `SELECT id,sort_order AS sortOrder FROM categories
+       WHERE parent_id=? AND is_archived=0 ORDER BY sort_order,name`,
+      parentId,
+    );
+    const index = siblings.findIndex((category) => category.id === id);
+    const targetIndex = direction === 'up' ? index - 1 : index + 1;
+    const target = siblings[targetIndex];
+    const source = siblings[index];
+    if (!target || !source) return;
+    const now = new Date().toISOString();
+    await db.withTransactionAsync(async () => {
+      await db.runAsync('UPDATE categories SET sort_order=? WHERE id=?', target.sortOrder ?? 0, id);
+      await db.runAsync(
+        'UPDATE categories SET sort_order=? WHERE id=?',
+        source.sortOrder ?? 0,
+        target.id,
+      );
+      await addAuditEvent(db, 'category', id, 'reordered', { direction }, now);
+    });
+  }
+
+  async setCustomCategoryArchived(id: string, archived: boolean): Promise<void> {
+    ensureCustomCategoryId(id);
+    const db = await this.db();
+    const category = await getCustomCategory(db, id);
+    const parentId = category.parentId;
+    if (!parentId) throw new Error('La categoría personalizada no tiene una familia válida.');
+    if (Boolean(category.isArchived) === archived) return;
+    if (archived) {
+      const references = await db.getFirstAsync<{ total: number }>(
+        `SELECT
+          (SELECT count(*) FROM favorites WHERE category_id=? AND is_archived=0) +
+          (SELECT count(*) FROM spending_limits WHERE category_id=? AND enabled=1) AS total`,
+        id,
+        id,
+      );
+      if ((references?.total ?? 0) > 0) {
+        throw new Error(
+          'Quita primero los favoritos manuales o límites activos que usan esta categoría.',
+        );
+      }
+    } else {
+      await ensureUniqueCategoryName(db, category.name, parentId, id);
     }
+    const last = archived
+      ? null
+      : await db.getFirstAsync<{ sortOrder: number | null }>(
+          `SELECT max(sort_order) AS sortOrder FROM categories
+           WHERE parent_id=? AND is_archived=0`,
+          parentId,
+        );
+    const now = new Date().toISOString();
+    await db.withTransactionAsync(async () => {
+      await db.runAsync(
+        'UPDATE categories SET is_archived=?,sort_order=? WHERE id=?',
+        archived ? 1 : 0,
+        archived ? (category.sortOrder ?? 0) : (last?.sortOrder ?? -1) + 1,
+        id,
+      );
+      await addAuditEvent(
+        db,
+        'category',
+        id,
+        archived ? 'archived' : 'restored',
+        { name: category.name, parentId: category.parentId },
+        now,
+      );
+    });
+  }
+
+  async deleteCustomCategory(id: string): Promise<void> {
+    ensureCustomCategoryId(id);
     const db = await this.db();
     const category = await db.getFirstAsync<Category>(
       `SELECT id,name,icon,color,parent_id AS parentId
@@ -326,7 +448,7 @@ export class LocalRepository {
             PARTITION BY t.category_id ORDER BY t.occurred_at DESC,t.id DESC
           ) AS recencyRank
         FROM transactions t
-        INNER JOIN categories c ON c.id=t.category_id
+        INNER JOIN categories c ON c.id=t.category_id AND c.is_archived=0
         INNER JOIN accounts a ON a.id=t.account_id AND a.is_archived=0
         WHERE t.kind='expense' AND t.deleted_at IS NULL AND t.category_id IS NOT NULL
       )
@@ -342,7 +464,9 @@ export class LocalRepository {
       SELECT f.id,f.name,f.amount_cents AS amountCents,f.account_id AS accountId,
         f.category_id AS categoryId,f.merchant,f.note,0 AS usageCount
       FROM favorites f INNER JOIN accounts a ON a.id=f.account_id
-      WHERE f.is_archived=0 AND a.is_archived=0 ORDER BY f.sort_order,f.name
+      INNER JOIN categories c ON c.id=f.category_id
+      WHERE f.is_archived=0 AND a.is_archived=0 AND c.is_archived=0
+      ORDER BY f.sort_order,f.name
     `);
     const represented = new Set(adaptive.map((favorite) => favorite.categoryId));
     return [
@@ -594,6 +718,65 @@ async function ensureUniqueAccountName(
       duplicate.isArchived
         ? 'Ya existe una cuenta archivada con ese nombre. Restáurala para volver a usarla.'
         : 'Ya existe una cuenta activa con ese nombre.',
+    );
+  }
+}
+
+function normalizeCategoryName(value: string): string {
+  const name = value.trim().replace(/\s+/g, ' ');
+  if (name.length < 2 || name.length > 50) {
+    throw new Error('La categoría debe tener entre 2 y 50 caracteres.');
+  }
+  return name;
+}
+
+function ensureCustomCategoryId(id: string): void {
+  if (!id.startsWith('category-custom-')) {
+    throw new Error('Las categorías incluidas con Rastro están protegidas.');
+  }
+}
+
+async function getActiveCategoryFamily(db: SQLiteDatabase, id: string): Promise<Category> {
+  const parent = await db.getFirstAsync<Category>(
+    `SELECT id,name,icon,color,parent_id AS parentId,is_archived AS isArchived,
+      sort_order AS sortOrder
+     FROM categories WHERE id=? AND parent_id IS NULL AND is_archived=0`,
+    id,
+  );
+  if (!parent) throw new Error('Elige una familia válida.');
+  return parent;
+}
+
+async function getCustomCategory(db: SQLiteDatabase, id: string): Promise<Category> {
+  const category = await db.getFirstAsync<CategoryRow>(
+    `SELECT id,name,icon,color,parent_id AS parentId,is_archived AS isArchived,
+      sort_order AS sortOrder
+     FROM categories WHERE id=? AND parent_id IS NOT NULL`,
+    id,
+  );
+  if (!category) throw new Error('La categoría personalizada ya no existe.');
+  return { ...category, isArchived: Boolean(category.isArchived) };
+}
+
+async function ensureUniqueCategoryName(
+  db: SQLiteDatabase,
+  name: string,
+  parentId: string,
+  excludedId?: string,
+): Promise<void> {
+  const duplicate = await db.getFirstAsync<{ isArchived: boolean | number }>(
+    `SELECT is_archived AS isArchived FROM categories
+     WHERE parent_id=? AND lower(trim(name))=lower(?) AND (? IS NULL OR id<>?)`,
+    parentId,
+    name,
+    excludedId ?? null,
+    excludedId ?? null,
+  );
+  if (duplicate) {
+    throw new Error(
+      Boolean(duplicate.isArchived)
+        ? 'Ya existe una categoría archivada con ese nombre. Restáurala para volver a usarla.'
+        : 'Esa categoría ya existe dentro de la familia.',
     );
   }
 }

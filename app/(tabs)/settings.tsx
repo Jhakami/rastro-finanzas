@@ -28,6 +28,7 @@ export default function SettingsScreen() {
     balances,
     transactions,
     categories,
+    allCategories,
     limits,
     microThresholdCents,
     behaviorSettings,
@@ -158,6 +159,18 @@ export default function SettingsScreen() {
           <Link href="/accounts" asChild>
             <Pressable style={[styles.outlineButton, styles.manageAccounts]}>
               <Text style={styles.outlineText}>Administrar cuentas</Text>
+            </Pressable>
+          </Link>
+        </Card>
+        <Text style={styles.section}>Categorías</Text>
+        <Card>
+          <Text style={styles.label}>Clasificación de compras</Text>
+          <Text style={styles.hint}>
+            Administra tus categorías propias sin modificar el catálogo protegido de Rastro.
+          </Text>
+          <Link href="/categories" asChild>
+            <Pressable style={[styles.outlineButton, styles.manageAccounts]}>
+              <Text style={styles.outlineText}>Administrar categorías</Text>
             </Pressable>
           </Link>
         </Card>
@@ -316,7 +329,7 @@ export default function SettingsScreen() {
             <Pressable
               style={styles.outlineButton}
               onPress={() =>
-                void exportTransactionsCsv(transactions, allAccounts, categories, false)
+                void exportTransactionsCsv(transactions, allAccounts, allCategories, false)
               }
             >
               <Text style={styles.outlineText}>CSV sin ubicaciones</Text>
@@ -332,7 +345,7 @@ export default function SettingsScreen() {
                     {
                       text: 'Incluir',
                       onPress: () =>
-                        void exportTransactionsCsv(transactions, allAccounts, categories, true),
+                        void exportTransactionsCsv(transactions, allAccounts, allCategories, true),
                     },
                   ],
                 )
@@ -360,7 +373,7 @@ export default function SettingsScreen() {
             <Text style={styles.primaryText}>{busy ? 'Cifrando…' : 'Crear copia .finbackup'}</Text>
           </Pressable>
         </Card>
-        <Text style={styles.version}>Rastro 0.1.9 · local-first · PEN</Text>
+        <Text style={styles.version}>Rastro 0.1.10 · local-first · PEN</Text>
       </ScrollView>
     </SafeAreaView>
   );
