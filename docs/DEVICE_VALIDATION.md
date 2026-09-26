@@ -165,3 +165,63 @@ los gastos activos, incluso si la categoría se eligió manualmente.
 nueva desplaza a la menos frecuente, los empates se resuelven por uso más reciente y los
 movimientos eliminados dejan de contar. La cuenta propuesta será la utilizada más recientemente
 para esa categoría.
+
+## Incremento 0.1.8: CRUD de cuentas · validación interrumpida
+
+- **Resultado en dispositivo:** ACC-01 no pudo ejecutarse porque la pantalla se cerró al recibir
+  `isDefault` como `0/1` de SQLite en `accessibilityState.disabled`. ACC-02 a ACC-05 quedaron
+  bloqueados por el mismo cierre. La regresión se corrige y vuelve a validarse en `0.1.9`.
+
+## Incremento 0.1.9: corrección del CRUD de cuentas · 80 %
+
+- **Implementación (50 %):** terminada.
+- **Validación automática (30 %):** TypeScript, ESLint, Prettier, 28 pruebas y compilación
+  Android release ARM64 aprobadas. Incluye una regresión que exige convertir los indicadores
+  SQLite `0/1` en booleanos antes de entregarlos a React Native. APK `0.1.9` (`versionCode 10`),
+  firma v2 verificada y sin permiso de ubicación en segundo plano. SHA-256:
+  `5776BE62369FA10CC491569433B3B6101791B3387B82EF1ECF141863DB5CFC4C`.
+- **Aceptación en dispositivo (20 %):** pendiente en POCO X7 Pro.
+
+### ACC-01 — Crear y editar
+
+1. En **Ajustes > Administrar cuentas**, crear `Ahorros` y elegir un color.
+2. Editarla como `Ahorros personales` y cambiar su color.
+3. Cerrar y volver a abrir la app.
+
+**Se acepta si:** nombre, color y posición permanecen; no permite un nombre vacío, duplicado o de
+más de 30 caracteres.
+
+### ACC-02 — Orden manual con Yape prioritaria
+
+1. Crear dos cuentas y usar las flechas para cambiar su orden.
+2. Intentar colocar una por encima de Yape.
+3. Revisar el orden en Dashboard, Ajustes y Nuevo movimiento.
+
+**Se acepta si:** el orden se conserva en las tres vistas y Yape permanece primera y marcada como
+principal.
+
+### ACC-03 — Archivar sin perder trazabilidad
+
+1. Registrar un movimiento en una cuenta que no sea Yape y anotar su saldo.
+2. Archivar esa cuenta confirmando la advertencia.
+3. Revisar Dashboard, Nuevo movimiento e Historial.
+
+**Se acepta si:** la cuenta deja de estar disponible para movimientos nuevos, el movimiento
+histórico conserva el nombre de la cuenta y el patrimonio registrado no cambia.
+
+### ACC-04 — Restaurar
+
+1. Abrir **Archivadas** y restaurar la cuenta anterior.
+2. Revisar el final de la lista activa y abrir Nuevo movimiento.
+
+**Se acepta si:** vuelve activa al final del orden, conserva nombre, color, saldo e historial y
+puede seleccionarse en un movimiento nuevo.
+
+### ACC-05 — Protecciones
+
+1. Comprobar que el botón de archivar Yape está desactivado.
+2. Intentar crear otra cuenta llamada `Yape`.
+3. Archivar una cuenta y tratar de crear otra con exactamente el mismo nombre.
+
+**Se acepta si:** Yape no puede archivarse, los nombres activos no se duplican y, si el nombre
+pertenece a una cuenta archivada, la app indica que debe restaurarse.
