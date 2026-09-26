@@ -17,7 +17,7 @@ export default function MovementsScreen() {
   const {
     transactions,
     allAccounts: accounts,
-    categories,
+    allCategories,
     deleteTransaction,
     loading,
   } = useFinance();
@@ -27,12 +27,12 @@ export default function MovementsScreen() {
     () =>
       transactions.filter((item) => {
         if (filter !== 'all' && item.kind !== filter) return false;
-        const category = getCategoryPath(item.categoryId, categories);
+        const category = getCategoryPath(item.categoryId, allCategories);
         return `${item.merchant ?? ''} ${item.note ?? ''} ${item.source ?? ''} ${category}`
           .toLowerCase()
           .includes(query.toLowerCase());
       }),
-    [transactions, categories, filter, query],
+    [transactions, allCategories, filter, query],
   );
   if (loading) return <LoadingView />;
 
@@ -86,7 +86,7 @@ export default function MovementsScreen() {
           {visible.length ? (
             visible.map((item) => {
               const account = accounts.find((candidate) => candidate.id === item.accountId);
-              const category = categories.find((candidate) => candidate.id === item.categoryId);
+              const category = allCategories.find((candidate) => candidate.id === item.categoryId);
               const incoming = item.kind === 'income' || item.kind === 'refund';
               return (
                 <Pressable
@@ -128,7 +128,7 @@ export default function MovementsScreen() {
                       </Text>
                       {item.kind === 'expense' ? (
                         <Text style={styles.categoryPath}>
-                          {getCategoryPath(item.categoryId, categories)}
+                          {getCategoryPath(item.categoryId, allCategories)}
                         </Text>
                       ) : null}
                     </View>

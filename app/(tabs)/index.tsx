@@ -21,7 +21,7 @@ export default function DashboardScreen() {
     balances,
     metrics,
     insights,
-    categories,
+    allCategories,
     transactions,
     monthlyTransactions,
     loading,
@@ -43,11 +43,11 @@ export default function DashboardScreen() {
     const rows = [...totals.entries()].sort((a, b) => b[1] - a[1]);
     const maximum = rows[0]?.[1] ?? 1;
     return rows.map(([categoryId, amount]) => ({
-      category: categories.find((item) => item.id === categoryId),
+      category: allCategories.find((item) => item.id === categoryId),
       amount,
       width: `${Math.max(8, (amount / maximum) * 100)}%` as `${number}%`,
     }));
-  }, [categories, monthlyTransactions]);
+  }, [allCategories, monthlyTransactions]);
   const expenseTotal = categoryBars.reduce((sum, row) => sum + row.amount, 0);
   const dailyTrend = useMemo(
     () => buildDailyExpenseTrend(transactions, trendDays),
@@ -77,7 +77,7 @@ export default function DashboardScreen() {
     [monthlyTransactions],
   );
   const topCategoryName = metrics.topCategoryId
-    ? (categories.find((item) => item.id === metrics.topCategoryId)?.name ?? 'Sin categoría')
+    ? (allCategories.find((item) => item.id === metrics.topCategoryId)?.name ?? 'Sin categoría')
     : 'Sin datos';
 
   if (loading) return <LoadingView />;

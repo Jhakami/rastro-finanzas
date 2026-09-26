@@ -2,7 +2,7 @@
 
 **Versión:** 1.0  
 **Vigente desde:** 26 de septiembre de 2026  
-**Aplicable a:** Rastro `0.1.9`
+**Aplicable a:** Rastro `0.1.10`
 
 Rastro es una aplicación personal de finanzas, local-first y actualmente en desarrollo. Esta
 política explica qué información procesa la aplicación, dónde se guarda y qué decisiones conserva

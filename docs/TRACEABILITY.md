@@ -24,3 +24,4 @@
 | Límite familiar             | CU-20 Limitar un rubro          | Familia incluye sus categorías hijas       | Analytics unitario + LIM-02    |
 | Favorito adaptativo         | CU-21 Repetir una compra        | Ranking del historial activo y recencia    | Repositorio + FAV-02           |
 | Administrar cuentas         | CU-22 Configurar mis cuentas    | Repositorio, proveedor y pantalla cuentas  | Unitarias + ACC-01 a ACC-05    |
+| Administrar categorías      | CU-23 Organizar clasificaciones | Ciclo de vida, orden y archivo recuperable | Unitarias + CAT-05A a CAT-05E  |

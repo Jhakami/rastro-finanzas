@@ -101,6 +101,9 @@ async function migrate(db: SQLite.SQLiteDatabase): Promise<void> {
   if (version < 3) {
     await migrateCatppuccinPalette(db);
   }
+  if (version < 4) {
+    await migrateCategoryOrder(db);
+  }
 }
 
 type CategorySeed = readonly [
@@ -413,6 +416,24 @@ async function migrateCatppuccinPalette(db: SQLite.SQLiteDatabase): Promise<void
     await db.runAsync("UPDATE accounts SET color='#89B4FA' WHERE id='account-bank'");
     await db.runAsync("UPDATE accounts SET color='#A6E3A1' WHERE id='account-cash'");
     await db.execAsync('PRAGMA user_version = 3;');
+  });
+}
+
+async function migrateCategoryOrder(db: SQLite.SQLiteDatabase): Promise<void> {
+  await db.withTransactionAsync(async () => {
+    await db.execAsync('ALTER TABLE categories ADD COLUMN sort_order INTEGER NOT NULL DEFAULT 0;');
+    await db.runAsync(`
+      UPDATE categories
+      SET sort_order=(
+        SELECT count(*) FROM categories candidate
+        WHERE coalesce(candidate.parent_id,'')=coalesce(categories.parent_id,'')
+          AND (
+            candidate.name < categories.name OR
+            (candidate.name = categories.name AND candidate.id < categories.id)
+          )
+      )
+    `);
+    await db.execAsync('PRAGMA user_version = 4;');
   });
 }
 

@@ -17,6 +17,7 @@ export const categories = sqliteTable('categories', {
   color: text('color').notNull(),
   parentId: text('parent_id'),
   isArchived: integer('is_archived', { mode: 'boolean' }).notNull().default(false),
+  sortOrder: integer('sort_order').notNull().default(0),
 });
 
 export const locationCells = sqliteTable('location_cells', {

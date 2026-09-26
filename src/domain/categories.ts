@@ -18,11 +18,15 @@ export function groupCategories(categories: Category[]): CategoryGroup[] {
     .filter((category) => !category.parentId && childrenByParent.has(category.id))
     .map((parent) => ({
       parent,
-      children: [...(childrenByParent.get(parent.id) ?? [])].sort((a, b) =>
-        a.name.localeCompare(b.name, 'es'),
+      children: [...(childrenByParent.get(parent.id) ?? [])].sort(
+        (a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0) || a.name.localeCompare(b.name, 'es'),
       ),
     }))
-    .sort((a, b) => a.parent.name.localeCompare(b.parent.name, 'es'));
+    .sort(
+      (a, b) =>
+        (a.parent.sortOrder ?? 0) - (b.parent.sortOrder ?? 0) ||
+        a.parent.name.localeCompare(b.parent.name, 'es'),
+    );
 }
 
 export function getCategoryParent(

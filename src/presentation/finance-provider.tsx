@@ -20,6 +20,7 @@ import type {
 import {
   repository,
   type SaveAccountInput,
+  type SaveCategoryInput,
   type CreateTransactionInput,
   type SaveSpendingLimitInput,
 } from '@/infrastructure/repository';
@@ -28,6 +29,7 @@ interface FinanceContextValue {
   accounts: Account[];
   allAccounts: Account[];
   categories: Category[];
+  allCategories: Category[];
   favorites: FavoriteTemplate[];
   limits: SpendingLimit[];
   transactions: FinanceTransaction[];
@@ -45,6 +47,9 @@ interface FinanceContextValue {
   moveAccount(id: string, direction: 'up' | 'down'): Promise<void>;
   setAccountArchived(id: string, archived: boolean): Promise<void>;
   addCategory(name: string, parentId: string): Promise<string>;
+  editCategory(id: string, input: SaveCategoryInput): Promise<void>;
+  moveCategory(id: string, direction: 'up' | 'down'): Promise<void>;
+  setCategoryArchived(id: string, archived: boolean): Promise<void>;
   deleteCategory(id: string): Promise<void>;
   deleteTransaction(id: string): Promise<void>;
   updateMicroThreshold(cents: number): Promise<void>;
@@ -60,6 +65,7 @@ const FinanceContext = createContext<FinanceContextValue | null>(null);
 export function FinanceProvider({ children }: { children: React.ReactNode }) {
   const [allAccounts, setAllAccounts] = useState<Account[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
+  const [allCategories, setAllCategories] = useState<Category[]>([]);
   const [favorites, setFavorites] = useState<FavoriteTemplate[]>([]);
   const [limits, setLimits] = useState<SpendingLimit[]>([]);
   const [transactions, setTransactions] = useState<FinanceTransaction[]>([]);
@@ -73,7 +79,7 @@ export function FinanceProvider({ children }: { children: React.ReactNode }) {
       setError(null);
       const [
         nextAccounts,
-        nextCategories,
+        nextAllCategories,
         nextFavorites,
         nextLimits,
         nextTransactions,
@@ -81,7 +87,7 @@ export function FinanceProvider({ children }: { children: React.ReactNode }) {
         savedBehaviorSettings,
       ] = await Promise.all([
         repository.listAccounts(true),
-        repository.listCategories(),
+        repository.listCategories(true),
         repository.listFavorites(),
         repository.listLimits(),
         repository.listTransactions(),
@@ -89,7 +95,8 @@ export function FinanceProvider({ children }: { children: React.ReactNode }) {
         repository.getSetting('behaviorSettings', JSON.stringify(DEFAULT_BEHAVIOR_SETTINGS)),
       ]);
       setAllAccounts(nextAccounts);
-      setCategories(nextCategories);
+      setAllCategories(nextAllCategories);
+      setCategories(nextAllCategories.filter((category) => !category.isArchived));
       setFavorites(nextFavorites);
       setLimits(nextLimits);
       setTransactions(nextTransactions);
@@ -162,6 +169,30 @@ export function FinanceProvider({ children }: { children: React.ReactNode }) {
     [refresh],
   );
 
+  const editCategory = useCallback(
+    async (id: string, input: SaveCategoryInput) => {
+      await repository.updateCustomCategory(id, input);
+      await refresh();
+    },
+    [refresh],
+  );
+
+  const moveCategory = useCallback(
+    async (id: string, direction: 'up' | 'down') => {
+      await repository.moveCustomCategory(id, direction);
+      await refresh();
+    },
+    [refresh],
+  );
+
+  const setCategoryArchived = useCallback(
+    async (id: string, archived: boolean) => {
+      await repository.setCustomCategoryArchived(id, archived);
+      await refresh();
+    },
+    [refresh],
+  );
+
   const deleteCategory = useCallback(
     async (id: string) => {
       await repository.deleteCustomCategory(id);
@@ -221,10 +252,10 @@ export function FinanceProvider({ children }: { children: React.ReactNode }) {
     () =>
       buildInsights(transactions, microThresholdCents, {
         settings: behaviorSettings,
-        categories,
+        categories: allCategories,
         limits,
       }),
-    [transactions, microThresholdCents, behaviorSettings, categories, limits],
+    [transactions, microThresholdCents, behaviorSettings, allCategories, limits],
   );
   const balances = useMemo(
     () => calculateAccountBalances(allAccounts, transactions),
@@ -236,6 +267,7 @@ export function FinanceProvider({ children }: { children: React.ReactNode }) {
       accounts,
       allAccounts,
       categories,
+      allCategories,
       favorites,
       limits,
       transactions,
@@ -253,6 +285,9 @@ export function FinanceProvider({ children }: { children: React.ReactNode }) {
       moveAccount,
       setAccountArchived,
       addCategory,
+      editCategory,
+      moveCategory,
+      setCategoryArchived,
       deleteCategory,
       deleteTransaction,
       updateMicroThreshold,
@@ -265,6 +300,7 @@ export function FinanceProvider({ children }: { children: React.ReactNode }) {
       accounts,
       allAccounts,
       categories,
+      allCategories,
       favorites,
       limits,
       transactions,
@@ -282,6 +318,9 @@ export function FinanceProvider({ children }: { children: React.ReactNode }) {
       moveAccount,
       setAccountArchived,
       addCategory,
+      editCategory,
+      moveCategory,
+      setCategoryArchived,
       deleteCategory,
       deleteTransaction,
       updateMicroThreshold,

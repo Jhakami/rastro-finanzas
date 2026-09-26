@@ -172,7 +172,7 @@ para esa categoría.
   `isDefault` como `0/1` de SQLite en `accessibilityState.disabled`. ACC-02 a ACC-05 quedaron
   bloqueados por el mismo cierre. La regresión se corrige y vuelve a validarse en `0.1.9`.
 
-## Incremento 0.1.9: corrección del CRUD de cuentas · 80 %
+## Incremento 0.1.9: corrección del CRUD de cuentas · 100 %
 
 - **Implementación (50 %):** terminada.
 - **Validación automática (30 %):** TypeScript, ESLint, Prettier, 28 pruebas y compilación
@@ -180,7 +180,7 @@ para esa categoría.
   SQLite `0/1` en booleanos antes de entregarlos a React Native. APK `0.1.9` (`versionCode 10`),
   firma v2 verificada y sin permiso de ubicación en segundo plano. SHA-256:
   `5776BE62369FA10CC491569433B3B6101791B3387B82EF1ECF141863DB5CFC4C`.
-- **Aceptación en dispositivo (20 %):** pendiente en POCO X7 Pro.
+- **Aceptación en dispositivo (20 %):** ACC-01 a ACC-05 aprobados en POCO X7 Pro con Android 16.
 
 ### ACC-01 — Crear y editar
 
@@ -225,3 +225,55 @@ puede seleccionarse en un movimiento nuevo.
 
 **Se acepta si:** Yape no puede archivarse, los nombres activos no se duplican y, si el nombre
 pertenece a una cuenta archivada, la app indica que debe restaurarse.
+
+## Incremento 0.1.10: ciclo de vida de categorías propias · 80 %
+
+- **Implementación (50 %):** terminada. Incluye una administración central para crear, editar,
+  cambiar de familia, ordenar, archivar y restaurar categorías propias.
+- **Validación automática (30 %):** TypeScript, ESLint, Prettier y 32 pruebas aprobadas. La
+  migración de base de datos incorpora un orden estable y conserva las referencias históricas.
+  APK release ARM64 `0.1.10` (`versionCode 11`), firma v2 de desarrollo verificada y sin permiso
+  de ubicación en segundo plano. SHA-256:
+  `64B4EA32DBE97E04C32FA5D14589EBB723A6C1C6A85BCA0ED6793B73C9EF8C5A`.
+- **Aceptación en dispositivo (20 %):** pendiente en POCO X7 Pro con Android 16.
+
+### CAT-05A — Crear y editar
+
+1. En **Ajustes > Administrar categorías**, crear `Prueba temporal` dentro de una familia.
+2. Editarla como `Prueba corregida` y cambiarla a otra familia.
+3. Cerrar y volver a abrir la app.
+
+**Se acepta si:** el nombre y la familia permanecen; un nombre vacío o repetido se rechaza.
+
+### CAT-05B — Orden manual
+
+1. Crear dos categorías dentro de una misma familia.
+2. Cambiar su posición con las flechas.
+3. Revisar el orden en Administrar categorías y Nuevo movimiento.
+
+**Se acepta si:** el orden se conserva tras cerrar la app y ninguna categoría cambia de familia.
+
+### CAT-05C — Archivar conservando el historial
+
+1. Registrar un gasto con `Prueba corregida`.
+2. Archivar esa categoría desde Ajustes.
+3. Revisar el Historial y abrir Nuevo movimiento.
+
+**Se acepta si:** el gasto anterior conserva el nombre, pero la categoría ya no aparece para
+movimientos nuevos ni entre los favoritos adaptativos.
+
+### CAT-05D — Restaurar
+
+1. Mostrar las categorías archivadas y restaurar `Prueba corregida`.
+2. Abrir Nuevo movimiento y buscarla.
+
+**Se acepta si:** vuelve disponible dentro de su familia, al final del orden, sin perder historial.
+
+### CAT-05E — Protecciones
+
+1. Confirmar que una categoría incluida de fábrica no ofrece editar ni archivar.
+2. Archivar una categoría propia e intentar crear otra con exactamente el mismo nombre.
+3. Restaurar la categoría archivada.
+
+**Se acepta si:** las categorías iniciales permanecen protegidas, el nombre archivado no se
+duplica y la app indica que debe restaurarse.

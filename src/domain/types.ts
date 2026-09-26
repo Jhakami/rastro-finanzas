@@ -17,6 +17,7 @@ export interface Category {
   color: string;
   parentId?: string | null;
   isArchived?: boolean;
+  sortOrder?: number;
 }
 
 export interface LocationCell {
