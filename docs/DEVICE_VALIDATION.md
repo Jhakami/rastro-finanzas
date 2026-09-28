@@ -226,7 +226,7 @@ puede seleccionarse en un movimiento nuevo.
 **Se acepta si:** Yape no puede archivarse, los nombres activos no se duplican y, si el nombre
 pertenece a una cuenta archivada, la app indica que debe restaurarse.
 
-## Incremento 0.1.10: ciclo de vida de categorías propias · 80 %
+## Incremento 0.1.10: ciclo de vida de categorías propias · 100 %
 
 - **Implementación (50 %):** terminada. Incluye una administración central para crear, editar,
   cambiar de familia, ordenar, archivar y restaurar categorías propias.
@@ -235,7 +235,10 @@ pertenece a una cuenta archivada, la app indica que debe restaurarse.
   APK release ARM64 `0.1.10` (`versionCode 11`), firma v2 de desarrollo verificada y sin permiso
   de ubicación en segundo plano. SHA-256:
   `64B4EA32DBE97E04C32FA5D14589EBB723A6C1C6A85BCA0ED6793B73C9EF8C5A`.
-- **Aceptación en dispositivo (20 %):** pendiente en POCO X7 Pro con Android 16.
+- **Aceptación en dispositivo (20 %):** CAT-05A a CAT-05E aprobados el 27 de septiembre de
+  2026 en POCO X7 Pro con Android 16. Se verificaron persistencia de nombre, familia y orden;
+  conservación del historial al archivar; restauración; y protección del catálogo inicial y de
+  los nombres archivados.
 
 ### CAT-05A — Crear y editar
 

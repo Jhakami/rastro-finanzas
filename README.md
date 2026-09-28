@@ -15,15 +15,15 @@ considerarse todavía una versión final ni una aplicación publicada en una tie
 | -------------------------------------- | -----: | ------------------------------ |
 | Sprint 0 · Base técnica                |  100 % | Terminado                      |
 | Sprint 1 · Trazabilidad diaria         |  100 % | Terminado y probado en Android |
-| Sprint 2 · Parametrización             |   50 % | En curso                       |
+| Sprint 2 · Parametrización             |   55 % | En curso                       |
 | Sprint 3 · Automatización y documentos |    0 % | Pendiente                      |
 | Sprint 4 · Análisis avanzado           |   40 % | Parcialmente implementado      |
 | Sprint 5 · Publicación personal        |    0 % | Pendiente                      |
-| MVP completo                           |   48 % | Estimación orientativa         |
+| MVP completo                           |   49 % | Estimación orientativa         |
 
 El CRUD de cuentas de `0.1.9` está terminado: superó 28 pruebas automáticas y los casos manuales
-`ACC-01` a `ACC-05` en un POCO X7 Pro. `0.1.10` continúa el Sprint 2 con el ciclo de vida de
-categorías propias; su aceptación en Android sigue pendiente.
+`ACC-01` a `ACC-05` en un POCO X7 Pro. El ciclo de vida de categorías propias de `0.1.10` también
+está terminado: superó 32 pruebas automáticas y CAT-05A a CAT-05E en el mismo dispositivo.
 
 Consulta el [plan y avance por sprints](docs/SPRINTS.md) y la
 [guía de validación en Android](docs/DEVICE_VALIDATION.md) para ver los criterios aprobados y los
@@ -42,7 +42,7 @@ pendientes reales.
 - exportación CSV con o sin zonas y copia cifrada de la base de datos;
 - bloqueo biométrico opcional y tema Catppuccin Mocha oscuro;
 - creación, edición, orden, archivado y restauración de cuentas, ya aceptadas en dispositivo;
-- administración equivalente de categorías propias, pendiente de aceptación final en Android.
+- administración equivalente de categorías propias, aceptada en Android.
 
 Todavía faltan, entre otros puntos, etiquetas, favoritos manuales, conciliación, recurrencias,
 comprobantes, restauración guiada, periodos avanzados del dashboard y la firma privada de una
