@@ -48,6 +48,23 @@ export const transactions = sqliteTable('transactions', {
   deletedAt: text('deleted_at'),
 });
 
+export const tags = sqliteTable('tags', {
+  id: text('id').primaryKey(),
+  name: text('name').notNull(),
+  color: text('color').notNull(),
+  isArchived: integer('is_archived', { mode: 'boolean' }).notNull().default(false),
+  sortOrder: integer('sort_order').notNull().default(0),
+});
+
+export const transactionTags = sqliteTable('transaction_tags', {
+  transactionId: text('transaction_id')
+    .notNull()
+    .references(() => transactions.id),
+  tagId: text('tag_id')
+    .notNull()
+    .references(() => tags.id),
+});
+
 export const favorites = sqliteTable('favorites', {
   id: text('id').primaryKey(),
   name: text('name').notNull(),

@@ -104,6 +104,9 @@ async function migrate(db: SQLite.SQLiteDatabase): Promise<void> {
   if (version < 4) {
     await migrateCategoryOrder(db);
   }
+  if (version < 5) {
+    await migrateTags(db);
+  }
 }
 
 type CategorySeed = readonly [
@@ -434,6 +437,31 @@ async function migrateCategoryOrder(db: SQLite.SQLiteDatabase): Promise<void> {
       )
     `);
     await db.execAsync('PRAGMA user_version = 4;');
+  });
+}
+
+async function migrateTags(db: SQLite.SQLiteDatabase): Promise<void> {
+  await db.withTransactionAsync(async () => {
+    await db.execAsync(`
+      CREATE TABLE IF NOT EXISTS tags (
+        id TEXT PRIMARY KEY NOT NULL,
+        name TEXT NOT NULL,
+        color TEXT NOT NULL,
+        is_archived INTEGER NOT NULL DEFAULT 0,
+        sort_order INTEGER NOT NULL DEFAULT 0
+      );
+      CREATE UNIQUE INDEX IF NOT EXISTS idx_tags_name
+        ON tags(lower(trim(name)));
+      CREATE TABLE IF NOT EXISTS transaction_tags (
+        transaction_id TEXT NOT NULL,
+        tag_id TEXT NOT NULL,
+        PRIMARY KEY(transaction_id,tag_id),
+        FOREIGN KEY(transaction_id) REFERENCES transactions(id) ON DELETE CASCADE,
+        FOREIGN KEY(tag_id) REFERENCES tags(id)
+      );
+      CREATE INDEX IF NOT EXISTS idx_transaction_tags_tag ON transaction_tags(tag_id);
+      PRAGMA user_version = 5;
+    `);
   });
 }
 

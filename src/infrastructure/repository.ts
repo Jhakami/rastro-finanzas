@@ -7,6 +7,7 @@ import type {
   FinanceTransaction,
   LocationCell,
   SpendingLimit,
+  Tag,
   TransactionKind,
 } from '@/domain/types';
 import type { ApproximateCell } from '@/domain/location';
@@ -26,6 +27,7 @@ export interface CreateTransactionInput {
   microOverride?: boolean | null;
   refundOfId?: string | null;
   favoriteId?: string | null;
+  tagIds?: string[];
 }
 
 export interface SaveSpendingLimitInput {
@@ -46,12 +48,21 @@ export interface SaveCategoryInput {
   parentId: string;
 }
 
+export interface SaveTagInput {
+  name: string;
+  color: string;
+}
+
 type AccountRow = Omit<Account, 'isDefault' | 'isArchived'> & {
   isDefault: boolean | number;
   isArchived: boolean | number;
 };
 
 type CategoryRow = Omit<Category, 'isArchived'> & {
+  isArchived: boolean | number;
+};
+
+type TagRow = Omit<Tag, 'isArchived'> & {
   isArchived: boolean | number;
 };
 
@@ -437,6 +448,108 @@ export class LocalRepository {
     });
   }
 
+  async listTags(includeArchived = false): Promise<Tag[]> {
+    const db = await this.db();
+    const rows = await db.getAllAsync<TagRow>(`
+      SELECT id,name,color,is_archived AS isArchived,sort_order AS sortOrder
+      FROM tags ${includeArchived ? '' : 'WHERE is_archived=0'}
+      ORDER BY is_archived,sort_order,name
+    `);
+    return rows.map((tag) => ({ ...tag, isArchived: Boolean(tag.isArchived) }));
+  }
+
+  async createTag(input: SaveTagInput): Promise<string> {
+    const name = normalizeTagName(input.name);
+    const color = validateAccountColor(input.color);
+    const db = await this.db();
+    await ensureUniqueTagName(db, name);
+    const last = await db.getFirstAsync<{ sortOrder: number | null }>(
+      'SELECT max(sort_order) AS sortOrder FROM tags WHERE is_archived=0',
+    );
+    const id = `tag-${Crypto.randomUUID()}`;
+    const now = new Date().toISOString();
+    await db.withTransactionAsync(async () => {
+      await db.runAsync(
+        'INSERT INTO tags(id,name,color,is_archived,sort_order) VALUES(?,?,?,0,?)',
+        id,
+        name,
+        color,
+        (last?.sortOrder ?? -1) + 1,
+      );
+      await addAuditEvent(db, 'tag', id, 'created', { name, color }, now);
+    });
+    return id;
+  }
+
+  async updateTag(id: string, input: SaveTagInput): Promise<void> {
+    const name = normalizeTagName(input.name);
+    const color = validateAccountColor(input.color);
+    const db = await this.db();
+    const current = await getTag(db, id);
+    if (current.isArchived) throw new Error('Restaura la etiqueta antes de editarla.');
+    await ensureUniqueTagName(db, name, id);
+    const now = new Date().toISOString();
+    await db.withTransactionAsync(async () => {
+      await db.runAsync('UPDATE tags SET name=?,color=? WHERE id=?', name, color, id);
+      await addAuditEvent(
+        db,
+        'tag',
+        id,
+        'updated',
+        { before: { name: current.name, color: current.color }, after: { name, color } },
+        now,
+      );
+    });
+  }
+
+  async moveTag(id: string, direction: 'up' | 'down'): Promise<void> {
+    const db = await this.db();
+    const tags = await db.getAllAsync<Pick<Tag, 'id' | 'sortOrder'>>(
+      'SELECT id,sort_order AS sortOrder FROM tags WHERE is_archived=0 ORDER BY sort_order,name',
+    );
+    const index = tags.findIndex((tag) => tag.id === id);
+    if (index < 0) throw new Error('La etiqueta activa ya no existe.');
+    const targetIndex = direction === 'up' ? index - 1 : index + 1;
+    const current = tags[index];
+    const target = tags[targetIndex];
+    if (!current || !target) return;
+    const now = new Date().toISOString();
+    await db.withTransactionAsync(async () => {
+      await db.runAsync('UPDATE tags SET sort_order=? WHERE id=?', target.sortOrder, current.id);
+      await db.runAsync('UPDATE tags SET sort_order=? WHERE id=?', current.sortOrder, target.id);
+      await addAuditEvent(db, 'tag', id, 'reordered', { direction }, now);
+    });
+  }
+
+  async setTagArchived(id: string, archived: boolean): Promise<void> {
+    const db = await this.db();
+    const tag = await getTag(db, id);
+    if (tag.isArchived === archived) return;
+    if (!archived) await ensureUniqueTagName(db, tag.name, id);
+    const last = archived
+      ? null
+      : await db.getFirstAsync<{ sortOrder: number | null }>(
+          'SELECT max(sort_order) AS sortOrder FROM tags WHERE is_archived=0',
+        );
+    const now = new Date().toISOString();
+    await db.withTransactionAsync(async () => {
+      await db.runAsync(
+        'UPDATE tags SET is_archived=?,sort_order=? WHERE id=?',
+        archived ? 1 : 0,
+        archived ? tag.sortOrder : (last?.sortOrder ?? -1) + 1,
+        id,
+      );
+      await addAuditEvent(
+        db,
+        'tag',
+        id,
+        archived ? 'archived' : 'restored',
+        { name: tag.name },
+        now,
+      );
+    });
+  }
+
   async listFavorites(): Promise<FavoriteTemplate[]> {
     const db = await this.db();
     const adaptive = await db.getAllAsync<FavoriteTemplate>(`
@@ -549,6 +662,8 @@ export class LocalRepository {
         t.occurred_at AS occurredAt,t.merchant,t.note,t.source,
         t.location_cell_id AS locationCellId,t.micro_override AS microOverride,
         t.refund_of_id AS refundOfId,t.deleted_at AS deletedAt,
+        (SELECT json_group_array(tt.tag_id) FROM transaction_tags tt
+          WHERE tt.transaction_id=t.id) AS tagIdsJson,
         CASE WHEN l.id IS NULL THEN NULL ELSE json_object(
           'id',l.id,'centerLatitude',l.center_latitude,
           'centerLongitude',l.center_longitude,'label',l.label) END AS locationJson
@@ -558,10 +673,14 @@ export class LocalRepository {
       )
       .then((rows) =>
         rows.map((row) => {
-          const raw = row as FinanceTransaction & { locationJson?: string | null };
+          const raw = row as FinanceTransaction & {
+            locationJson?: string | null;
+            tagIdsJson?: string | null;
+          };
           return {
             ...row,
             location: raw.locationJson ? (JSON.parse(raw.locationJson) as LocationCell) : null,
+            tagIds: raw.tagIdsJson ? (JSON.parse(raw.tagIdsJson) as string[]) : [],
           };
         }),
       );
@@ -572,6 +691,7 @@ export class LocalRepository {
     const db = await this.db();
     const id = Crypto.randomUUID();
     const now = new Date().toISOString();
+    const tagIds = [...new Set(input.tagIds ?? [])];
     await db.withTransactionAsync(async () => {
       if (input.location) {
         await db.runAsync(
@@ -605,6 +725,15 @@ export class LocalRepository {
         now,
         now,
       );
+      for (const tagId of tagIds) {
+        const result = await db.runAsync(
+          `INSERT OR IGNORE INTO transaction_tags(transaction_id,tag_id)
+           SELECT ?,id FROM tags WHERE id=? AND is_archived=0`,
+          id,
+          tagId,
+        );
+        if (result.changes !== 1) throw new Error('Una etiqueta seleccionada ya no está activa.');
+      }
       if (input.favoriteId) {
         await db.runAsync(
           'UPDATE favorites SET usage_count=usage_count+1 WHERE id=? AND is_archived=0',
@@ -617,7 +746,7 @@ export class LocalRepository {
         'transaction',
         id,
         'created',
-        JSON.stringify({ kind: input.kind, favoriteId: input.favoriteId ?? null }),
+        JSON.stringify({ kind: input.kind, favoriteId: input.favoriteId ?? null, tagIds }),
         now,
       );
     });
@@ -730,6 +859,14 @@ function normalizeCategoryName(value: string): string {
   return name;
 }
 
+function normalizeTagName(value: string): string {
+  const name = value.trim().replace(/\s+/g, ' ');
+  if (name.length < 2 || name.length > 30) {
+    throw new Error('La etiqueta debe tener entre 2 y 30 caracteres.');
+  }
+  return name;
+}
+
 function ensureCustomCategoryId(id: string): void {
   if (!id.startsWith('category-custom-')) {
     throw new Error('Las categorías incluidas con Rastro están protegidas.');
@@ -777,6 +914,37 @@ async function ensureUniqueCategoryName(
       Boolean(duplicate.isArchived)
         ? 'Ya existe una categoría archivada con ese nombre. Restáurala para volver a usarla.'
         : 'Esa categoría ya existe dentro de la familia.',
+    );
+  }
+}
+
+async function getTag(db: SQLiteDatabase, id: string): Promise<Tag> {
+  const row = await db.getFirstAsync<TagRow>(
+    `SELECT id,name,color,is_archived AS isArchived,sort_order AS sortOrder
+     FROM tags WHERE id=?`,
+    id,
+  );
+  if (!row) throw new Error('La etiqueta ya no existe.');
+  return { ...row, isArchived: Boolean(row.isArchived) };
+}
+
+async function ensureUniqueTagName(
+  db: SQLiteDatabase,
+  name: string,
+  excludedId?: string,
+): Promise<void> {
+  const duplicate = await db.getFirstAsync<{ isArchived: boolean | number }>(
+    `SELECT is_archived AS isArchived FROM tags
+     WHERE lower(trim(name))=lower(?) AND (? IS NULL OR id<>?)`,
+    name,
+    excludedId ?? null,
+    excludedId ?? null,
+  );
+  if (duplicate) {
+    throw new Error(
+      Boolean(duplicate.isArchived)
+        ? 'Ya existe una etiqueta archivada con ese nombre. Restáurala para volver a usarla.'
+        : 'Ya existe una etiqueta activa con ese nombre.',
     );
   }
 }

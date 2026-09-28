@@ -175,6 +175,112 @@ describe('LocalRepository.createTransaction', () => {
       'favorite-water',
     );
   });
+
+  it('asigna varias etiquetas activas sin duplicarlas', async () => {
+    const runAsync = jest.fn().mockResolvedValue({ changes: 1 });
+    const database = {
+      runAsync,
+      withTransactionAsync: jest.fn(async (operation: () => Promise<void>) => operation()),
+    };
+    jest.mocked(openDatabase).mockResolvedValue(database as never);
+
+    await new LocalRepository().createTransaction({
+      kind: 'expense',
+      amountCents: 900,
+      accountId: 'account-yape',
+      categoryId: 'category-food-lunch',
+      tagIds: ['tag-work', 'tag-shared', 'tag-work'],
+    });
+
+    const tagCalls = runAsync.mock.calls.filter(([sql]) =>
+      String(sql).includes('INSERT OR IGNORE INTO transaction_tags'),
+    );
+    expect(tagCalls).toHaveLength(2);
+    expect(tagCalls.map((call) => call[2])).toEqual(['tag-work', 'tag-shared']);
+  });
+});
+
+describe('LocalRepository tag lifecycle', () => {
+  it('convierte el archivado SQLite 0/1 y conserva el orden', async () => {
+    const getAllAsync = jest
+      .fn()
+      .mockResolvedValue([
+        { id: 'tag-work', name: 'Trabajo', color: '#89B4FA', isArchived: 1, sortOrder: 3 },
+      ]);
+    jest.mocked(openDatabase).mockResolvedValue({ getAllAsync } as never);
+
+    const [tag] = await new LocalRepository().listTags(true);
+
+    expect(tag?.isArchived).toBe(true);
+    expect(tag?.sortOrder).toBe(3);
+    expect(getAllAsync.mock.calls[0]?.[0]).not.toContain('WHERE is_archived=0');
+  });
+
+  it('crea una etiqueta normalizada y registra auditoría', async () => {
+    const runAsync = jest.fn().mockResolvedValue({ changes: 1 });
+    const getFirstAsync = jest
+      .fn()
+      .mockResolvedValueOnce(null)
+      .mockResolvedValueOnce({ sortOrder: 1 });
+    const database = {
+      getFirstAsync,
+      runAsync,
+      withTransactionAsync: jest.fn(async (operation: () => Promise<void>) => operation()),
+    };
+    jest.mocked(openDatabase).mockResolvedValue(database as never);
+
+    const id = await new LocalRepository().createTag({
+      name: '  Viaje   familiar ',
+      color: '#89dceb',
+    });
+
+    expect(id).toContain('tag-');
+    expect(runAsync).toHaveBeenCalledWith(
+      expect.stringContaining('INSERT INTO tags'),
+      id,
+      'Viaje familiar',
+      '#89DCEB',
+      2,
+    );
+    expect(runAsync).toHaveBeenCalledWith(
+      expect.stringContaining('INSERT INTO audit_events'),
+      expect.any(String),
+      'tag',
+      id,
+      'created',
+      expect.any(String),
+      expect.any(String),
+    );
+  });
+
+  it('archiva sin eliminar las relaciones históricas', async () => {
+    const runAsync = jest.fn().mockResolvedValue({ changes: 1 });
+    const database = {
+      getFirstAsync: jest.fn().mockResolvedValue({
+        id: 'tag-work',
+        name: 'Trabajo',
+        color: '#89B4FA',
+        isArchived: 0,
+        sortOrder: 2,
+      }),
+      runAsync,
+      withTransactionAsync: jest.fn(async (operation: () => Promise<void>) => operation()),
+    };
+    jest.mocked(openDatabase).mockResolvedValue(database as never);
+
+    await new LocalRepository().setTagArchived('tag-work', true);
+
+    expect(runAsync).toHaveBeenCalledWith(
+      'UPDATE tags SET is_archived=?,sort_order=? WHERE id=?',
+      1,
+      2,
+      'tag-work',
+    );
+    expect(runAsync).not.toHaveBeenCalledWith(
+      expect.stringContaining('DELETE FROM transaction_tags'),
+      expect.anything(),
+    );
+  });
 });
 
 describe('LocalRepository.listFavorites', () => {

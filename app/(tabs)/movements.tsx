@@ -18,6 +18,7 @@ export default function MovementsScreen() {
     transactions,
     allAccounts: accounts,
     allCategories,
+    allTags,
     deleteTransaction,
     loading,
   } = useFinance();
@@ -28,11 +29,14 @@ export default function MovementsScreen() {
       transactions.filter((item) => {
         if (filter !== 'all' && item.kind !== filter) return false;
         const category = getCategoryPath(item.categoryId, allCategories);
-        return `${item.merchant ?? ''} ${item.note ?? ''} ${item.source ?? ''} ${category}`
+        const tagNames = (item.tagIds ?? [])
+          .map((tagId) => allTags.find((tag) => tag.id === tagId)?.name ?? '')
+          .join(' ');
+        return `${item.merchant ?? ''} ${item.note ?? ''} ${item.source ?? ''} ${category} ${tagNames}`
           .toLowerCase()
           .includes(query.toLowerCase());
       }),
-    [transactions, allCategories, filter, query],
+    [transactions, allCategories, allTags, filter, query],
   );
   if (loading) return <LoadingView />;
 
@@ -131,6 +135,21 @@ export default function MovementsScreen() {
                           {getCategoryPath(item.categoryId, allCategories)}
                         </Text>
                       ) : null}
+                      {item.tagIds?.length ? (
+                        <View style={styles.tagRow}>
+                          {item.tagIds.map((tagId) => {
+                            const tag = allTags.find((candidate) => candidate.id === tagId);
+                            if (!tag) return null;
+                            return (
+                              <View key={tag.id} style={[styles.tag, { borderColor: tag.color }]}>
+                                <Text style={[styles.tagText, { color: tag.color }]}>
+                                  {tag.name}
+                                </Text>
+                              </View>
+                            );
+                          })}
+                        </View>
+                      ) : null}
                     </View>
                     <Text style={[styles.amount, incoming && styles.income]}>
                       {incoming ? '+' : item.kind === 'transfer' ? '→ ' : '-'}
@@ -187,6 +206,9 @@ const styles = StyleSheet.create({
   rowTitle: { color: colors.ink, fontWeight: '800' },
   rowMeta: { color: colors.muted, fontSize: 12, marginTop: 4 },
   categoryPath: { color: colors.green, fontSize: 11, marginTop: 3, fontWeight: '700' },
+  tagRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 5, marginTop: 6 },
+  tag: { borderWidth: 1, borderRadius: radius.pill, paddingHorizontal: 7, paddingVertical: 2 },
+  tagText: { fontSize: 10, fontWeight: '800' },
   amount: { color: colors.red, fontWeight: '900', fontSize: 14, flexShrink: 0 },
   income: { color: colors.green },
   tip: { color: colors.muted, textAlign: 'center', fontSize: 12, padding: spacing.md },

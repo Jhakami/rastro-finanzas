@@ -35,7 +35,7 @@ const formSchema = z.object({
 type FormValues = z.infer<typeof formSchema>;
 
 export default function NewTransactionScreen() {
-  const { accounts, categories, favorites, addTransaction, addCategory, deleteCategory } =
+  const { accounts, categories, tags, favorites, addTransaction, addCategory, deleteCategory } =
     useFinance();
   const [kind, setKind] = useState<TransactionKind>('expense');
   const [accountId, setAccountId] = useState(
@@ -46,6 +46,7 @@ export default function NewTransactionScreen() {
   );
   const [categoryId, setCategoryId] = useState('');
   const [selectedFavoriteId, setSelectedFavoriteId] = useState<string | null>(null);
+  const [selectedTagIds, setSelectedTagIds] = useState<string[]>([]);
   const [categoryFamilyId, setCategoryFamilyId] = useState<string | null>(null);
   const [categoryQuery, setCategoryQuery] = useState('');
   const [creatingCategory, setCreatingCategory] = useState(false);
@@ -198,6 +199,7 @@ export default function NewTransactionScreen() {
         source: kind === 'income' ? values.source.trim() || null : null,
         location,
         favoriteId: kind === 'expense' ? selectedFavoriteId : null,
+        tagIds: selectedTagIds,
       });
       router.back();
     } catch (cause) {
@@ -492,6 +494,35 @@ export default function NewTransactionScreen() {
             placeholder="Algo que quieras recordar"
             multiline
           />
+          <Text style={styles.label}>Etiquetas (opcional)</Text>
+          <Text style={styles.tagHint}>Puedes combinar todas las que necesites.</Text>
+          {tags.length ? (
+            <View style={styles.chips}>
+              {tags.map((tag) => {
+                const selected = selectedTagIds.includes(tag.id);
+                return (
+                  <Chip
+                    key={tag.id}
+                    label={tag.name}
+                    selected={selected}
+                    color={tag.color}
+                    onPress={() =>
+                      setSelectedTagIds((current) =>
+                        selected
+                          ? current.filter((tagId) => tagId !== tag.id)
+                          : [...current, tag.id],
+                      )
+                    }
+                  />
+                );
+              })}
+            </View>
+          ) : (
+            <Pressable onPress={() => router.push('/tags')} style={styles.manageTags}>
+              <Ionicons name="pricetags-outline" size={17} color={colors.teal} />
+              <Text style={styles.manageTagsText}>Crear la primera etiqueta</Text>
+            </Pressable>
+          )}
           <View style={styles.locationRow}>
             <View style={styles.locationText}>
               <Text style={styles.locationTitle}>Zona aproximada</Text>
@@ -661,6 +692,16 @@ const styles = StyleSheet.create({
   classifyLater: { alignSelf: 'flex-start', marginTop: 12, paddingVertical: 5 },
   classifyLaterText: { color: colors.muted, fontSize: 12, textDecorationLine: 'underline' },
   multiline: { minHeight: 80, textAlignVertical: 'top' },
+  tagHint: { color: colors.muted, fontSize: 12, marginTop: 4 },
+  manageTags: {
+    alignSelf: 'flex-start',
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 7,
+    marginTop: spacing.sm,
+    paddingVertical: 6,
+  },
+  manageTagsText: { color: colors.teal, fontSize: 12, fontWeight: '800' },
   locationRow: {
     flexDirection: 'row',
     alignItems: 'center',

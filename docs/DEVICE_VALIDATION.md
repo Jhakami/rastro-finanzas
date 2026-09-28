@@ -280,3 +280,45 @@ movimientos nuevos ni entre los favoritos adaptativos.
 
 **Se acepta si:** las categorías iniciales permanecen protegidas, el nombre archivado no se
 duplica y la app indica que debe restaurarse.
+
+## Incremento 0.1.11: etiquetas ilimitadas · 80 %
+
+- **Implementación (50 %):** terminada. Incluye administración, selección múltiple en cualquier
+  movimiento, búsqueda en el historial, conservación de etiquetas archivadas y exportación CSV.
+- **Validación automática (30 %):** TypeScript, ESLint, Prettier, 36 pruebas, bundle Hermes,
+  Lint Vital y compilación Android release ARM64 aprobados. Expo Doctor aprobó 19/21
+  comprobaciones; las dos restantes no pudieron consultar servicios externos por errores de
+  certificado, no por una incompatibilidad local. La migración crea `tags` y `transaction_tags`
+  sin modificar los movimientos existentes. APK `0.1.11` (`versionCode 12`), firma v2 de
+  desarrollo verificada, exclusivamente `arm64-v8a` y sin permisos de ubicación en segundo plano
+  ni micrófono. SHA-256:
+  `14B4EE036C9D3461C4E44934E346554B57F0DB85D7F64A089AA76321518900A1`.
+- **Aceptación en dispositivo (20 %):** pendiente en POCO X7 Pro con Android 16.
+
+### TAG-01 — Crear, editar y ordenar
+
+1. En **Ajustes > Administrar etiquetas**, crear `Trabajo` y elegir un color.
+2. Crear `Compartido`, cambiar el orden y editarla como `Gasto compartido` con otro color.
+3. Cerrar y volver a abrir Rastro.
+
+**Se acepta si:** nombres, colores y orden permanecen; no admite nombres vacíos, repetidos o de
+más de 30 caracteres.
+
+### TAG-02 — Combinar y encontrar
+
+1. Registrar un gasto seleccionando `Trabajo` y `Gasto compartido` a la vez.
+2. Abrir **Movimientos** y comprobar que aparecen ambas etiquetas con sus colores.
+3. Buscar el movimiento escribiendo el nombre de cualquiera de las dos etiquetas.
+4. Exportar el CSV y comprobar la columna `etiquetas`.
+
+**Se acepta si:** el movimiento conserva ambas etiquetas, se encuentra por cualquiera de ellas y
+el CSV incluye sus nombres sin duplicarlos.
+
+### TAG-03 — Archivar y restaurar sin perder historial
+
+1. Archivar `Trabajo` desde **Administrar etiquetas**.
+2. Abrir el movimiento anterior y después **Nuevo movimiento**.
+3. Restaurar `Trabajo` y volver a **Nuevo movimiento**.
+
+**Se acepta si:** la etiqueta archivada sigue visible en el historial, no puede elegirse en un
+movimiento nuevo y vuelve al final de la lista activa al restaurarla.
