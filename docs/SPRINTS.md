@@ -38,7 +38,7 @@ POCO X7 Pro con Android 16. El ajuste posterior a celdas de 50 m se valida como 
 
 Seguimiento: [#6](https://github.com/Jhakami/rastro-finanzas/issues/6).
 
-## Sprint 2 — Parametrización completa · 55 % · En curso
+## Sprint 2 — Parametrización completa · 60 % · En curso
 
 - Crear, editar, ordenar, archivar y restaurar cuentas terminado y aceptado en Android en
   `0.1.9` mediante ACC-01 a ACC-05.
@@ -47,7 +47,9 @@ Seguimiento: [#6](https://github.com/Jhakami/rastro-finanzas/issues/6).
 - El ciclo de vida de categorías propias —crear, editar, cambiar de familia, ordenar, archivar y
   restaurar— está terminado y aceptado en Android en `0.1.10` mediante CAT-05A a CAT-05E. Las
   categorías iniciales continúan protegidas y el historial conserva las categorías archivadas.
-- Pendiente del módulo de categorías: etiquetas ilimitadas y su administración.
+- Las etiquetas ilimitadas permiten crear, editar, ordenar, archivar y restaurar opciones propias,
+  combinar varias al registrar cualquier movimiento, buscarlas en el historial y exportarlas a
+  CSV. El incremento `0.1.11` está implementado y pendiente de aceptación en Android.
 - Los tres favoritos se derivan de las categorías con más movimientos activos, desempatan por
   recencia y completan cuenta/familia/categoría. Falta su CRUD y permitir fijar opciones manuales.
 - Conciliación guiada con motivo y vista de auditoría.
@@ -59,20 +61,20 @@ Seguimiento: [#7](https://github.com/Jhakami/rastro-finanzas/issues/7), [#8](htt
 
 El porcentaje es orientativo y se calcula con criterios de aceptación terminados, no por tiempo
 transcurrido. El CRUD de cuentas y el ciclo de vida de categorías propias están al 100 %. El
-siguiente incremento único es `0.1.11`, dedicado a etiquetas y su administración; después se
-abordarán favoritos configurables, conciliación y los criterios restantes de límites.
+incremento único activo es `0.1.11`, dedicado a etiquetas; se mantiene al 80 % hasta completar
+TAG-01 a TAG-03 en el dispositivo. Después se abordará un solo incremento a la vez.
 
 ## Estado global orientativo
 
-| Alcance      | Avance | Condición para aumentar                                      |
-| ------------ | -----: | ------------------------------------------------------------ |
-| Sprint 0     |  100 % | Cerrado                                                      |
-| Sprint 1     |  100 % | Cerrado en dispositivo                                       |
-| Sprint 2     |   55 % | Etiquetas, favoritos, conciliación y límites restantes       |
-| Sprint 3     |    0 % | Aún no iniciado                                              |
-| Sprint 4     |   40 % | Validar interacción; faltan periodos globales y detalle      |
-| Sprint 5     |    0 % | Aún no iniciado                                              |
-| MVP completo |   49 % | Promedio simple de los seis sprints; no representa una fecha |
+| Alcance      | Avance | Condición para aumentar                                        |
+| ------------ | -----: | -------------------------------------------------------------- |
+| Sprint 0     |  100 % | Cerrado                                                        |
+| Sprint 1     |  100 % | Cerrado en dispositivo                                         |
+| Sprint 2     |   60 % | Aceptar etiquetas; favoritos, conciliación y límites restantes |
+| Sprint 3     |    0 % | Aún no iniciado                                                |
+| Sprint 4     |   40 % | Validar interacción; faltan periodos globales y detalle        |
+| Sprint 5     |    0 % | Aún no iniciado                                                |
+| MVP completo |   50 % | Promedio simple de los seis sprints; no representa una fecha   |
 
 La guía de comprobación de cada incremento está en
 [`DEVICE_VALIDATION.md`](./DEVICE_VALIDATION.md).

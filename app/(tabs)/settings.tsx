@@ -29,6 +29,7 @@ export default function SettingsScreen() {
     transactions,
     categories,
     allCategories,
+    allTags,
     limits,
     microThresholdCents,
     behaviorSettings,
@@ -171,6 +172,16 @@ export default function SettingsScreen() {
           <Link href="/categories" asChild>
             <Pressable style={[styles.outlineButton, styles.manageAccounts]}>
               <Text style={styles.outlineText}>Administrar categorías</Text>
+            </Pressable>
+          </Link>
+          <View style={styles.divider} />
+          <Text style={styles.label}>Contexto flexible</Text>
+          <Text style={styles.hint}>
+            Crea etiquetas reutilizables y combina varias en un mismo movimiento.
+          </Text>
+          <Link href="/tags" asChild>
+            <Pressable style={[styles.outlineButton, styles.manageAccounts]}>
+              <Text style={styles.outlineText}>Administrar etiquetas</Text>
             </Pressable>
           </Link>
         </Card>
@@ -329,7 +340,7 @@ export default function SettingsScreen() {
             <Pressable
               style={styles.outlineButton}
               onPress={() =>
-                void exportTransactionsCsv(transactions, allAccounts, allCategories, false)
+                void exportTransactionsCsv(transactions, allAccounts, allCategories, allTags, false)
               }
             >
               <Text style={styles.outlineText}>CSV sin ubicaciones</Text>
@@ -345,7 +356,13 @@ export default function SettingsScreen() {
                     {
                       text: 'Incluir',
                       onPress: () =>
-                        void exportTransactionsCsv(transactions, allAccounts, allCategories, true),
+                        void exportTransactionsCsv(
+                          transactions,
+                          allAccounts,
+                          allCategories,
+                          allTags,
+                          true,
+                        ),
                     },
                   ],
                 )
@@ -373,7 +390,7 @@ export default function SettingsScreen() {
             <Text style={styles.primaryText}>{busy ? 'Cifrando…' : 'Crear copia .finbackup'}</Text>
           </Pressable>
         </Card>
-        <Text style={styles.version}>Rastro 0.1.10 · local-first · PEN</Text>
+        <Text style={styles.version}>Rastro 0.1.11 · local-first · PEN</Text>
       </ScrollView>
     </SafeAreaView>
   );

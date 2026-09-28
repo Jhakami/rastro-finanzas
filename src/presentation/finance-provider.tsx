@@ -16,6 +16,7 @@ import type {
   FinanceTransaction,
   Insight,
   SpendingLimit,
+  Tag,
 } from '@/domain/types';
 import {
   repository,
@@ -23,6 +24,7 @@ import {
   type SaveCategoryInput,
   type CreateTransactionInput,
   type SaveSpendingLimitInput,
+  type SaveTagInput,
 } from '@/infrastructure/repository';
 
 interface FinanceContextValue {
@@ -30,6 +32,8 @@ interface FinanceContextValue {
   allAccounts: Account[];
   categories: Category[];
   allCategories: Category[];
+  tags: Tag[];
+  allTags: Tag[];
   favorites: FavoriteTemplate[];
   limits: SpendingLimit[];
   transactions: FinanceTransaction[];
@@ -50,6 +54,10 @@ interface FinanceContextValue {
   editCategory(id: string, input: SaveCategoryInput): Promise<void>;
   moveCategory(id: string, direction: 'up' | 'down'): Promise<void>;
   setCategoryArchived(id: string, archived: boolean): Promise<void>;
+  addTag(input: SaveTagInput): Promise<string>;
+  editTag(id: string, input: SaveTagInput): Promise<void>;
+  moveTag(id: string, direction: 'up' | 'down'): Promise<void>;
+  setTagArchived(id: string, archived: boolean): Promise<void>;
   deleteCategory(id: string): Promise<void>;
   deleteTransaction(id: string): Promise<void>;
   updateMicroThreshold(cents: number): Promise<void>;
@@ -66,6 +74,7 @@ export function FinanceProvider({ children }: { children: React.ReactNode }) {
   const [allAccounts, setAllAccounts] = useState<Account[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [allCategories, setAllCategories] = useState<Category[]>([]);
+  const [allTags, setAllTags] = useState<Tag[]>([]);
   const [favorites, setFavorites] = useState<FavoriteTemplate[]>([]);
   const [limits, setLimits] = useState<SpendingLimit[]>([]);
   const [transactions, setTransactions] = useState<FinanceTransaction[]>([]);
@@ -81,6 +90,7 @@ export function FinanceProvider({ children }: { children: React.ReactNode }) {
         nextAccounts,
         nextAllCategories,
         nextFavorites,
+        nextAllTags,
         nextLimits,
         nextTransactions,
         threshold,
@@ -89,6 +99,7 @@ export function FinanceProvider({ children }: { children: React.ReactNode }) {
         repository.listAccounts(true),
         repository.listCategories(true),
         repository.listFavorites(),
+        repository.listTags(true),
         repository.listLimits(),
         repository.listTransactions(),
         repository.getSetting('microThresholdCents', '500'),
@@ -98,6 +109,7 @@ export function FinanceProvider({ children }: { children: React.ReactNode }) {
       setAllCategories(nextAllCategories);
       setCategories(nextAllCategories.filter((category) => !category.isArchived));
       setFavorites(nextFavorites);
+      setAllTags(nextAllTags);
       setLimits(nextLimits);
       setTransactions(nextTransactions);
       setMicroThresholdCents(Number(threshold) || 500);
@@ -201,6 +213,39 @@ export function FinanceProvider({ children }: { children: React.ReactNode }) {
     [refresh],
   );
 
+  const addTag = useCallback(
+    async (input: SaveTagInput) => {
+      const id = await repository.createTag(input);
+      await refresh();
+      return id;
+    },
+    [refresh],
+  );
+
+  const editTag = useCallback(
+    async (id: string, input: SaveTagInput) => {
+      await repository.updateTag(id, input);
+      await refresh();
+    },
+    [refresh],
+  );
+
+  const moveTag = useCallback(
+    async (id: string, direction: 'up' | 'down') => {
+      await repository.moveTag(id, direction);
+      await refresh();
+    },
+    [refresh],
+  );
+
+  const setTagArchived = useCallback(
+    async (id: string, archived: boolean) => {
+      await repository.setTagArchived(id, archived);
+      await refresh();
+    },
+    [refresh],
+  );
+
   const deleteTransaction = useCallback(
     async (id: string) => {
       await repository.softDeleteTransaction(id);
@@ -244,6 +289,7 @@ export function FinanceProvider({ children }: { children: React.ReactNode }) {
     () => allAccounts.filter((account) => !account.isArchived),
     [allAccounts],
   );
+  const tags = useMemo(() => allTags.filter((tag) => !tag.isArchived), [allTags]);
   const metrics = useMemo(
     () => calculateMetrics(monthlyTransactions, microThresholdCents),
     [monthlyTransactions, microThresholdCents],
@@ -268,6 +314,8 @@ export function FinanceProvider({ children }: { children: React.ReactNode }) {
       allAccounts,
       categories,
       allCategories,
+      tags,
+      allTags,
       favorites,
       limits,
       transactions,
@@ -288,6 +336,10 @@ export function FinanceProvider({ children }: { children: React.ReactNode }) {
       editCategory,
       moveCategory,
       setCategoryArchived,
+      addTag,
+      editTag,
+      moveTag,
+      setTagArchived,
       deleteCategory,
       deleteTransaction,
       updateMicroThreshold,
@@ -301,6 +353,8 @@ export function FinanceProvider({ children }: { children: React.ReactNode }) {
       allAccounts,
       categories,
       allCategories,
+      tags,
+      allTags,
       favorites,
       limits,
       transactions,
@@ -321,6 +375,10 @@ export function FinanceProvider({ children }: { children: React.ReactNode }) {
       editCategory,
       moveCategory,
       setCategoryArchived,
+      addTag,
+      editTag,
+      moveTag,
+      setTagArchived,
       deleteCategory,
       deleteTransaction,
       updateMicroThreshold,

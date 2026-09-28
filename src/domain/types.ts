@@ -20,6 +20,14 @@ export interface Category {
   sortOrder?: number;
 }
 
+export interface Tag {
+  id: string;
+  name: string;
+  color: string;
+  isArchived: boolean;
+  sortOrder: number;
+}
+
 export interface LocationCell {
   id: string;
   centerLatitude: number;
@@ -43,6 +51,7 @@ export interface FinanceTransaction {
   microOverride?: boolean | null;
   refundOfId?: string | null;
   deletedAt?: string | null;
+  tagIds?: string[];
 }
 
 export interface SpendingLimit {

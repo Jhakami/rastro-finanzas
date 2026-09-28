@@ -1,7 +1,7 @@
 import * as FileSystem from 'expo-file-system/legacy';
 import * as Sharing from 'expo-sharing';
 import { getCategoryPath } from '@/domain/categories';
-import type { Account, Category, FinanceTransaction } from '@/domain/types';
+import type { Account, Category, FinanceTransaction, Tag } from '@/domain/types';
 
 function csvCell(value: unknown): string {
   const string = value === null || value === undefined ? '' : String(value);
@@ -12,6 +12,7 @@ export async function exportTransactionsCsv(
   transactions: FinanceTransaction[],
   accounts: Account[],
   categories: Category[],
+  tags: Tag[],
   includeLocation: boolean,
 ): Promise<void> {
   const headers = [
@@ -24,6 +25,7 @@ export async function exportTransactionsCsv(
     'comercio',
     'nota',
     'origen',
+    'etiquetas',
   ];
   if (includeLocation) headers.push('zona', 'latitud_aproximada', 'longitud_aproximada');
   const rows = transactions.map((item) => {
@@ -37,6 +39,9 @@ export async function exportTransactionsCsv(
       item.merchant,
       item.note,
       item.source,
+      (item.tagIds ?? [])
+        .map((tagId) => tags.find((tag) => tag.id === tagId)?.name ?? tagId)
+        .join(' | '),
     ];
     if (includeLocation)
       values.push(
