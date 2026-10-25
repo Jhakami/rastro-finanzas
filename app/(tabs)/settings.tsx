@@ -12,6 +12,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import * as LocalAuthentication from 'expo-local-authentication';
 import { Link } from 'expo-router';
+import Constants from 'expo-constants';
 import { publishBiometricPreference } from '@/application/biometric-lock';
 import { createEncryptedBackup } from '@/application/backup-service';
 import { exportTransactionsCsv } from '@/application/export-service';
@@ -390,7 +391,9 @@ export default function SettingsScreen() {
             <Text style={styles.primaryText}>{busy ? 'Cifrando…' : 'Crear copia .finbackup'}</Text>
           </Pressable>
         </Card>
-        <Text style={styles.version}>Rastro 0.1.11 · local-first · PEN</Text>
+        <Text style={styles.version}>
+          Rastro {Constants.expoConfig?.version ?? 'desarrollo'} · local-first · PEN
+        </Text>
       </ScrollView>
     </SafeAreaView>
   );

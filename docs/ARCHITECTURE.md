@@ -27,6 +27,30 @@ SQLite + SQLCipher ---- SecureStore (clave)
 
 `schema.ts` define cuentas, categorías, movimientos, favoritos, límites, celdas, auditoría y configuración con Drizzle. La migración se ejecuta antes de sembrar valores iniciales. `SyncProvider` permanece conceptualmente en el límite de infraestructura: una sincronización futura no puede reemplazar la fuente local ni bloquear el registro.
 
-## Mapas
+## Evolución aprobada (pendiente de implementación)
+
+El registro sencillo sigue siendo el recorrido principal. Se mantiene Android individual,
+PEN, SQLCipher y funcionamiento sin conexión; no se incorpora backend en estos sprints.
+
+- Extraer progresivamente los puertos AccountRepository, LedgerRepository, CatalogRepository,
+  FavoriteRepository, PlanningRepository y SettingsRepository, comenzando por favoritos en #9.
+- Reemplazar gradualmente la recarga global por estado modular con Zustand y selectores;
+  invalidar únicamente consultas afectadas después de confirmar cada escritura.
+- Introducir TransactionQuery y TransactionPage con cursor estable por fecha e ID, páginas de
+  50 registros y filtros por fechas, texto, cuenta, tipo, categoría y etiquetas.
+- Calcular saldos y agregaciones con SQL acotado, manteniendo análisis fuera de las pantallas.
+- Añadir Budget y BudgetScope en #11 migrando límites existentes sin alterar montos o ámbitos.
+- Añadir PlannedPayment y PlannedOccurrence en #12 con unicidad por regla y ocurrencia;
+  confirmar y crear el movimiento en una sola transacción. La confirmación manual será el
+  valor inicial; la automática procesará pendientes al abrir/reactivar sin prometer ejecución
+  puntual en segundo plano.
+- Mantener UUID, auditoría, borrado lógico y fechas de modificación cuando corresponda;
+  versionar migraciones mediante PRAGMA user_version y probarlas sobre bases existentes.
+- Definir SyncProvider con adaptador desactivado al extraer los límites de infraestructura;
+  no tendrá autenticación ni tráfico. La sincronización futura no sustituirá SQLite.
+- La restauración leerá copias .finbackup existentes, comprobará integridad y creará una copia
+  preventiva antes de reemplazar datos. No se marca como disponible hasta implementar #14.
+
+## Mapas y privacidad
 
 MapLibre recibe exclusivamente agregaciones de celdas. OpenFreeMap entrega teselas visuales; no recibe montos, categorías ni el conjunto de movimientos. Si no hay red, la lista de zonas sigue operativa.
