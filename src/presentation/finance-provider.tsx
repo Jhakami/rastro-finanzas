@@ -20,6 +20,8 @@ import type {
 } from '@/domain/types';
 import {
   repository,
+  type CorrectTransactionInput,
+  type ReconcileAccountInput,
   type SaveAccountInput,
   type SaveCategoryInput,
   type CreateTransactionInput,
@@ -46,6 +48,8 @@ interface FinanceContextValue {
   loading: boolean;
   error: string | null;
   addTransaction(input: CreateTransactionInput): Promise<void>;
+  correctTransaction(id: string, input: CorrectTransactionInput): Promise<void>;
+  reconcileAccount(id: string, input: ReconcileAccountInput): Promise<void>;
   addAccount(input: SaveAccountInput): Promise<string>;
   editAccount(id: string, input: SaveAccountInput): Promise<void>;
   moveAccount(id: string, direction: 'up' | 'down'): Promise<void>;
@@ -134,6 +138,22 @@ export function FinanceProvider({ children }: { children: React.ReactNode }) {
   const addTransaction = useCallback(
     async (input: CreateTransactionInput) => {
       await repository.createTransaction(input);
+      await refresh();
+    },
+    [refresh],
+  );
+
+  const correctTransaction = useCallback(
+    async (id: string, input: CorrectTransactionInput) => {
+      await repository.correctTransaction(id, input);
+      await refresh();
+    },
+    [refresh],
+  );
+
+  const reconcileAccount = useCallback(
+    async (id: string, input: ReconcileAccountInput) => {
+      await repository.reconcileAccount(id, input);
       await refresh();
     },
     [refresh],
@@ -328,6 +348,8 @@ export function FinanceProvider({ children }: { children: React.ReactNode }) {
       loading,
       error,
       addTransaction,
+      correctTransaction,
+      reconcileAccount,
       addAccount,
       editAccount,
       moveAccount,
@@ -367,6 +389,8 @@ export function FinanceProvider({ children }: { children: React.ReactNode }) {
       loading,
       error,
       addTransaction,
+      correctTransaction,
+      reconcileAccount,
       addAccount,
       editAccount,
       moveAccount,

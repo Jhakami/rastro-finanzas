@@ -200,6 +200,136 @@ describe('LocalRepository.createTransaction', () => {
   });
 });
 
+describe('LocalRepository transaction corrections', () => {
+  it('corrige la cuenta de pago y conserva un antes/después con motivo', async () => {
+    const runAsync = jest.fn().mockResolvedValue({ changes: 1 });
+    const database = {
+      getFirstAsync: jest.fn().mockResolvedValue({
+        id: 'transaction-1',
+        kind: 'expense',
+        amountCents: 1200,
+        accountId: 'account-cash',
+        destinationAccountId: null,
+        categoryId: 'category-food-lunch',
+        occurredAt: '2026-10-01T12:00:00.000Z',
+        merchant: 'Menú',
+        note: null,
+        source: null,
+        microOverride: null,
+        refundOfId: null,
+      }),
+      runAsync,
+      withTransactionAsync: jest.fn(async (operation: () => Promise<void>) => operation()),
+    };
+    jest.mocked(openDatabase).mockResolvedValue(database as never);
+
+    await new LocalRepository().correctTransaction('transaction-1', {
+      kind: 'expense',
+      amountCents: 1200,
+      accountId: 'account-yape',
+      categoryId: 'category-food-lunch',
+      merchant: 'Menú',
+      reason: 'Se pagó con Yape, no en efectivo',
+    });
+
+    expect(runAsync).toHaveBeenCalledWith(
+      expect.stringContaining('UPDATE transactions SET kind='),
+      'expense',
+      1200,
+      'account-yape',
+      null,
+      'category-food-lunch',
+      'Menú',
+      null,
+      null,
+      expect.any(String),
+      'transaction-1',
+    );
+    const auditCall = runAsync.mock.calls.find((call) => call[4] === 'corrected');
+    expect(auditCall).toBeDefined();
+    expect(JSON.parse(String(auditCall?.[5]))).toMatchObject({
+      reason: 'Se pagó con Yape, no en efectivo',
+      before: { accountId: 'account-cash' },
+      after: { accountId: 'account-yape' },
+    });
+  });
+
+  it('rechaza una corrección sin motivo auditable', async () => {
+    jest.mocked(openDatabase).mockClear();
+    await expect(
+      new LocalRepository().correctTransaction('transaction-1', {
+        kind: 'expense',
+        amountCents: 1200,
+        accountId: 'account-yape',
+        categoryId: 'category-food-lunch',
+        reason: ' ',
+      }),
+    ).rejects.toThrow('motivo');
+    expect(openDatabase).not.toHaveBeenCalled();
+  });
+});
+
+describe('LocalRepository.reconcileAccount', () => {
+  it('crea solo la diferencia necesaria y deja auditoría del saldo', async () => {
+    const runAsync = jest.fn().mockResolvedValue({ changes: 1 });
+    const database = {
+      getFirstAsync: jest.fn().mockResolvedValue({
+        id: 'account-yape',
+        name: 'Yape',
+        isArchived: 0,
+        balanceCents: 10000,
+      }),
+      runAsync,
+      withTransactionAsync: jest.fn(async (operation: () => Promise<void>) => operation()),
+    };
+    jest.mocked(openDatabase).mockResolvedValue(database as never);
+
+    const id = await new LocalRepository().reconcileAccount('account-yape', {
+      targetBalanceCents: 12550,
+      reason: 'Saldo verificado en la aplicación de Yape',
+    });
+
+    expect(id).toBe('test-uuid');
+    expect(runAsync).toHaveBeenCalledWith(
+      expect.stringContaining("VALUES(?,'adjustment',?"),
+      'test-uuid',
+      2550,
+      'account-yape',
+      expect.any(String),
+      'Saldo verificado en la aplicación de Yape',
+      expect.any(String),
+      expect.any(String),
+    );
+    const accountAudit = runAsync.mock.calls.find(
+      (call) => call[2] === 'account' && call[4] === 'reconciled',
+    );
+    expect(accountAudit).toBeDefined();
+    expect(JSON.parse(String(accountAudit?.[5]))).toMatchObject({
+      beforeCents: 10000,
+      differenceCents: 2550,
+      afterCents: 12550,
+    });
+  });
+
+  it('no crea un ajuste cuando el saldo ya coincide', async () => {
+    jest.mocked(openDatabase).mockResolvedValue({
+      getFirstAsync: jest.fn().mockResolvedValue({
+        id: 'account-yape',
+        name: 'Yape',
+        isArchived: 0,
+        balanceCents: 10000,
+      }),
+    } as never);
+
+    await expect(
+      new LocalRepository().reconcileAccount('account-yape', {
+        targetBalanceCents: 10000,
+        reason: 'Saldo comprobado',
+      }),
+    ).rejects.toThrow('ya coincide');
+  });
+});
+
 describe('LocalRepository tag lifecycle', () => {
   it('convierte el archivado SQLite 0/1 y conserva el orden', async () => {
     const getAllAsync = jest
