@@ -26,3 +26,5 @@
 | Administrar cuentas         | CU-22 Configurar mis cuentas    | Repositorio, proveedor y pantalla cuentas       | Unitarias + ACC-01 a ACC-05    |
 | Administrar categorías      | CU-23 Organizar clasificaciones | Ciclo de vida, orden y archivo recuperable      | Unitarias + CAT-05A a CAT-05E  |
 | Etiquetar movimientos       | CU-24 Añadir contexto flexible  | `tags`, `transaction_tags` y selección múltiple | Repositorio + TAG-01 a TAG-03  |
+| Conciliar una cuenta        | CU-25 Corregir saldo real       | Ajuste por diferencia con motivo y auditoría    | Repositorio + REC-01           |
+| Corregir movimiento         | CU-26 Rectificar un registro    | Edición auditable sin alterar fecha ni contexto | Repositorio + COR-01 a COR-02  |

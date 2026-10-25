@@ -152,32 +152,32 @@ export function buildInsights(
   const limits = options.limits ?? [];
   const now = options.now ?? new Date();
   const expenses = transactions.filter((item) => item.kind === 'expense' && !item.deletedAt);
-  const uniqueDays = countDays(expenses);
-  if (expenses.length < MIN_PATTERN_SAMPLE || uniqueDays < MIN_PATTERN_DAYS) {
+  const currentMonthKey = monthKey(now);
+  const currentTransactions = transactions.filter(
+    (item) => !item.deletedAt && monthKey(new Date(item.occurredAt)) === currentMonthKey,
+  );
+  const currentExpenses = currentTransactions.filter((item) => item.kind === 'expense');
+  const uniqueDays = countDays(currentExpenses);
+  if (currentExpenses.length < MIN_PATTERN_SAMPLE || uniqueDays < MIN_PATTERN_DAYS) {
     return [
       {
         id: 'insufficient-data',
-        title: 'Aún estamos aprendiendo',
-        summary: 'Registra al menos 10 gastos distribuidos en 3 días.',
-        evidence: `${expenses.length} gastos en ${uniqueDays} día${uniqueDays === 1 ? '' : 's'}.`,
-        sampleSize: expenses.length,
+        title: 'Aún estamos aprendiendo este mes',
+        summary: 'Registra al menos 10 gastos del mes distribuidos en 3 días.',
+        evidence: `${currentExpenses.length} gastos del mes en ${uniqueDays} día${uniqueDays === 1 ? '' : 's'}.`,
+        sampleSize: currentExpenses.length,
         confidence: 'insufficient',
-        relatedTransactionIds: expenses.map((item) => item.id),
-        period: 'Todo el historial disponible',
+        relatedTransactionIds: currentExpenses.map((item) => item.id),
+        period: 'Mes actual',
         calculation: `Mínimo requerido: ${MIN_PATTERN_SAMPLE} gastos en ${MIN_PATTERN_DAYS} días.`,
       },
     ];
   }
 
-  const currentMonthKey = monthKey(now);
   const previousMonthKey = offsetMonthKey(now, -1);
   const historicalKeys = new Set(
     Array.from({ length: settings.historyMonths }, (_, index) => offsetMonthKey(now, -index - 1)),
   );
-  const currentTransactions = transactions.filter(
-    (item) => !item.deletedAt && monthKey(new Date(item.occurredAt)) === currentMonthKey,
-  );
-  const currentExpenses = currentTransactions.filter((item) => item.kind === 'expense');
   const historicalExpenses = expenses.filter((item) =>
     historicalKeys.has(monthKey(new Date(item.occurredAt))),
   );
@@ -185,39 +185,38 @@ export function buildInsights(
     (item) => monthKey(new Date(item.occurredAt)) === previousMonthKey,
   );
   const metrics = calculateMetrics(currentTransactions, thresholdCents, now);
-  const historicalMetrics = calculateMetrics(expenses, thresholdCents, now);
-  const micro = expenses.filter((item) => isMicroExpense(item, thresholdCents));
+  const micro = currentExpenses.filter((item) => isMicroExpense(item, thresholdCents));
   const insights: Insight[] = [];
   if (micro.length >= 3) {
     const ratio =
-      historicalMetrics.expenseCents === 0
+      metrics.expenseCents === 0
         ? 0
-        : Math.round((historicalMetrics.microExpenseCents / historicalMetrics.expenseCents) * 100);
+        : Math.round((metrics.microExpenseCents / metrics.expenseCents) * 100);
     insights.push({
       id: 'micro-accumulation',
       title: 'Compras pequeñas que se acumulan',
       summary: `${micro.length} compras representan ${ratio}% de tus gastos.`,
-      evidence: `Umbral S/ ${(thresholdCents / 100).toFixed(2)}; total S/ ${(historicalMetrics.microExpenseCents / 100).toFixed(2)}.`,
+      evidence: `Umbral S/ ${(thresholdCents / 100).toFixed(2)}; total mensual S/ ${(metrics.microExpenseCents / 100).toFixed(2)}.`,
       sampleSize: micro.length,
       confidence: micro.length >= 10 ? 'strong' : 'emerging',
       relatedTransactionIds: micro.map((item) => item.id),
-      period: 'Todo el historial disponible',
+      period: 'Mes actual',
       calculation: `Suma de gastos ≤ S/ ${(thresholdCents / 100).toFixed(2)} ÷ gasto total.`,
     });
   }
-  if (historicalMetrics.busiestHour !== null) {
-    const related = expenses.filter(
-      (item) => new Date(item.occurredAt).getHours() === historicalMetrics.busiestHour,
+  if (metrics.busiestHour !== null) {
+    const related = currentExpenses.filter(
+      (item) => new Date(item.occurredAt).getHours() === metrics.busiestHour,
     );
     insights.push({
       id: 'busiest-hour',
       title: 'Hora con más compras',
-      summary: `Tu mayor frecuencia aparece entre ${String(historicalMetrics.busiestHour).padStart(2, '0')}:00 y ${String(historicalMetrics.busiestHour + 1).padStart(2, '0')}:00.`,
-      evidence: `${related.length} de ${expenses.length} movimientos del periodo.`,
+      summary: `Tu mayor frecuencia aparece entre ${String(metrics.busiestHour).padStart(2, '0')}:00 y ${String(metrics.busiestHour + 1).padStart(2, '0')}:00.`,
+      evidence: `${related.length} de ${currentExpenses.length} gastos del mes.`,
       sampleSize: related.length,
       confidence: related.length >= 5 ? 'strong' : 'emerging',
       relatedTransactionIds: related.map((item) => item.id),
-      period: 'Todo el historial disponible',
+      period: 'Mes actual',
       calculation: 'Conteo de compras agrupadas por hora local.',
     });
   }
@@ -301,7 +300,11 @@ export function buildInsights(
   );
   const streak = [...new Set(expenses.map((item) => item.categoryId).filter(Boolean))]
     .map((categoryId) => {
-      const related = expenses.filter((item) => item.categoryId === categoryId);
+      const related = expenses.filter(
+        (item) =>
+          item.categoryId === categoryId &&
+          streakKeys.includes(monthKey(new Date(item.occurredAt))),
+      );
       const totals = streakKeys.map((key) =>
         related
           .filter((item) => monthKey(new Date(item.occurredAt)) === key)
@@ -408,11 +411,11 @@ export function buildInsights(
       id: 'no-supported-variation',
       title: 'Sin variaciones con evidencia suficiente',
       summary: 'Todavía no hay un cambio que supere tus umbrales configurados.',
-      evidence: `${expenses.length} gastos disponibles; seguimos comparando sin forzar conclusiones.`,
-      sampleSize: expenses.length,
+      evidence: `${currentExpenses.length} gastos del mes; seguimos comparando sin forzar conclusiones.`,
+      sampleSize: currentExpenses.length,
       confidence: 'insufficient',
-      relatedTransactionIds: expenses.map((item) => item.id),
-      period: 'Historial disponible',
+      relatedTransactionIds: currentExpenses.map((item) => item.id),
+      period: 'Mes actual',
       calculation: 'Se evaluaron promedio, atípicos, rachas, participación, proyección y límites.',
     });
   }

@@ -44,11 +44,13 @@ describe('analytics', () => {
       buildInsights(
         Array.from({ length: 9 }, (_, index) => expense(index)),
         500,
+        { now: new Date(2026, 8, 10) },
       )[0]?.confidence,
     ).toBe('insufficient');
     const insights = buildInsights(
       Array.from({ length: 10 }, (_, index) => expense(index)),
       500,
+      { now: new Date(2026, 8, 10) },
     );
     expect(insights.some((item) => item.id === 'micro-accumulation')).toBe(true);
   });
@@ -89,7 +91,10 @@ describe('analytics', () => {
     }));
     const current = [
       { ...expense(20, 10000), occurredAt: new Date(2026, 8, 2, 12).toISOString() },
-      { ...expense(21, 2000), occurredAt: new Date(2026, 8, 3, 12).toISOString() },
+      ...Array.from({ length: 9 }, (_, index) => ({
+        ...expense(21 + index, 2000),
+        occurredAt: new Date(2026, 8, 1 + (index % 4), 12).toISOString(),
+      })),
     ];
     const insights = buildInsights([...history, ...current], 500, {
       now: new Date(2026, 8, 10),

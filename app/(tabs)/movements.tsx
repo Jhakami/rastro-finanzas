@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react';
 import { Alert, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { Link } from 'expo-router';
+import { Link, router } from 'expo-router';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { getCategoryPath } from '@/domain/categories';
@@ -91,10 +91,16 @@ export default function MovementsScreen() {
             visible.map((item) => {
               const account = accounts.find((candidate) => candidate.id === item.accountId);
               const category = allCategories.find((candidate) => candidate.id === item.categoryId);
-              const incoming = item.kind === 'income' || item.kind === 'refund';
+              const incoming =
+                item.kind === 'income' ||
+                item.kind === 'refund' ||
+                (item.kind === 'adjustment' && item.amountCents > 0);
               return (
                 <Pressable
                   key={item.id}
+                  onPress={() =>
+                    router.push({ pathname: '/transaction-edit', params: { id: item.id } })
+                  }
                   onLongPress={() =>
                     Alert.alert('Eliminar movimiento', 'Podrá recuperarse desde la auditoría.', [
                       { text: 'Cancelar' },
@@ -167,7 +173,8 @@ export default function MovementsScreen() {
             />
           )}
           <Text style={styles.tip}>
-            Mantén presionado un movimiento para eliminarlo con trazabilidad.
+            Toca un movimiento para corregirlo. Mantenlo presionado para eliminarlo con
+            trazabilidad.
           </Text>
         </ScrollView>
       </View>

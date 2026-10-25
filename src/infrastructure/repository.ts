@@ -30,6 +30,23 @@ export interface CreateTransactionInput {
   tagIds?: string[];
 }
 
+export interface CorrectTransactionInput {
+  kind: Extract<TransactionKind, 'income' | 'expense' | 'transfer'>;
+  amountCents: number;
+  accountId: string;
+  destinationAccountId?: string | null;
+  categoryId?: string | null;
+  merchant?: string | null;
+  note?: string | null;
+  source?: string | null;
+  reason: string;
+}
+
+export interface ReconcileAccountInput {
+  targetBalanceCents: number;
+  reason: string;
+}
+
 export interface SaveSpendingLimitInput {
   name: string;
   amountCents: number;
@@ -753,6 +770,144 @@ export class LocalRepository {
     return id;
   }
 
+  async correctTransaction(id: string, input: CorrectTransactionInput): Promise<void> {
+    const reason = normalizeAuditReason(input.reason);
+    const db = await this.db();
+    const current = await db.getFirstAsync<FinanceTransaction>(
+      `SELECT id,kind,amount_cents AS amountCents,account_id AS accountId,
+        destination_account_id AS destinationAccountId,category_id AS categoryId,
+        occurred_at AS occurredAt,merchant,note,source,location_cell_id AS locationCellId,
+        micro_override AS microOverride,refund_of_id AS refundOfId,deleted_at AS deletedAt
+       FROM transactions WHERE id=? AND deleted_at IS NULL`,
+      id,
+    );
+    if (!current) throw new Error('El movimiento ya no existe o fue eliminado.');
+    if (current.kind === 'adjustment' || current.kind === 'refund') {
+      throw new Error('Los ajustes y reembolsos se corrigen desde su flujo de origen.');
+    }
+    const next: CreateTransactionInput = {
+      kind: input.kind,
+      amountCents: input.amountCents,
+      accountId: input.accountId,
+      destinationAccountId: input.kind === 'transfer' ? input.destinationAccountId : null,
+      categoryId: input.kind === 'expense' ? input.categoryId : null,
+      occurredAt: current.occurredAt,
+      merchant: input.merchant?.trim() || null,
+      note: input.note?.trim() || null,
+      source: input.kind === 'income' ? input.source?.trim() || null : null,
+      location: current.location ?? null,
+      microOverride: current.microOverride,
+      refundOfId: current.refundOfId,
+    };
+    validateTransaction(next);
+    const now = new Date().toISOString();
+    await db.withTransactionAsync(async () => {
+      const result = await db.runAsync(
+        `UPDATE transactions SET kind=?,amount_cents=?,account_id=?,destination_account_id=?,
+          category_id=?,merchant=?,note=?,source=?,updated_at=?
+         WHERE id=? AND deleted_at IS NULL`,
+        next.kind,
+        next.amountCents,
+        next.accountId,
+        next.destinationAccountId ?? null,
+        next.categoryId ?? null,
+        next.merchant ?? null,
+        next.note ?? null,
+        next.source ?? null,
+        now,
+        id,
+      );
+      if (result.changes !== 1) throw new Error('No se pudo actualizar el movimiento.');
+      await addAuditEvent(
+        db,
+        'transaction',
+        id,
+        'corrected',
+        {
+          reason,
+          before: transactionAuditSnapshot(current),
+          after: transactionAuditSnapshot({ ...current, ...next }),
+        },
+        now,
+      );
+    });
+  }
+
+  async reconcileAccount(id: string, input: ReconcileAccountInput): Promise<string> {
+    if (!Number.isSafeInteger(input.targetBalanceCents)) {
+      throw new Error('El saldo real debe tener como máximo dos decimales.');
+    }
+    const reason = normalizeAuditReason(input.reason);
+    const db = await this.db();
+    const account = await db.getFirstAsync<{
+      id: string;
+      name: string;
+      isArchived: boolean | number;
+      balanceCents: number;
+    }>(
+      `SELECT a.id,a.name,a.is_archived AS isArchived,
+        a.initial_balance_cents + COALESCE((
+          SELECT SUM(CASE
+            WHEN t.kind='transfer' AND t.account_id=a.id THEN -abs(t.amount_cents)
+            WHEN t.kind='transfer' AND t.destination_account_id=a.id THEN abs(t.amount_cents)
+            WHEN t.account_id=a.id AND t.kind='expense' THEN -abs(t.amount_cents)
+            WHEN t.account_id=a.id AND t.kind IN ('income','refund') THEN abs(t.amount_cents)
+            WHEN t.account_id=a.id AND t.kind='adjustment' THEN t.amount_cents
+            ELSE 0 END)
+          FROM transactions t
+          WHERE t.deleted_at IS NULL
+            AND (t.account_id=a.id OR t.destination_account_id=a.id)
+        ),0) AS balanceCents
+       FROM accounts a WHERE a.id=?`,
+      id,
+    );
+    if (!account) throw new Error('La cuenta ya no existe.');
+    if (Boolean(account.isArchived)) throw new Error('Restaura la cuenta antes de conciliarla.');
+    const differenceCents = input.targetBalanceCents - account.balanceCents;
+    if (differenceCents === 0) throw new Error('El saldo ingresado ya coincide con Rastro.');
+    const transactionId = Crypto.randomUUID();
+    const now = new Date().toISOString();
+    await db.withTransactionAsync(async () => {
+      await db.runAsync(
+        `INSERT INTO transactions(
+          id,kind,amount_cents,account_id,destination_account_id,category_id,occurred_at,
+          merchant,note,source,location_cell_id,micro_override,refund_of_id,created_at,updated_at
+        ) VALUES(?,'adjustment',?,?,NULL,NULL,?,NULL,?,'Conciliación de saldo',NULL,NULL,NULL,?,?)`,
+        transactionId,
+        differenceCents,
+        id,
+        now,
+        reason,
+        now,
+        now,
+      );
+      await addAuditEvent(
+        db,
+        'account',
+        id,
+        'reconciled',
+        {
+          accountName: account.name,
+          beforeCents: account.balanceCents,
+          differenceCents,
+          afterCents: input.targetBalanceCents,
+          reason,
+          transactionId,
+        },
+        now,
+      );
+      await addAuditEvent(
+        db,
+        'transaction',
+        transactionId,
+        'created',
+        { kind: 'adjustment', accountId: id, reason, reconciliation: true },
+        now,
+      );
+    });
+    return transactionId;
+  }
+
   async softDeleteTransaction(id: string): Promise<void> {
     const db = await this.db();
     const now = new Date().toISOString();
@@ -811,9 +966,45 @@ function validateTransaction(input: CreateTransactionInput): void {
   ) {
     throw new Error('Una transferencia necesita una cuenta de destino diferente.');
   }
+  if (input.kind === 'expense' && !input.categoryId) {
+    throw new Error('Un gasto necesita una categoría específica.');
+  }
   if (input.kind === 'refund' && !input.refundOfId) {
     throw new Error('Un reembolso debe vincularse al gasto original.');
   }
+}
+
+function normalizeAuditReason(value: string): string {
+  const reason = value.trim().replace(/\s+/g, ' ');
+  if (reason.length < 3 || reason.length > 200) {
+    throw new Error('Explica el motivo de la corrección entre 3 y 200 caracteres.');
+  }
+  return reason;
+}
+
+function transactionAuditSnapshot(
+  transaction: Pick<
+    FinanceTransaction,
+    | 'kind'
+    | 'amountCents'
+    | 'accountId'
+    | 'destinationAccountId'
+    | 'categoryId'
+    | 'merchant'
+    | 'note'
+    | 'source'
+  >,
+) {
+  return {
+    kind: transaction.kind,
+    amountCents: transaction.amountCents,
+    accountId: transaction.accountId,
+    destinationAccountId: transaction.destinationAccountId ?? null,
+    categoryId: transaction.categoryId ?? null,
+    merchant: transaction.merchant ?? null,
+    note: transaction.note ?? null,
+    source: transaction.source ?? null,
+  };
 }
 
 function normalizeAccountName(value: string): string {

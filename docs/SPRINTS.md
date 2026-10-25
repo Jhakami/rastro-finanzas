@@ -38,7 +38,7 @@ POCO X7 Pro con Android 16. El ajuste posterior a celdas de 50 m se valida como 
 
 Seguimiento: [#6](https://github.com/Jhakami/rastro-finanzas/issues/6).
 
-## Sprint 2 — Parametrización completa · 60 % · En curso
+## Sprint 2 — Parametrización completa · 65 % · En curso
 
 - Crear, editar, ordenar, archivar y restaurar cuentas terminado y aceptado en Android en
   `0.1.9` mediante ACC-01 a ACC-05.
@@ -52,7 +52,10 @@ Seguimiento: [#6](https://github.com/Jhakami/rastro-finanzas/issues/6).
   CSV. El incremento `0.1.11` está implementado y pendiente de aceptación en Android.
 - Los tres favoritos se derivan de las categorías con más movimientos activos, desempatan por
   recencia y completan cuenta/familia/categoría. Falta su CRUD y permitir fijar opciones manuales.
-- Conciliación guiada con motivo y vista de auditoría.
+- Conciliación guiada implementada: recibe el saldo real, calcula solo la diferencia y crea un
+  ajuste con motivo, saldo anterior y saldo resultante. La corrección de movimientos permite
+  rectificar cuenta de pago, monto, tipo, destino y categoría sin perder fecha, etiquetas o zona.
+  El incremento `0.1.12` está pendiente de aceptación en Android.
 - Límites mensuales generales y por familia con umbral de aviso configurable ya implementados.
   Cada familia suma sus categorías hijas. Falta la selección por cuenta y una administración más
   completa.
@@ -61,20 +64,22 @@ Seguimiento: [#7](https://github.com/Jhakami/rastro-finanzas/issues/7), [#8](htt
 
 El porcentaje es orientativo y se calcula con criterios de aceptación terminados, no por tiempo
 transcurrido. El CRUD de cuentas y el ciclo de vida de categorías propias están al 100 %. El
-incremento único activo es `0.1.11`, dedicado a etiquetas; se mantiene al 80 % hasta completar
-TAG-01 a TAG-03 en el dispositivo. Después se abordará un solo incremento a la vez.
+incremento `0.1.11`, dedicado a etiquetas, se mantiene al 80 % hasta completar TAG-01 a TAG-03 en
+el dispositivo y su historia no debe cerrarse antes de esa confirmación. Por indicación del
+usuario se inició `0.1.12`; conciliación y correcciones tampoco se cerrarán hasta REC-01 y COR-01
+a COR-02.
 
 ## Estado global orientativo
 
-| Alcance      | Avance | Condición para aumentar                                        |
-| ------------ | -----: | -------------------------------------------------------------- |
-| Sprint 0     |  100 % | Cerrado                                                        |
-| Sprint 1     |  100 % | Cerrado en dispositivo                                         |
-| Sprint 2     |   60 % | Aceptar etiquetas; favoritos, conciliación y límites restantes |
-| Sprint 3     |    0 % | Aún no iniciado                                                |
-| Sprint 4     |   40 % | Validar interacción; faltan periodos globales y detalle        |
-| Sprint 5     |    0 % | Aún no iniciado                                                |
-| MVP completo |   50 % | Promedio simple de los seis sprints; no representa una fecha   |
+| Alcance      | Avance | Condición para aumentar                                         |
+| ------------ | -----: | --------------------------------------------------------------- |
+| Sprint 0     |  100 % | Cerrado                                                         |
+| Sprint 1     |  100 % | Cerrado en dispositivo                                          |
+| Sprint 2     |   65 % | Aceptar etiquetas y conciliación; favoritos y límites restantes |
+| Sprint 3     |    0 % | Aún no iniciado                                                 |
+| Sprint 4     |   40 % | Validar interacción; faltan periodos globales y detalle         |
+| Sprint 5     |    0 % | Aún no iniciado                                                 |
+| MVP completo |   51 % | Promedio simple redondeado de los seis sprints                  |
 
 La guía de comprobación de cada incremento está en
 [`DEVICE_VALIDATION.md`](./DEVICE_VALIDATION.md).
@@ -93,8 +98,10 @@ Seguimiento: [#12](https://github.com/Jhakami/rastro-finanzas/issues/12), [#13](
 - Implementado: dona por categoría específica, tendencia de área o barras en 7/14/30 días y
   dispersión monto-hora con muestra mínima. Cada segmento, barra o punto permite consultar su
   valor y la dispersión explica sus colores relativos.
-- Implementado: promedio histórico, gasto atípico, racha creciente, cambio de participación,
-  proyección mensual y cumplimiento de límites. Sus umbrales se pueden configurar.
+- Implementado: promedio histórico mensual, gasto atípico, racha creciente, cambio de
+  participación, proyección mensual y cumplimiento de límites. La muestra principal corresponde
+  al mes calendario actual y las comparaciones utilizan meses completos. Sus umbrales se pueden
+  configurar.
 - Cada hallazgo presenta periodo, muestra, evidencia y fórmula utilizada.
 
 - Periodos hoy/semana/3 meses/6 meses/año/rango personalizado.
@@ -114,3 +121,10 @@ Seguimiento: [#16](https://github.com/Jhakami/rastro-finanzas/issues/16), [#17](
 - APK firmado, hash SHA-256, notas de versión y prueba de actualización sin pérdida de datos.
 
 Seguimiento: [#22](https://github.com/Jhakami/rastro-finanzas/issues/22), [#23](https://github.com/Jhakami/rastro-finanzas/issues/23) y [#25](https://github.com/Jhakami/rastro-finanzas/issues/25).
+
+## Dirección de producto y UX
+
+El [benchmark frente a Wallet](./PRODUCT_BENCHMARK_WALLET.md) traduce sus patrones útiles al
+alcance local-first de Rastro. No cambia el orden de los sprints: primero se termina Sprint 2,
+después se incorporan pagos planificados en Sprint 3 y finalmente se amplían los periodos,
+comparaciones y recorridos de detalle en Sprint 4.

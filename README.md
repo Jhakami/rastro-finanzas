@@ -8,18 +8,18 @@ historial financiero a un servidor de Rastro.
 
 ## Estado actual
 
-Rastro está en construcción. La versión en desarrollo es `0.1.11` (`versionCode 12`). No debe
+Rastro está en construcción. La versión en desarrollo es `0.1.12` (`versionCode 13`). No debe
 considerarse todavía una versión final ni una aplicación publicada en una tienda.
 
 | Etapa                                  | Avance | Estado                         |
 | -------------------------------------- | -----: | ------------------------------ |
 | Sprint 0 · Base técnica                |  100 % | Terminado                      |
 | Sprint 1 · Trazabilidad diaria         |  100 % | Terminado y probado en Android |
-| Sprint 2 · Parametrización             |   60 % | En curso                       |
+| Sprint 2 · Parametrización             |   65 % | En curso                       |
 | Sprint 3 · Automatización y documentos |    0 % | Pendiente                      |
 | Sprint 4 · Análisis avanzado           |   40 % | Parcialmente implementado      |
 | Sprint 5 · Publicación personal        |    0 % | Pendiente                      |
-| MVP completo                           |   50 % | Estimación orientativa         |
+| MVP completo                           |   51 % | Estimación orientativa         |
 
 El CRUD de cuentas de `0.1.9` está terminado: superó 28 pruebas automáticas y los casos manuales
 `ACC-01` a `ACC-05` en un POCO X7 Pro. El ciclo de vida de categorías propias de `0.1.10` también
@@ -42,11 +42,15 @@ pendientes reales.
 - exportación CSV con o sin zonas y copia cifrada de la base de datos;
 - bloqueo biométrico opcional y tema Catppuccin Mocha oscuro;
 - creación, edición, orden, archivado y restauración de cuentas, ya aceptadas en dispositivo;
-- administración equivalente de categorías propias, aceptada en Android.
+- administración equivalente de categorías propias, aceptada en Android;
 - etiquetas ilimitadas con selección múltiple, archivo recuperable y conservación histórica,
-  pendientes de aceptación final en Android.
+  pendientes de aceptación final en Android;
+- conciliación del saldo real mediante un ajuste con motivo y corrección auditable de
+  movimientos, incluida la cuenta de pago;
+- patrones cuya muestra principal es el mes actual y cuyas comparaciones usan meses completos.
 
-Todavía faltan, entre otros puntos, etiquetas, favoritos manuales, conciliación, recurrencias,
+Todavía faltan, entre otros puntos, la aceptación de etiquetas y conciliación, favoritos
+manuales, recurrencias,
 comprobantes, restauración guiada, periodos avanzados del dashboard y la firma privada de una
 versión publicable.
 
@@ -87,6 +91,7 @@ La explicación completa sobre datos, permisos, mapas, copias y eliminación est
 ## Documentación
 
 - [Plan por sprints](docs/SPRINTS.md)
+- [Benchmark de producto frente a Wallet](docs/PRODUCT_BENCHMARK_WALLET.md)
 - [Validación en dispositivo](docs/DEVICE_VALIDATION.md)
 - [Arquitectura](docs/ARCHITECTURE.md)
 - [RUP ligero](docs/RUP.md)

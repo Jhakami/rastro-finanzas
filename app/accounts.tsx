@@ -4,7 +4,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import type { Account } from '@/domain/types';
-import { formatPEN } from '@/domain/money';
+import { formatPEN, parseBalanceToCents } from '@/domain/money';
 import { Card, ScreenHeader } from '@/presentation/components';
 import { useFinance } from '@/presentation/finance-provider';
 import { colors, radius, spacing } from '@/theme';
@@ -30,6 +30,7 @@ export default function AccountsScreen() {
     editAccount,
     moveAccount,
     setAccountArchived,
+    reconcileAccount,
   } = useFinance();
   const archivedAccounts = useMemo(
     () => allAccounts.filter((account) => account.isArchived),
@@ -39,6 +40,18 @@ export default function AccountsScreen() {
   const [name, setName] = useState('');
   const [color, setColor] = useState<string>(colors.mauve);
   const [busy, setBusy] = useState(false);
+  const [reconcilingId, setReconcilingId] = useState<string | null>(null);
+  const [targetBalance, setTargetBalance] = useState('');
+  const [reconciliationReason, setReconciliationReason] = useState('');
+  const [reconciling, setReconciling] = useState(false);
+
+  const reconcilingAccount = accounts.find((account) => account.id === reconcilingId);
+  const parsedTargetBalance = parseBalanceToCents(targetBalance);
+  const reconciliationDifference = reconcilingAccount
+    ? parsedTargetBalance === null
+      ? null
+      : parsedTargetBalance - (balances[reconcilingAccount.id] ?? 0)
+    : null;
 
   function resetForm() {
     setEditingId(null);
@@ -50,6 +63,45 @@ export default function AccountsScreen() {
     setEditingId(account.id);
     setName(account.name);
     setColor(account.color);
+  }
+
+  function beginReconciliation(account: Account) {
+    setReconcilingId(account.id);
+    setTargetBalance(((balances[account.id] ?? 0) / 100).toFixed(2));
+    setReconciliationReason('');
+  }
+
+  function cancelReconciliation() {
+    setReconcilingId(null);
+    setTargetBalance('');
+    setReconciliationReason('');
+  }
+
+  async function saveReconciliation() {
+    if (!reconcilingAccount || parsedTargetBalance === null) {
+      Alert.alert('Revisa el saldo', 'Escribe el saldo real con hasta dos decimales.');
+      return;
+    }
+    if (reconciliationReason.trim().length < 3) {
+      Alert.alert('Explica el ajuste', 'La razón es obligatoria y debe ser clara.');
+      return;
+    }
+    setReconciling(true);
+    try {
+      await reconcileAccount(reconcilingAccount.id, {
+        targetBalanceCents: parsedTargetBalance,
+        reason: reconciliationReason,
+      });
+      cancelReconciliation();
+      Alert.alert('Saldo conciliado', 'Rastro guardó un ajuste auditable sin borrar el historial.');
+    } catch (cause) {
+      Alert.alert(
+        'No se concilió el saldo',
+        cause instanceof Error ? cause.message : 'Intenta nuevamente.',
+      );
+    } finally {
+      setReconciling(false);
+    }
   }
 
   async function save() {
@@ -171,6 +223,70 @@ export default function AccountsScreen() {
           </View>
         </Card>
 
+        {reconcilingAccount ? (
+          <Card>
+            <Text style={styles.cardTitle}>Conciliar saldo · {reconcilingAccount.name}</Text>
+            <Text style={styles.helpText}>
+              Úsalo si el saldo real no coincide. Se creará un ajuste con trazabilidad; los
+              movimientos anteriores no se modificarán.
+            </Text>
+            <View style={styles.balanceSummary}>
+              <View>
+                <Text style={styles.summaryLabel}>Saldo en Rastro</Text>
+                <Text style={styles.summaryValue}>
+                  {formatPEN(balances[reconcilingAccount.id] ?? 0)}
+                </Text>
+              </View>
+              <Ionicons name="arrow-forward" size={20} color={colors.muted} />
+              <View style={styles.summaryRight}>
+                <Text style={styles.summaryLabel}>Saldo real</Text>
+                <Text style={styles.summaryValue}>
+                  {parsedTargetBalance === null ? '—' : formatPEN(parsedTargetBalance)}
+                </Text>
+              </View>
+            </View>
+            <Text style={styles.label}>Saldo real en soles</Text>
+            <TextInput
+              value={targetBalance}
+              onChangeText={setTargetBalance}
+              keyboardType="decimal-pad"
+              placeholder="Ej. 124.50"
+              placeholderTextColor={colors.overlay1}
+              style={styles.input}
+            />
+            <Text style={styles.label}>Razón obligatoria</Text>
+            <TextInput
+              value={reconciliationReason}
+              onChangeText={setReconciliationReason}
+              maxLength={200}
+              multiline
+              placeholder="Ej. saldo inicial incorrecto o efectivo contado"
+              placeholderTextColor={colors.overlay1}
+              style={[styles.input, styles.reasonInput]}
+            />
+            {reconciliationDifference !== null ? (
+              <Text style={styles.difference}>
+                Ajuste que quedará registrado: {reconciliationDifference >= 0 ? '+' : ''}
+                {formatPEN(reconciliationDifference)}
+              </Text>
+            ) : null}
+            <View style={styles.formActions}>
+              <Pressable onPress={cancelReconciliation} style={styles.secondaryButton}>
+                <Text style={styles.secondaryText}>Cancelar</Text>
+              </Pressable>
+              <Pressable
+                disabled={reconciling}
+                onPress={() => void saveReconciliation()}
+                style={[styles.primaryButton, reconciling && styles.disabled]}
+              >
+                <Text style={styles.primaryText}>
+                  {reconciling ? 'Conciliando…' : 'Guardar ajuste'}
+                </Text>
+              </Pressable>
+            </View>
+          </Card>
+        ) : null}
+
         <Text style={styles.section}>Activas · {accounts.length}</Text>
         <Card>
           {accounts.map((account, index) => {
@@ -204,6 +320,13 @@ export default function AccountsScreen() {
                     style={[styles.iconButton, cannotMoveDown && styles.disabled]}
                   >
                     <Ionicons name="arrow-down" size={18} color={colors.ink} />
+                  </Pressable>
+                  <Pressable
+                    accessibilityLabel={`Conciliar saldo de ${account.name}`}
+                    onPress={() => beginReconciliation(account)}
+                    style={styles.iconButton}
+                  >
+                    <Ionicons name="calculator" size={17} color={colors.green} />
                   </Pressable>
                   <Pressable
                     accessibilityLabel={`Editar ${account.name}`}
@@ -270,6 +393,7 @@ const styles = StyleSheet.create({
   },
   intro: { color: colors.muted, lineHeight: 20, marginTop: -spacing.md },
   cardTitle: { color: colors.ink, fontSize: 18, fontWeight: '900', marginBottom: spacing.sm },
+  helpText: { color: colors.muted, fontSize: 13, lineHeight: 19 },
   label: { color: colors.subtext1, fontSize: 12, fontWeight: '800', marginTop: spacing.sm },
   input: {
     marginTop: spacing.xs,
@@ -282,6 +406,20 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
   },
   palette: { flexDirection: 'row', flexWrap: 'wrap', gap: 12, marginTop: spacing.sm },
+  reasonInput: { minHeight: 76, textAlignVertical: 'top' },
+  balanceSummary: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginTop: spacing.md,
+    padding: spacing.md,
+    borderRadius: radius.sm,
+    backgroundColor: colors.mantle,
+  },
+  summaryRight: { alignItems: 'flex-end' },
+  summaryLabel: { color: colors.muted, fontSize: 11, fontWeight: '700' },
+  summaryValue: { color: colors.ink, fontSize: 17, fontWeight: '900', marginTop: 4 },
+  difference: { color: colors.blue, fontSize: 12, fontWeight: '800', marginTop: spacing.sm },
   color: { width: 32, height: 32, borderRadius: 16, borderWidth: 2, borderColor: colors.surface },
   colorSelected: { borderColor: colors.text, transform: [{ scale: 1.12 }] },
   formActions: { flexDirection: 'row', justifyContent: 'flex-end', gap: 10, marginTop: spacing.md },

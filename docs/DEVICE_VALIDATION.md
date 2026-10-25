@@ -322,3 +322,48 @@ el CSV incluye sus nombres sin duplicarlos.
 
 **Se acepta si:** la etiqueta archivada sigue visible en el historial, no puede elegirse en un
 movimiento nuevo y vuelve al final de la lista activa al restaurarla.
+
+## Incremento 0.1.12: conciliación y correcciones · 80 %
+
+- **Implementación (50 %):** terminada. Permite conciliar una cuenta por saldo real y corregir
+  movimientos activos sin borrar su contexto histórico.
+- **Validación automática (30 %):** TypeScript, ESLint, Prettier, 41 pruebas, bundle Metro,
+  Lint Vital y compilación Android release ARM64 aprobados. APK `0.1.12` (`versionCode 13`),
+  firma v2 de desarrollo verificada, exclusivamente `arm64-v8a` y sin permisos de ubicación en
+  segundo plano ni micrófono. SHA-256:
+  `B1B81A795AA4F746CCAE4946F8C2D180212E4608E95ED8FF6BF7E0182944FAE6`.
+- **Aceptación en dispositivo (20 %):** pendiente en POCO X7 Pro con Android 16.
+
+Instalar `0.1.12` encima de `0.1.11`, sin desinstalar Rastro, para verificar la migración sin
+pérdida de movimientos, cuentas, categorías ni etiquetas.
+
+### REC-01 — Conciliar el saldo real
+
+1. Anotar el saldo de una cuenta en Rastro y el saldo real correspondiente.
+2. Abrir **Ajustes > Administrar cuentas**, tocar la calculadora de esa cuenta e introducir el
+   saldo real.
+3. Escribir un motivo y guardar.
+4. Repetir el flujo usando exactamente el saldo que ya muestra Rastro.
+
+**Se acepta si:** el saldo termina exactamente en el valor introducido, aparece un movimiento de
+conciliación por la diferencia y los movimientos anteriores no cambian. El segundo intento debe
+informar que el saldo ya coincide y no crear otro ajuste.
+
+### COR-01 — Corregir la cuenta de pago
+
+1. Registrar un gasto usando **Efectivo** aunque realmente se haya pagado con **Yape**.
+2. Abrir **Movimientos**, tocar el gasto y cambiar la cuenta de pago a Yape.
+3. Escribir el motivo y guardar.
+
+**Se acepta si:** el gasto mantiene fecha, categoría, etiquetas y zona; el saldo vuelve a Efectivo
+y se descuenta de Yape exactamente una vez. La corrección queda registrada con antes, después y
+motivo.
+
+### COR-02 — Corregir los datos financieros
+
+1. Abrir otro movimiento y modificar monto, tipo o categoría.
+2. En una transferencia, confirmar que origen y destino no pueden ser la misma cuenta.
+3. Intentar guardar sin motivo y luego con un motivo claro.
+
+**Se acepta si:** las validaciones impiden monto inválido, transferencia a la misma cuenta y
+corrección sin motivo; al guardar, los saldos y el resumen mensual se recalculan inmediatamente.
