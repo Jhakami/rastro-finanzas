@@ -281,7 +281,7 @@ movimientos nuevos ni entre los favoritos adaptativos.
 **Se acepta si:** las categorías iniciales permanecen protegidas, el nombre archivado no se
 duplica y la app indica que debe restaurarse.
 
-## Incremento 0.1.11: etiquetas ilimitadas · 80 %
+## Incremento 0.1.11: etiquetas ilimitadas · 100 %
 
 - **Implementación (50 %):** terminada. Incluye administración, selección múltiple en cualquier
   movimiento, búsqueda en el historial, conservación de etiquetas archivadas y exportación CSV.
@@ -293,7 +293,7 @@ duplica y la app indica que debe restaurarse.
   desarrollo verificada, exclusivamente `arm64-v8a` y sin permisos de ubicación en segundo plano
   ni micrófono. SHA-256:
   `14B4EE036C9D3461C4E44934E346554B57F0DB85D7F64A089AA76321518900A1`.
-- **Aceptación en dispositivo (20 %):** pendiente en POCO X7 Pro con Android 16.
+- **Aceptación en dispositivo (20 %):** TAG-01–TAG-03 aprobados explícitamente por el usuario el 25/10/2026.
 
 ### TAG-01 — Crear, editar y ordenar
 
@@ -323,7 +323,7 @@ el CSV incluye sus nombres sin duplicarlos.
 **Se acepta si:** la etiqueta archivada sigue visible en el historial, no puede elegirse en un
 movimiento nuevo y vuelve al final de la lista activa al restaurarla.
 
-## Incremento 0.1.12: conciliación y correcciones · 80 %
+## Incremento 0.1.12: conciliación y correcciones · 100 %
 
 - **Implementación (50 %):** terminada. Permite conciliar una cuenta por saldo real y corregir
   movimientos activos sin borrar su contexto histórico.
@@ -332,7 +332,7 @@ movimiento nuevo y vuelve al final de la lista activa al restaurarla.
   firma v2 de desarrollo verificada, exclusivamente `arm64-v8a` y sin permisos de ubicación en
   segundo plano ni micrófono. SHA-256:
   `B1B81A795AA4F746CCAE4946F8C2D180212E4608E95ED8FF6BF7E0182944FAE6`.
-- **Aceptación en dispositivo (20 %):** pendiente en POCO X7 Pro con Android 16.
+- **Aceptación en dispositivo (20 %):** REC-01 y COR-01–COR-02 aprobados explícitamente por el usuario el 25/10/2026. Esta aceptación corresponde al APK previo; la corrección del rótulo de versión se verifica por separado.
 
 Instalar `0.1.12` encima de `0.1.11`, sin desinstalar Rastro, para verificar la migración sin
 pérdida de movimientos, cuentas, categorías ni etiquetas.

@@ -49,13 +49,13 @@ Seguimiento: [#6](https://github.com/Jhakami/rastro-finanzas/issues/6).
   categorías iniciales continúan protegidas y el historial conserva las categorías archivadas.
 - Las etiquetas ilimitadas permiten crear, editar, ordenar, archivar y restaurar opciones propias,
   combinar varias al registrar cualquier movimiento, buscarlas en el historial y exportarlas a
-  CSV. El incremento `0.1.11` está implementado y pendiente de aceptación en Android.
+  CSV. El incremento `0.1.11` fue aceptado mediante TAG-01–TAG-03 el 25/10/2026.
 - Los tres favoritos se derivan de las categorías con más movimientos activos, desempatan por
   recencia y completan cuenta/familia/categoría. Falta su CRUD y permitir fijar opciones manuales.
 - Conciliación guiada implementada: recibe el saldo real, calcula solo la diferencia y crea un
   ajuste con motivo, saldo anterior y saldo resultante. La corrección de movimientos permite
   rectificar cuenta de pago, monto, tipo, destino y categoría sin perder fecha, etiquetas o zona.
-  El incremento `0.1.12` está pendiente de aceptación en Android.
+  El incremento `0.1.12` fue aceptado mediante REC-01 y COR-01–COR-02 el 25/10/2026.
 - Límites mensuales generales y por familia con umbral de aviso configurable ya implementados.
   Cada familia suma sus categorías hijas. Falta la selección por cuenta y una administración más
   completa.
@@ -64,10 +64,9 @@ Seguimiento: [#7](https://github.com/Jhakami/rastro-finanzas/issues/7), [#8](htt
 
 El porcentaje es orientativo y se calcula con criterios de aceptación terminados, no por tiempo
 transcurrido. El CRUD de cuentas y el ciclo de vida de categorías propias están al 100 %. El
-incremento `0.1.11`, dedicado a etiquetas, se mantiene al 80 % hasta completar TAG-01 a TAG-03 en
-el dispositivo y su historia no debe cerrarse antes de esa confirmación. Por indicación del
-usuario se inició `0.1.12`; conciliación y correcciones tampoco se cerrarán hasta REC-01 y COR-01
-a COR-02.
+incremento `0.1.11` y los casos REC/COR de `0.1.12` ya tienen aceptación explícita del usuario.
+La historia #10 conserva el alcance pendiente de auditoría legible y restauración de movimientos;
+aprobar REC/COR no demuestra esos criterios adicionales. El siguiente incremento activo es #9.
 
 ## Estado global orientativo
 
