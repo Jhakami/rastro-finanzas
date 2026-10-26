@@ -172,6 +172,8 @@ describe('LocalRepository.createTransaction', () => {
 
     expect(runAsync).toHaveBeenCalledWith(
       expect.stringContaining('usage_count=usage_count+1'),
+      expect.any(String),
+      expect.any(String),
       'favorite-water',
     );
   });

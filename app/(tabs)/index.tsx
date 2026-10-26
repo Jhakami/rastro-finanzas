@@ -96,6 +96,11 @@ export default function DashboardScreen() {
             </Link>
           }
         />
+        <Link href="/new" asChild>
+          <Pressable accessibilityRole="button" style={styles.registerExpense}>
+            <Text style={styles.registerExpenseText}>+ Registrar gasto</Text>
+          </Pressable>
+        </Link>
         {error ? (
           <Card style={styles.error}>
             <Text style={styles.errorText}>{error}</Text>
@@ -349,6 +354,13 @@ export default function DashboardScreen() {
 }
 
 const styles = StyleSheet.create({
+  registerExpense: {
+    backgroundColor: colors.green,
+    borderRadius: radius.md,
+    padding: 14,
+    alignItems: 'center',
+  },
+  registerExpenseText: { color: colors.onAccent, fontWeight: '800', fontSize: 16 },
   safe: { flex: 1, backgroundColor: colors.canvas },
   content: { padding: spacing.md, gap: spacing.md },
   add: {

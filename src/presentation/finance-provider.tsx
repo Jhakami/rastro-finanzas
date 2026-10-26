@@ -1,5 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { startOfMonth } from 'date-fns';
+import { useFavoriteStore } from './favorite-store';
 import { calculateAccountBalances } from '@/application/balances';
 import {
   buildInsights,
@@ -116,6 +117,7 @@ export function FinanceProvider({ children }: { children: React.ReactNode }) {
       setAllTags(nextAllTags);
       setLimits(nextLimits);
       setTransactions(nextTransactions);
+      await useFavoriteStore.getState().refresh();
       setMicroThresholdCents(Number(threshold) || 500);
       try {
         setBehaviorSettings(normalizeBehaviorSettings(JSON.parse(savedBehaviorSettings)));

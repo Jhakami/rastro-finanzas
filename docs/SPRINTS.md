@@ -50,8 +50,10 @@ Seguimiento: [#6](https://github.com/Jhakami/rastro-finanzas/issues/6).
 - Las etiquetas ilimitadas permiten crear, editar, ordenar, archivar y restaurar opciones propias,
   combinar varias al registrar cualquier movimiento, buscarlas en el historial y exportarlas a
   CSV. El incremento `0.1.11` fue aceptado mediante TAG-01–TAG-03 el 25/10/2026.
-- Los tres favoritos se derivan de las categorías con más movimientos activos, desempatan por
-  recencia y completan cuenta/familia/categoría. Falta su CRUD y permitir fijar opciones manuales.
+- Los favoritos manuales de `0.1.13` permiten crear, editar, ordenar, archivar y restaurar
+  plantillas con cuenta, categoría, etiquetas, nota, comercio y monto fijo/sugerido/variable.
+  Se separan de las sugerencias automáticas y siempre requieren confirmar el gasto. El registro
+  rápido añade recientes y Más detalles; pendiente aceptación FAV-01–04 y UX-01.
 - Conciliación guiada implementada: recibe el saldo real, calcula solo la diferencia y crea un
   ajuste con motivo, saldo anterior y saldo resultante. La corrección de movimientos permite
   rectificar cuenta de pago, monto, tipo, destino y categoría sin perder fecha, etiquetas o zona.
@@ -70,15 +72,15 @@ aprobar REC/COR no demuestra esos criterios adicionales. El siguiente incremento
 
 ## Estado global orientativo
 
-| Alcance      | Avance | Condición para aumentar                                         |
-| ------------ | -----: | --------------------------------------------------------------- |
-| Sprint 0     |  100 % | Cerrado                                                         |
-| Sprint 1     |  100 % | Cerrado en dispositivo                                          |
-| Sprint 2     |   65 % | Aceptar etiquetas y conciliación; favoritos y límites restantes |
-| Sprint 3     |    0 % | Aún no iniciado                                                 |
-| Sprint 4     |   40 % | Validar interacción; faltan periodos globales y detalle         |
-| Sprint 5     |    0 % | Aún no iniciado                                                 |
-| MVP completo |   51 % | Promedio simple redondeado de los seis sprints                  |
+| Alcance      | Avance | Condición para aumentar                                              |
+| ------------ | -----: | -------------------------------------------------------------------- |
+| Sprint 0     |  100 % | Cerrado                                                              |
+| Sprint 1     |  100 % | Cerrado en dispositivo                                               |
+| Sprint 2     |   65 % | Aceptar favoritos; completar límites y auditoría/restauración de #10 |
+| Sprint 3     |    0 % | Aún no iniciado                                                      |
+| Sprint 4     |   40 % | Validar interacción; faltan periodos globales y detalle              |
+| Sprint 5     |    0 % | Aún no iniciado                                                      |
+| MVP completo |   51 % | Promedio simple redondeado de los seis sprints                       |
 
 La guía de comprobación de cada incremento está en
 [`DEVICE_VALIDATION.md`](./DEVICE_VALIDATION.md).

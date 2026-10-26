@@ -165,6 +165,11 @@ export default function SettingsScreen() {
           </Link>
         </Card>
         <Text style={styles.section}>Categorías</Text>
+        <Link href="/favorites" asChild>
+          <Pressable style={styles.outlineButton}>
+            <Text style={styles.outlineText}>Administrar favoritos</Text>
+          </Pressable>
+        </Link>
         <Card>
           <Text style={styles.label}>Clasificación de compras</Text>
           <Text style={styles.hint}>

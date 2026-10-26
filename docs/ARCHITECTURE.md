@@ -29,6 +29,12 @@ SQLite + SQLCipher ---- SecureStore (clave)
 
 ## Evolución aprobada (pendiente de implementación)
 
+Primera extracción en `0.1.13`: FavoriteRepository tiene adaptador SQLite independiente y un
+store Zustand con selectores. Los cambios de plantillas recargan únicamente sus favoritos;
+FinanceProvider invalida ese store cuando cambian movimientos o catálogos. El resto de la
+modularización sigue pendiente. La migración v6 añade modo de monto, fechas y favorite_tags,
+conservando las plantillas y el historial existentes.
+
 El registro sencillo sigue siendo el recorrido principal. Se mantiene Android individual,
 PEN, SQLCipher y funcionamiento sin conexión; no se incorpora backend en estos sprints.
 

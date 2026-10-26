@@ -8,7 +8,7 @@ historial financiero a un servidor de Rastro.
 
 ## Estado actual
 
-Rastro está en construcción. La versión en desarrollo es `0.1.12` (`versionCode 13`). No debe
+Rastro está en construcción. La versión en desarrollo es `0.1.13` (`versionCode 14`). No debe
 considerarse todavía una versión final ni una aplicación publicada en una tienda.
 
 | Etapa                                  | Avance | Estado                         |
@@ -44,13 +44,16 @@ pendientes reales.
 - creación, edición, orden, archivado y restauración de cuentas, ya aceptadas en dispositivo;
 - administración equivalente de categorías propias, aceptada en Android;
 - etiquetas ilimitadas con selección múltiple, archivo recuperable y conservación histórica,
-  pendientes de aceptación final en Android;
+  aceptadas mediante TAG-01–TAG-03;
 - conciliación del saldo real mediante un ajuste con motivo y corrección auditable de
   movimientos, incluida la cuenta de pago;
 - patrones cuya muestra principal es el mes actual y cuyas comparaciones usan meses completos.
+- favoritos manuales con monto fijo/sugerido/variable, cuenta, categoría, nota, comercio y
+  etiquetas; orden manual/reciente/frecuencia, archivo y restauración (pendiente aceptación);
+- registro rápido con recientes, sugerencias y detalles opcionales desplegables; nunca guarda
+  automáticamente al aplicar un favorito.
 
-Todavía faltan, entre otros puntos, la aceptación de etiquetas y conciliación, favoritos
-manuales, recurrencias,
+Todavía faltan, entre otros puntos, la aceptación de favoritos y registro rápido, recurrencias,
 comprobantes, restauración guiada, periodos avanzados del dashboard y la firma privada de una
 versión publicable.
 

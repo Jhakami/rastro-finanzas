@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { z } from 'zod';
 import {
@@ -24,6 +24,7 @@ import type { ApproximateCell } from '@/domain/location';
 import type { TransactionKind } from '@/domain/types';
 import { Chip, ScreenHeader } from '@/presentation/components';
 import { useFinance } from '@/presentation/finance-provider';
+import { useFavoriteStore } from '@/presentation/favorite-store';
 import { colors, radius, spacing } from '@/theme';
 
 const formSchema = z.object({
@@ -35,8 +36,16 @@ const formSchema = z.object({
 type FormValues = z.infer<typeof formSchema>;
 
 export default function NewTransactionScreen() {
-  const { accounts, categories, tags, favorites, addTransaction, addCategory, deleteCategory } =
-    useFinance();
+  const {
+    accounts,
+    categories,
+    tags,
+    favorites,
+    transactions,
+    addTransaction,
+    addCategory,
+    deleteCategory,
+  } = useFinance();
   const [kind, setKind] = useState<TransactionKind>('expense');
   const [accountId, setAccountId] = useState(
     accounts.find((item) => item.isDefault)?.id ?? accounts[0]?.id ?? 'account-yape',
@@ -54,6 +63,23 @@ export default function NewTransactionScreen() {
   const [locating, setLocating] = useState(false);
   const [locationError, setLocationError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const savingRef = useRef(false);
+  const [detailsVisible, setDetailsVisible] = useState(false);
+  const manualFavorites = useFavoriteStore((s) => s.items);
+  const pinned = manualFavorites.filter((item) => !item.isArchived && item.available);
+  const selectedManual = pinned.find((item) => item.id === selectedFavoriteId);
+  const recentCategoryIds = [
+    ...new Set(
+      transactions
+        .filter(
+          (item) =>
+            item.kind === 'expense' &&
+            item.categoryId &&
+            categories.some((c) => c.id === item.categoryId),
+        )
+        .map((item) => item.categoryId!),
+    ),
+  ].slice(0, 5);
   const { control, handleSubmit, setValue } = useForm<FormValues>({
     defaultValues: { amount: '', merchant: '', note: '', source: 'Padres' },
   });
@@ -156,61 +182,54 @@ export default function NewTransactionScreen() {
     }
   }
 
-  const submit = handleSubmit(async (values) => {
-    const parsed = formSchema.safeParse(values);
-    const amountCents = parseAmountToCents(values.amount);
-    if (!parsed.success || amountCents === null) {
-      Alert.alert('Revisa el monto', 'Escribe un monto mayor a cero con hasta dos decimales.');
-      return;
-    }
-    if (kind === 'transfer' && (!destinationAccountId || destinationAccountId === accountId)) {
-      Alert.alert('Elige otra cuenta de destino');
-      return;
-    }
-    if (kind === 'expense' && !categoryId) {
-      Alert.alert(
-        'Elige una categoría específica',
-        'Esto permite que el análisis no mezcle gastos diferentes.',
-      );
-      return;
-    }
-    if (
-      kind === 'expense' &&
-      categoryId === 'category-other' &&
-      !values.merchant.trim() &&
-      !values.note.trim()
-    ) {
-      Alert.alert(
-        'Describe este gasto',
-        'Si lo guardas por clasificar, escribe el comercio o una nota para identificarlo después.',
-      );
-      return;
-    }
-    setSaving(true);
-    try {
-      await addTransaction({
-        kind,
-        amountCents,
-        accountId,
-        destinationAccountId: kind === 'transfer' ? destinationAccountId : null,
-        categoryId: kind === 'expense' ? categoryId : null,
-        merchant: values.merchant.trim() || null,
-        note: values.note.trim() || null,
-        source: kind === 'income' ? values.source.trim() || null : null,
-        location,
-        favoriteId: kind === 'expense' ? selectedFavoriteId : null,
-        tagIds: selectedTagIds,
-      });
-      router.back();
-    } catch (cause) {
-      Alert.alert(
-        'No se pudo guardar',
-        cause instanceof Error ? cause.message : 'Intenta nuevamente.',
-      );
-    } finally {
-      setSaving(false);
-    }
-  });
+  const submit = () =>
+    handleSubmit(async (values) => {
+      if (savingRef.current) return;
+      const parsed = formSchema.safeParse(values);
+      const amountCents = parseAmountToCents(values.amount);
+      if (!parsed.success || amountCents === null) {
+        Alert.alert('Revisa el monto', 'Escribe un monto mayor a cero con hasta dos decimales.');
+        return;
+      }
+      if (kind === 'transfer' && (!destinationAccountId || destinationAccountId === accountId)) {
+        Alert.alert('Elige otra cuenta de destino');
+        return;
+      }
+      if (kind === 'expense' && !categoryId) {
+        Alert.alert(
+          'Elige una categoría específica',
+          'Esto permite que el análisis no mezcle gastos diferentes.',
+        );
+        return;
+      }
+      savingRef.current = true;
+      setSaving(true);
+      try {
+        await addTransaction({
+          kind,
+          amountCents,
+          accountId,
+          destinationAccountId: kind === 'transfer' ? destinationAccountId : null,
+          categoryId: kind === 'expense' ? categoryId : null,
+          merchant: values.merchant.trim() || null,
+          note: values.note.trim() || null,
+          source: kind === 'income' ? values.source.trim() || null : null,
+          location,
+          favoriteId: kind === 'expense' ? selectedFavoriteId : null,
+          tagIds: selectedTagIds,
+        });
+        router.back();
+        Alert.alert('Movimiento guardado', 'Tu saldo e historial están actualizados.');
+      } catch (cause) {
+        Alert.alert(
+          'No se pudo guardar',
+          cause instanceof Error ? cause.message : 'Intenta nuevamente.',
+        );
+      } finally {
+        savingRef.current = false;
+        setSaving(false);
+      }
+    })();
 
   return (
     <SafeAreaView style={styles.safe}>
@@ -221,7 +240,7 @@ export default function NewTransactionScreen() {
         <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
           <ScreenHeader
             eyebrow="En pocos toques"
-            title="Nuevo movimiento"
+            title={kind === 'expense' ? 'Registrar gasto' : 'Nuevo movimiento'}
             action={
               <Pressable onPress={() => router.back()} style={styles.close}>
                 <Ionicons name="close" size={22} color={colors.ink} />
@@ -252,28 +271,17 @@ export default function NewTransactionScreen() {
           </View>
           {kind === 'expense' ? (
             <>
-              <Text style={styles.label}>Favoritos automáticos</Text>
-              <Text style={styles.favoriteHint}>
-                Tus 3 categorías más usadas; los movimientos eliminados no cuentan.
-              </Text>
+              <Text style={styles.label}>Mis favoritos</Text>
               <ScrollView
                 horizontal
                 showsHorizontalScrollIndicator={false}
                 contentContainerStyle={styles.chips}
               >
-                {favorites.map((favorite) => (
+                {pinned.map((favorite) => (
                   <Chip
                     key={favorite.id}
-                    label={
-                      favorite.usageCount > 0
-                        ? `${favorite.name} · ${favorite.usageCount} usos`
-                        : favorite.name
-                    }
+                    label={favorite.name}
                     selected={selectedFavoriteId === favorite.id}
-                    color={
-                      categories.find((category) => category.id === favorite.categoryId)?.color ??
-                      colors.mauve
-                    }
                     onPress={() => {
                       setSelectedFavoriteId(favorite.id);
                       setAccountId(favorite.accountId);
@@ -281,18 +289,67 @@ export default function NewTransactionScreen() {
                       setCategoryFamilyId(
                         getCategoryParent(favorite.categoryId, categories)?.id ?? null,
                       );
-                      if (favorite.amountCents)
-                        setValue('amount', (favorite.amountCents / 100).toFixed(2));
-                      if (favorite.merchant) setValue('merchant', favorite.merchant);
-                      if (favorite.note) setValue('note', favorite.note);
+                      setValue(
+                        'amount',
+                        favorite.amountMode === 'variable' || !favorite.amountCents
+                          ? ''
+                          : (favorite.amountCents / 100).toFixed(2),
+                      );
+                      setValue('merchant', favorite.merchant ?? '');
+                      setValue('note', favorite.note ?? '');
+                      setSelectedTagIds(
+                        favorite.tagIds.filter((id) => tags.some((tag) => tag.id === id)),
+                      );
                     }}
                   />
                 ))}
+                <Chip label="Administrar" onPress={() => router.push('/favorites')} />
+              </ScrollView>
+              <Text style={styles.label}>Sugerencias automáticas</Text>
+              <Text style={styles.favoriteHint}>
+                Hasta 3 categorías más usadas; los movimientos eliminados no cuentan.
+              </Text>
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={styles.chips}
+              >
+                {favorites
+                  .filter((favorite) => favorite.id.startsWith('adaptive-'))
+                  .map((favorite) => (
+                    <Chip
+                      key={favorite.id}
+                      label={
+                        favorite.usageCount > 0
+                          ? `${favorite.name} · ${favorite.usageCount} usos`
+                          : favorite.name
+                      }
+                      selected={selectedFavoriteId === favorite.id}
+                      color={
+                        categories.find((category) => category.id === favorite.categoryId)?.color ??
+                        colors.mauve
+                      }
+                      onPress={() => {
+                        setSelectedFavoriteId(favorite.id);
+                        setAccountId(favorite.accountId);
+                        setCategoryId(favorite.categoryId);
+                        setCategoryFamilyId(
+                          getCategoryParent(favorite.categoryId, categories)?.id ?? null,
+                        );
+                        if (favorite.amountCents)
+                          setValue('amount', (favorite.amountCents / 100).toFixed(2));
+                        setValue('merchant', favorite.merchant ?? '');
+                        setValue('note', favorite.note ?? '');
+                        setSelectedTagIds([]);
+                      }}
+                    />
+                  ))}
               </ScrollView>
               {selectedFavoriteId ? (
                 <Text style={styles.favoriteApplied}>
-                  {favorites.find((favorite) => favorite.id === selectedFavoriteId)?.name} aplicado
-                  · contará al guardar este gasto
+                  {selectedManual?.name ??
+                    favorites.find((favorite) => favorite.id === selectedFavoriteId)?.name}{' '}
+                  aplicado · contará al guardar este gasto
                 </Text>
               ) : null}
             </>
@@ -308,6 +365,7 @@ export default function NewTransactionScreen() {
                   {...field}
                   onChangeText={field.onChange}
                   autoFocus
+                  editable={selectedManual?.amountMode !== 'fixed'}
                   keyboardType="decimal-pad"
                   placeholder="0.00"
                   placeholderTextColor={colors.overlay0}
@@ -316,6 +374,13 @@ export default function NewTransactionScreen() {
               )}
             />
           </View>
+          {selectedManual?.amountMode === 'fixed' ? (
+            <Pressable onPress={() => setSelectedFavoriteId(null)}>
+              <Text style={styles.favoriteApplied}>
+                Monto fijo · tocar para cambiarlo solo en este gasto
+              </Text>
+            </Pressable>
+          ) : null}
           <Text style={styles.label}>{kind === 'transfer' ? 'Cuenta de origen' : 'Cuenta'}</Text>
           <View style={styles.chips}>
             {accounts.map((account) => (
@@ -356,6 +421,22 @@ export default function NewTransactionScreen() {
           {kind === 'expense' ? (
             <>
               <Text style={styles.label}>Categoría específica</Text>
+              {recentCategoryIds.length ? (
+                <View style={styles.chips}>
+                  {recentCategoryIds.map((id) => (
+                    <Chip
+                      key={id}
+                      label={categories.find((c) => c.id === id)?.name ?? ''}
+                      selected={categoryId === id}
+                      onPress={() => {
+                        setSelectedFavoriteId(null);
+                        setCategoryId(id);
+                        setCategoryFamilyId(getCategoryParent(id, categories)?.id ?? null);
+                      }}
+                    />
+                  ))}
+                </View>
+              ) : null}
               <TextInput
                 value={categoryQuery}
                 onChangeText={setCategoryQuery}
@@ -472,82 +553,99 @@ export default function NewTransactionScreen() {
               </Pressable>
             </>
           ) : null}
-          {kind === 'income' ? (
-            <Field
-              control={control}
-              name="source"
-              label="Origen del ingreso"
-              placeholder="Ej. Padres"
-            />
-          ) : (
-            <Field
-              control={control}
-              name="merchant"
-              label="Comercio o concepto (opcional)"
-              placeholder="Ej. bodega, Steam"
-            />
-          )}
-          <Field
-            control={control}
-            name="note"
-            label="Nota (opcional)"
-            placeholder="Algo que quieras recordar"
-            multiline
-          />
-          <Text style={styles.label}>Etiquetas (opcional)</Text>
-          <Text style={styles.tagHint}>Puedes combinar todas las que necesites.</Text>
-          {tags.length ? (
-            <View style={styles.chips}>
-              {tags.map((tag) => {
-                const selected = selectedTagIds.includes(tag.id);
-                return (
-                  <Chip
-                    key={tag.id}
-                    label={tag.name}
-                    selected={selected}
-                    color={tag.color}
-                    onPress={() =>
-                      setSelectedTagIds((current) =>
-                        selected
-                          ? current.filter((tagId) => tagId !== tag.id)
-                          : [...current, tag.id],
-                      )
-                    }
-                  />
-                );
-              })}
-            </View>
-          ) : (
-            <Pressable onPress={() => router.push('/tags')} style={styles.manageTags}>
-              <Ionicons name="pricetags-outline" size={17} color={colors.teal} />
-              <Text style={styles.manageTagsText}>Crear la primera etiqueta</Text>
-            </Pressable>
-          )}
-          <View style={styles.locationRow}>
-            <View style={styles.locationText}>
-              <Text style={styles.locationTitle}>Zona aproximada</Text>
-              <Text style={styles.locationHint}>
-                {location
-                  ? 'Lista: se guardará en una celda aproximada de 50 m'
-                  : locating
-                    ? 'Buscando con GPS solo mientras usas esta pantalla…'
-                    : (locationError ?? 'Opcional; nunca rastrea en segundo plano')}
-              </Text>
-            </View>
-            <Switch
-              value={Boolean(location)}
-              disabled={locating}
-              onValueChange={(value) => void toggleLocation(value)}
-              trackColor={{ false: colors.line, true: colors.accentActive }}
-              thumbColor={location ? colors.accent : colors.muted}
-            />
-          </View>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityState={{ expanded: detailsVisible }}
+            onPress={() => setDetailsVisible((value) => !value)}
+            style={styles.manageTags}
+          >
+            <Text style={styles.manageTagsText}>
+              {detailsVisible ? 'Ocultar detalles' : 'Más detalles'}
+              {selectedTagIds.length ? ` · ${selectedTagIds.length} etiquetas` : ''}
+            </Text>
+          </Pressable>
+          {detailsVisible ? (
+            <>
+              {kind === 'income' ? (
+                <Field
+                  control={control}
+                  name="source"
+                  label="Origen del ingreso"
+                  placeholder="Ej. Padres"
+                />
+              ) : (
+                <Field
+                  control={control}
+                  name="merchant"
+                  label="Comercio o concepto (opcional)"
+                  placeholder="Ej. bodega, Steam"
+                />
+              )}
+              <Field
+                control={control}
+                name="note"
+                label="Nota (opcional)"
+                placeholder="Algo que quieras recordar"
+                multiline
+              />
+              <Text style={styles.label}>Etiquetas (opcional)</Text>
+              <Text style={styles.tagHint}>Puedes combinar todas las que necesites.</Text>
+              {tags.length ? (
+                <View style={styles.chips}>
+                  {tags.map((tag) => {
+                    const selected = selectedTagIds.includes(tag.id);
+                    return (
+                      <Chip
+                        key={tag.id}
+                        label={tag.name}
+                        selected={selected}
+                        color={tag.color}
+                        onPress={() =>
+                          setSelectedTagIds((current) =>
+                            selected
+                              ? current.filter((tagId) => tagId !== tag.id)
+                              : [...current, tag.id],
+                          )
+                        }
+                      />
+                    );
+                  })}
+                </View>
+              ) : (
+                <Pressable onPress={() => router.push('/tags')} style={styles.manageTags}>
+                  <Ionicons name="pricetags-outline" size={17} color={colors.teal} />
+                  <Text style={styles.manageTagsText}>Crear la primera etiqueta</Text>
+                </Pressable>
+              )}
+              <View style={styles.locationRow}>
+                <View style={styles.locationText}>
+                  <Text style={styles.locationTitle}>Zona aproximada</Text>
+                  <Text style={styles.locationHint}>
+                    {location
+                      ? 'Lista: se guardará en una celda aproximada de 50 m'
+                      : locating
+                        ? 'Buscando con GPS solo mientras usas esta pantalla…'
+                        : (locationError ?? 'Opcional; nunca rastrea en segundo plano')}
+                  </Text>
+                </View>
+                <Switch
+                  value={Boolean(location)}
+                  disabled={locating}
+                  onValueChange={(value) => void toggleLocation(value)}
+                  trackColor={{ false: colors.line, true: colors.accentActive }}
+                  thumbColor={location ? colors.accent : colors.muted}
+                />
+              </View>
+            </>
+          ) : null}
           <Pressable
             disabled={saving}
             onPress={() => void submit()}
             style={[styles.save, saving && styles.disabled]}
           >
-            <Text style={styles.saveText}>{saving ? 'Guardando…' : 'Guardar movimiento'}</Text>
+            <Text style={styles.saveText}>
+              {saving ? 'Guardando…' : kind === 'expense' ? 'Guardar gasto' : 'Guardar movimiento'}
+            </Text>
           </Pressable>
         </ScrollView>
       </KeyboardAvoidingView>
