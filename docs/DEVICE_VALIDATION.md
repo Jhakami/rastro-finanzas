@@ -367,3 +367,49 @@ motivo.
 
 **Se acepta si:** las validaciones impiden monto inválido, transferencia a la misma cuenta y
 corrección sin motivo; al guardar, los saldos y el resumen mensual se recalculan inmediatamente.
+
+## Incremento 0.1.13: favoritos y registro sencillo · aceptación pendiente
+
+- APK ARM64 `0.1.13` (`versionCode 14`), firma v2 de desarrollo con el mismo certificado que
+  `0.1.12`. Compilación release y Lint Vital aprobados. Sin ubicación en segundo plano ni micrófono.
+- SHA-256: `D4BF7CCBFD61D7BE10733CB662766815482F8C51E1D67ACB77EC4A49D69A4278`.
+- Migración SQLite v5→v6 comprobada con base en memoria: conserva movimientos y montos,
+  convierte plantillas existentes y valida unicidad/integridad de etiquetas.
+- Expo Doctor: 20/21; quedan 12 parches del SDK recomendados, sin actualizar dependencias en
+  este incremento. Se usó el almacén de certificados del sistema sin desactivar TLS.
+- La aceptación de TAG/REC/COR del usuario corresponde a versiones anteriores. No equivale a
+  aprobar FAV/UX. Instalar encima de la versión actual sin desinstalar ni borrar datos.
+
+### FAV-01 — Crear y aplicar sin registrar automáticamente
+
+Crear tres favoritos con cuenta, categoría, comercio, nota y dos etiquetas: uno fijo, uno
+sugerido y otro variable. Aplicarlos desde Registrar gasto y comprobar que todavía no existe
+un movimiento nuevo. El fijo precarga y protege el monto; “cambiarlo solo en este gasto” lo
+desvincula. El sugerido permite editarlo y el variable lo deja vacío. Guardar debe crear un solo gasto.
+
+### FAV-02 — Editar sin alterar el historial
+
+Registrar un gasto con favorito y luego cambiar nombre, monto, cuenta, categoría y etiquetas
+de la plantilla. El gasto anterior debe conservar todos sus datos; la siguiente aplicación
+debe usar los nuevos valores. Nombres vacíos y montos no válidos deben rechazarse.
+
+### FAV-03 — Orden y conservación
+
+Crear más de tres favoritos, subir/bajar en orden manual, guardar gastos con varios y revisar
+orden Reciente/Frecuencia. Cerrar y abrir la app: se conservan las plantillas y su orden manual.
+Editar plantillas no incrementa su frecuencia; confirmar un gasto sí actualiza uso y fecha.
+
+### FAV-04 — Archivar, restaurar y referencias
+
+Archivar un favorito: desaparece del registro, permanece administrable y conserva historial.
+Restaurarlo: reaparece al final del orden manual. Archivar su cuenta o categoría: no debe poder
+aplicarse hasta restaurar la referencia o editar la plantilla. Etiquetas archivadas no se
+adjuntan a movimientos nuevos, pero siguen en los anteriores.
+
+### UX-01 — Registro sencillo y errores
+
+Desde Resumen y Movimientos, usar Registrar gasto. Introducir monto, elegir categoría reciente
+o del catálogo y guardar sin abrir Más detalles. Confirmar cuenta visible y cambiar Yape por
+Efectivo. Probar modo avión y ubicación denegada: deben permitir guardar sin zona. Pulsar
+Guardar repetidamente: solo se crea un movimiento. Revisar teclado, legibilidad y desplazamiento.
+Aplicar dos favoritos seguidos: nota y etiquetas no deben arrastrarse de la primera plantilla.

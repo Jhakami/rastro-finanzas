@@ -753,7 +753,9 @@ export class LocalRepository {
       }
       if (input.favoriteId) {
         await db.runAsync(
-          'UPDATE favorites SET usage_count=usage_count+1 WHERE id=? AND is_archived=0',
+          'UPDATE favorites SET usage_count=usage_count+1,last_used_at=?,updated_at=? WHERE id=? AND is_archived=0',
+          now,
+          now,
           input.favoriteId,
         );
       }

@@ -78,8 +78,21 @@ export const favorites = sqliteTable('favorites', {
   merchant: text('merchant'),
   note: text('note'),
   usageCount: integer('usage_count').notNull().default(0),
+  amountMode: text('amount_mode').notNull().default('variable'),
+  lastUsedAt: text('last_used_at'),
+  createdAt: text('created_at'),
+  updatedAt: text('updated_at'),
   sortOrder: integer('sort_order').notNull().default(0),
   isArchived: integer('is_archived', { mode: 'boolean' }).notNull().default(false),
+});
+
+export const favoriteTags = sqliteTable('favorite_tags', {
+  favoriteId: text('favorite_id')
+    .notNull()
+    .references(() => favorites.id),
+  tagId: text('tag_id')
+    .notNull()
+    .references(() => tags.id),
 });
 
 export const spendingLimits = sqliteTable('spending_limits', {

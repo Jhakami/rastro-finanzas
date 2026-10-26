@@ -3,6 +3,7 @@ import * as SecureStore from 'expo-secure-store';
 import * as SQLite from 'expo-sqlite';
 import { drizzle } from 'drizzle-orm/expo-sqlite';
 import * as schema from './schema';
+import { migrateFavorites } from './favorite-migration';
 
 const DATABASE_NAME = 'rastro.db';
 const DATABASE_KEY_NAME = 'rastro.database.key.v1';
@@ -107,6 +108,7 @@ async function migrate(db: SQLite.SQLiteDatabase): Promise<void> {
   if (version < 5) {
     await migrateTags(db);
   }
+  if (version < 6) await migrateFavorites(db);
 }
 
 type CategorySeed = readonly [
@@ -495,8 +497,9 @@ async function seed(db: SQLite.SQLiteDatabase): Promise<void> {
     ] as const;
     for (const item of favorites) {
       await db.runAsync(
-        'INSERT OR IGNORE INTO favorites(id,name,amount_cents,account_id,category_id,sort_order) VALUES(?,?,?,?,?,?)',
+        'INSERT OR IGNORE INTO favorites(id,name,amount_cents,account_id,category_id,sort_order,amount_mode) VALUES(?,?,?,?,?,?,?)',
         ...item,
+        item[2] === null ? 'variable' : 'suggested',
       );
     }
     await db.runAsync(
