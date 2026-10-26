@@ -2,6 +2,11 @@
 
 ## Objetivo
 
+La prioridad de UX es registrar gastos sencillamente: monto, cuenta visible y categoría, con
+favoritos/recientes y detalles opcionales desplegables. Presupuestos y análisis complementan ese
+recorrido. La ejecución por versiones e historias está en el
+[plan integrado de los sprints existentes](./SPRINTS.md#plan-integrado-aprobado).
+
 Wallet de BudgetBakers se usa como referencia funcional y de jerarquía de información, no como
 una interfaz para copiar. Rastro conservará su identidad visual, sus textos y su arquitectura
 local-first. El objetivo es adoptar patrones que reduzcan errores y hagan más comprensible el
