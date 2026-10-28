@@ -4,6 +4,7 @@ import * as SQLite from 'expo-sqlite';
 import { drizzle } from 'drizzle-orm/expo-sqlite';
 import * as schema from './schema';
 import { migrateFavorites } from './favorite-migration';
+import { migrateBudgets } from './budget-migration';
 
 const DATABASE_NAME = 'rastro.db';
 const DATABASE_KEY_NAME = 'rastro.database.key.v1';
@@ -23,6 +24,31 @@ export async function getDatabaseKey(): Promise<string> {
 export function openDatabase(): Promise<SQLite.SQLiteDatabase> {
   databasePromise ??= initializeDatabase();
   return databasePromise;
+}
+
+// A separate connection prevents unrelated async reads/writes joining this transaction.
+// SQLCipher keys are connection-specific, so initialize the key before BEGIN.
+export async function withWriteTransaction<T>(
+  operation: (db: SQLite.SQLiteDatabase) => Promise<T>,
+): Promise<T> {
+  await openDatabase();
+  const db = await SQLite.openDatabaseAsync(DATABASE_NAME, { useNewConnection: true });
+  let begun = false;
+  try {
+    const key = await getDatabaseKey();
+    await db.execAsync(`PRAGMA key = "x'${key}'";`);
+    await db.execAsync('PRAGMA foreign_keys=ON; PRAGMA busy_timeout=5000; BEGIN IMMEDIATE;');
+    begun = true;
+    const result = await operation(db);
+    await db.execAsync('COMMIT');
+    begun = false;
+    return result;
+  } catch (cause) {
+    if (begun) await db.execAsync('ROLLBACK');
+    throw cause;
+  } finally {
+    await db.closeAsync();
+  }
 }
 
 async function initializeDatabase(): Promise<SQLite.SQLiteDatabase> {
@@ -109,6 +135,7 @@ async function migrate(db: SQLite.SQLiteDatabase): Promise<void> {
     await migrateTags(db);
   }
   if (version < 6) await migrateFavorites(db);
+  if (version < 7) await migrateBudgets(db);
 }
 
 type CategorySeed = readonly [

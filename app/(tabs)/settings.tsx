@@ -28,16 +28,12 @@ export default function SettingsScreen() {
     allAccounts,
     balances,
     transactions,
-    categories,
     allCategories,
     allTags,
-    limits,
     microThresholdCents,
     behaviorSettings,
     updateMicroThreshold,
     updateBehaviorSettings,
-    saveSpendingLimit,
-    deleteSpendingLimit,
   } = useFinance();
   const [threshold, setThreshold] = useState((microThresholdCents / 100).toFixed(2));
   const [biometric, setBiometric] = useState(false);
@@ -51,9 +47,6 @@ export default function SettingsScreen() {
   );
   const [growthMonths, setGrowthMonths] = useState(String(behaviorSettings.growthMonths));
   const [sharePoints, setSharePoints] = useState(String(behaviorSettings.shareIncreasePoints));
-  const [limitAmount, setLimitAmount] = useState('');
-  const [limitWarning, setLimitWarning] = useState('80');
-  const [limitCategoryId, setLimitCategoryId] = useState<string | null>(null);
   useEffect(() => {
     repository
       .getSetting('biometricEnabled', 'false')
@@ -109,22 +102,6 @@ export default function SettingsScreen() {
     Alert.alert('Análisis actualizado', 'Los hallazgos se recalcularon con tus parámetros.');
   }
 
-  async function saveLimit() {
-    const amountCents = parseAmountToCents(limitAmount);
-    if (!amountCents || amountCents <= 0) {
-      Alert.alert('Límite inválido', 'Ingresa un monto mayor que cero.');
-      return;
-    }
-    const category = categories.find((item) => item.id === limitCategoryId);
-    await saveSpendingLimit({
-      name: category ? `Límite de ${category.name}` : 'Límite general',
-      amountCents,
-      categoryId: limitCategoryId,
-      warningPercent: Number(limitWarning),
-    });
-    setLimitAmount('');
-    Alert.alert('Límite guardado', 'Se evaluará cada mes y aparecerá en Patrones.');
-  }
   async function backup() {
     setBusy(true);
     try {
@@ -234,62 +211,15 @@ export default function SettingsScreen() {
           </Pressable>
         </Card>
         <Card>
-          <Text style={styles.label}>Límites mensuales</Text>
+          <Text style={styles.label}>Presupuestos</Text>
           <Text style={styles.hint}>
-            Configura un límite general o elige una familia principal. La familia sumará todas sus
-            categorías específicas.
+            Controla gasto y disponible por cuenta, categoría y etiquetas, con avisos opcionales.
           </Text>
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.limitScopes}
-          >
-            <Chip
-              label="General"
-              selected={limitCategoryId === null}
-              onPress={() => setLimitCategoryId(null)}
-            />
-            {categories
-              .filter((item) => !item.parentId)
-              .map((category) => (
-                <Chip
-                  key={category.id}
-                  label={category.name}
-                  color={category.color}
-                  variant="family"
-                  selected={limitCategoryId === category.id}
-                  onPress={() => setLimitCategoryId(category.id)}
-                />
-              ))}
-          </ScrollView>
-          <View style={styles.parameterGrid}>
-            <ParameterInput label="Monto S/" value={limitAmount} onChangeText={setLimitAmount} />
-            <ParameterInput
-              label="Avisar al (%)"
-              value={limitWarning}
-              onChangeText={setLimitWarning}
-            />
-          </View>
-          <Pressable onPress={() => void saveLimit()} style={styles.primaryButton}>
-            <Text style={styles.primaryText}>Guardar límite</Text>
-          </Pressable>
-          {limits.map((limit) => (
-            <View key={limit.id} style={[styles.limitRow, styles.divider]}>
-              <View style={styles.grow}>
-                <Text style={styles.label}>{limit.name}</Text>
-                <Text style={styles.hint}>
-                  {formatPEN(limit.amountCents)} · aviso al {limit.warningPercent}%
-                </Text>
-              </View>
-              <Pressable
-                accessibilityLabel={`Eliminar ${limit.name}`}
-                onPress={() => void deleteSpendingLimit(limit.id)}
-                style={styles.deleteButton}
-              >
-                <Text style={styles.deleteText}>Eliminar</Text>
-              </Pressable>
-            </View>
-          ))}
+          <Link href="/budgets" asChild>
+            <Pressable style={styles.outlineButton}>
+              <Text style={styles.outlineText}>Administrar presupuestos</Text>
+            </Pressable>
+          </Link>
         </Card>
         <Text style={styles.section}>Análisis</Text>
         <Card>

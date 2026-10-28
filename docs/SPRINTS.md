@@ -38,7 +38,7 @@ POCO X7 Pro con Android 16. El ajuste posterior a celdas de 50 m se valida como 
 
 Seguimiento: [#6](https://github.com/Jhakami/rastro-finanzas/issues/6).
 
-## Sprint 2 — Parametrización completa · 65 % · En curso
+## Sprint 2 — Parametrización completa · 75 % · En curso
 
 - Crear, editar, ordenar, archivar y restaurar cuentas terminado y aceptado en Android en
   `0.1.9` mediante ACC-01 a ACC-05.
@@ -53,14 +53,17 @@ Seguimiento: [#6](https://github.com/Jhakami/rastro-finanzas/issues/6).
 - Los favoritos manuales de `0.1.13` permiten crear, editar, ordenar, archivar y restaurar
   plantillas con cuenta, categoría, etiquetas, nota, comercio y monto fijo/sugerido/variable.
   Se separan de las sugerencias automáticas y siempre requieren confirmar el gasto. El registro
-  rápido añade recientes y Más detalles; pendiente aceptación FAV-01–04 y UX-01.
+  rápido añade recientes y Más detalles. FAV-01–04 y UX-01 aprobados por el usuario el
+  28/10/2026; historia #9 cerrada y PR #47 fusionado.
 - Conciliación guiada implementada: recibe el saldo real, calcula solo la diferencia y crea un
   ajuste con motivo, saldo anterior y saldo resultante. La corrección de movimientos permite
   rectificar cuenta de pago, monto, tipo, destino y categoría sin perder fecha, etiquetas o zona.
   El incremento `0.1.12` fue aceptado mediante REC-01 y COR-01–COR-02 el 25/10/2026.
-- Límites mensuales generales y por familia con umbral de aviso configurable ya implementados.
-  Cada familia suma sus categorías hijas. Falta la selección por cuenta y una administración más
-  completa.
+- Presupuestos de `0.1.14` implementados para #11: periodo mensual predeterminado, semanal o
+  anual; cuentas, categorías/familias y etiquetas combinables; gastado, disponible, estado,
+  umbral, orden, archivo y restauración. Migran los límites existentes sin alterar saldos.
+  Los solapamientos requieren confirmación y los avisos locales son opcionales. Pendiente
+  aceptación BUD-01–BUD-06 en Android; no se considera historia terminada.
 
 Seguimiento: [#7](https://github.com/Jhakami/rastro-finanzas/issues/7), [#8](https://github.com/Jhakami/rastro-finanzas/issues/8), [#9](https://github.com/Jhakami/rastro-finanzas/issues/9), [#10](https://github.com/Jhakami/rastro-finanzas/issues/10) y [#11](https://github.com/Jhakami/rastro-finanzas/issues/11).
 
@@ -68,19 +71,19 @@ El porcentaje es orientativo y se calcula con criterios de aceptación terminado
 transcurrido. El CRUD de cuentas y el ciclo de vida de categorías propias están al 100 %. El
 incremento `0.1.11` y los casos REC/COR de `0.1.12` ya tienen aceptación explícita del usuario.
 La historia #10 conserva el alcance pendiente de auditoría legible y restauración de movimientos;
-aprobar REC/COR no demuestra esos criterios adicionales. El siguiente incremento activo es #9.
+aprobar REC/COR no demuestra esos criterios adicionales. El incremento activo es #11.
 
 ## Estado global orientativo
 
-| Alcance      | Avance | Condición para aumentar                                              |
-| ------------ | -----: | -------------------------------------------------------------------- |
-| Sprint 0     |  100 % | Cerrado                                                              |
-| Sprint 1     |  100 % | Cerrado en dispositivo                                               |
-| Sprint 2     |   65 % | Aceptar favoritos; completar límites y auditoría/restauración de #10 |
-| Sprint 3     |    0 % | Aún no iniciado                                                      |
-| Sprint 4     |   40 % | Validar interacción; faltan periodos globales y detalle              |
-| Sprint 5     |    0 % | Aún no iniciado                                                      |
-| MVP completo |   51 % | Promedio simple redondeado de los seis sprints                       |
+| Alcance      | Avance | Condición para aumentar                                        |
+| ------------ | -----: | -------------------------------------------------------------- |
+| Sprint 0     |  100 % | Cerrado                                                        |
+| Sprint 1     |  100 % | Cerrado en dispositivo                                         |
+| Sprint 2     |   75 % | Aceptar presupuestos y completar auditoría/restauración de #10 |
+| Sprint 3     |    0 % | Aún no iniciado                                                |
+| Sprint 4     |   40 % | Validar interacción; faltan periodos globales y detalle        |
+| Sprint 5     |    0 % | Aún no iniciado                                                |
+| MVP completo |   53 % | Promedio simple redondeado de los seis sprints                 |
 
 La guía de comprobación de cada incremento está en
 [`DEVICE_VALIDATION.md`](./DEVICE_VALIDATION.md).

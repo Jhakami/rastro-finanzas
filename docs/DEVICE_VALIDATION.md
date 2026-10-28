@@ -368,7 +368,7 @@ motivo.
 **Se acepta si:** las validaciones impiden monto inválido, transferencia a la misma cuenta y
 corrección sin motivo; al guardar, los saldos y el resumen mensual se recalculan inmediatamente.
 
-## Incremento 0.1.13: favoritos y registro sencillo · aceptación pendiente
+## Incremento 0.1.13: favoritos y registro sencillo · aceptación aprobada
 
 - APK ARM64 `0.1.13` (`versionCode 14`), firma v2 de desarrollo con el mismo certificado que
   `0.1.12`. Compilación release y Lint Vital aprobados. Sin ubicación en segundo plano ni micrófono.
@@ -377,8 +377,9 @@ corrección sin motivo; al guardar, los saldos y el resumen mensual se recalcula
   convierte plantillas existentes y valida unicidad/integridad de etiquetas.
 - Expo Doctor: 20/21; quedan 12 parches del SDK recomendados, sin actualizar dependencias en
   este incremento. Se usó el almacén de certificados del sistema sin desactivar TLS.
-- La aceptación de TAG/REC/COR del usuario corresponde a versiones anteriores. No equivale a
-  aprobar FAV/UX. Instalar encima de la versión actual sin desinstalar ni borrar datos.
+- FAV-01–FAV-04 y UX-01 aprobados explícitamente por el usuario el 28/10/2026.
+  Historia #9 cerrada; PR #47 fusionado. La advertencia de Expo Doctor anterior permanece
+  registrada y no se presenta como una comprobación aprobada.
 
 ### FAV-01 — Crear y aplicar sin registrar automáticamente
 
@@ -413,3 +414,47 @@ o del catálogo y guardar sin abrir Más detalles. Confirmar cuenta visible y ca
 Efectivo. Probar modo avión y ubicación denegada: deben permitir guardar sin zona. Pulsar
 Guardar repetidamente: solo se crea un movimiento. Revisar teclado, legibilidad y desplazamiento.
 Aplicar dos favoritos seguidos: nota y etiquetas no deben arrastrarse de la primera plantilla.
+
+## Incremento 0.1.14: presupuestos · aceptación pendiente
+
+Instalar encima de 0.1.13, sin desinstalar ni borrar datos. #11 permanece abierta hasta
+aprobar estos casos. Los avisos se evalúan al abrir/reactivar la app, al cambiar datos y
+mientras está abierta; no se promete ejecución puntual en segundo plano.
+
+### BUD-01 — Actualización y conservación
+
+Anotar saldos y límites antes de actualizar. Abrir Resumen > Presupuestos y comprobar que
+los límites conservan nombre, monto, umbral, ámbito y estado de archivo. Crear y editar un
+presupuesto general mensual: no debe modificar ningún saldo ni movimiento.
+
+### BUD-02 — Ámbitos combinados sin duplicados
+
+Crear un presupuesto para Yape, una familia y dos etiquetas. Solo cuentan gastos de Yape
+en esa familia (incluidas hijas) que tengan cualquiera de las etiquetas. Un gasto con ambas
+etiquetas cuenta una vez. Sin selección en un ámbito significa todos. Transferencias,
+ingresos, ajustes y movimientos borrados no cuentan. Revisar referencias archivadas existentes.
+
+### BUD-03 — Periodo, umbral y estado
+
+Probar mensual (predeterminado), semanal y anual; comprobar sus fechas visibles. El inicio
+se incluye y el final se excluye. Revisar gastado, restante, porcentaje, advertencia al
+alcanzar el umbral y excedido al alcanzar el 100 %. Rechazar monto cero y umbral inválido.
+
+### BUD-04 — Solapamientos y administración
+
+Crear un presupuesto que coincida con otro: cancelar no guarda; confirmar explícitamente
+permite guardarlo. Se explican importes independientes, nunca se suman los presupuestos.
+Editar, subir/bajar, archivar, reiniciar y restaurar. La restauración también avisa del solapamiento.
+
+### BUD-05 — Avisos opcionales y privacidad
+
+Denegar notificaciones y guardar: el presupuesto y registro de gastos siguen funcionando.
+Permitirlas desde Android, activar avisos y alcanzar el umbral: recibir aviso sin nombres ni
+montos. Reabrir varias veces no repite el mismo nivel del periodo. Probar modo avión.
+
+### BUD-06 — Corrección, teclado y acceso
+
+Corregir cuenta, categoría o monto de un gasto: el presupuesto debe recalcularse. Borrarlo
+también descuenta su importe. Comprobar acceso desde Resumen y Ajustes, controles legibles,
+teclado y desplazamiento, campos conservados ante error y doble pulsación sin duplicados.
+Registrar gasto sigue siendo la acción principal; todavía no aparece la pestaña Plan.

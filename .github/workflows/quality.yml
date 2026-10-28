@@ -15,4 +15,5 @@ jobs:
       - run: npm ci --legacy-peer-deps --ignore-scripts
       - run: npm run typecheck
       - run: npm test
+      - run: npm run test:budget-sql
       - run: npm run lint

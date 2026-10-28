@@ -1,6 +1,6 @@
 {
   "name": "rastro-finanzas",
-  "version": "0.1.13",
+  "version": "0.1.14",
   "main": "expo-router/entry",
   "private": true,
   "scripts": {
@@ -10,6 +10,7 @@
     "typecheck": "tsc --noEmit",
     "test": "jest --runInBand",
     "test:watch": "jest --watch",
+    "test:budget-sql": "node scripts/check-budget-sql.cjs",
     "lint": "eslint .",
     "format:check": "prettier --check ."
   },

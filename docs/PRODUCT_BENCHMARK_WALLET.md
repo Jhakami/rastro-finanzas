@@ -70,6 +70,12 @@ texto, confirmación y una alternativa accesible.
 
 ## Orden recomendado
 
+Actualización 28/10/2026: TAG/REC/COR y favoritos/registro rápido FAV-01–FAV-04, UX-01 ya
+fueron aceptados. #9 cerrada y #47 fusionado. El incremento activo #11 implementa presupuestos
+desde Resumen y Ajustes, sin desplazar Registrar gasto ni crear una pestaña vacía. Incluye
+periodos, ámbitos combinables, progreso accesible, solapamientos confirmables y avisos locales.
+Su aceptación Android sigue pendiente; no se cuenta la implementación como historia cerrada.
+
 1. Aceptar en Android etiquetas (`TAG-01` a `TAG-03`) y conciliación/corrección (`REC-01`,
    `COR-01` y `COR-02`).
 2. Terminar favoritos configurables (#9) y límites por cuenta (#11).

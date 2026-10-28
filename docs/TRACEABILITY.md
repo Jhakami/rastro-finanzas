@@ -1,5 +1,10 @@
 # Matriz de trazabilidad
 
+Incremento 0.1.14 / Sprint 2 / #11: `PlanningRepository`, `budget-store` y `/budgets`
+amplían CU-17 y CU-20. Verificación: dominio, repositorio, permisos/avisos y SQL real
+(`npm run test:budget-sql`); aceptación BUD-01–BUD-06 pendiente. Favoritos #9 aceptados
+mediante FAV-01–FAV-04 y UX-01 el 28/10/2026.
+
 | Requisito                   | Caso de uso                     | Implementación                                  | Verificación                   |
 | --------------------------- | ------------------------------- | ----------------------------------------------- | ------------------------------ |
 | Registro rápido             | CU-01 Registrar gasto           | Formulario, favoritos, `createTransaction`      | Flujo Maestro y prueba manual  |

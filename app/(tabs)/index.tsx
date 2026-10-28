@@ -8,6 +8,7 @@ import { formatPEN } from '@/domain/money';
 import { Card, EmptyState, LoadingView, MetricCard, ScreenHeader } from '@/presentation/components';
 import { AreaTrendChart, DonutChart, PastelBarChart, ScatterChart } from '@/presentation/charts';
 import { useFinance } from '@/presentation/finance-provider';
+import { BudgetSummary } from '@/presentation/budget-summary';
 import { colors, radius, spacing } from '@/theme';
 
 const weekdays = ['domingo', 'lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado'];
@@ -145,6 +146,7 @@ export default function DashboardScreen() {
             hint={`${metrics.microCount} movimientos`}
           />
         </View>
+        <BudgetSummary />
         <Card>
           <View style={styles.cardHeading}>
             <View>
