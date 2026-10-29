@@ -62,8 +62,9 @@ Seguimiento: [#6](https://github.com/Jhakami/rastro-finanzas/issues/6).
 - Presupuestos de `0.1.14` implementados para #11: periodo mensual predeterminado, semanal o
   anual; cuentas, categorías/familias y etiquetas combinables; gastado, disponible, estado,
   umbral, orden, archivo y restauración. Migran los límites existentes sin alterar saldos.
-  Los solapamientos requieren confirmación y los avisos locales son opcionales. Pendiente
-  aceptación BUD-01–BUD-06 en Android; no se considera historia terminada.
+  Los solapamientos requieren confirmación y los avisos locales son opcionales. BUD-01–BUD-06
+  aprobados explícitamente por el usuario el 28/10/2026 en el build 15. El build 16 actualiza
+  los parches Expo SDK 57 sin cambiar la lógica; su comprobación Android es independiente.
 
 Seguimiento: [#7](https://github.com/Jhakami/rastro-finanzas/issues/7), [#8](https://github.com/Jhakami/rastro-finanzas/issues/8), [#9](https://github.com/Jhakami/rastro-finanzas/issues/9), [#10](https://github.com/Jhakami/rastro-finanzas/issues/10) y [#11](https://github.com/Jhakami/rastro-finanzas/issues/11).
 
@@ -71,7 +72,9 @@ El porcentaje es orientativo y se calcula con criterios de aceptación terminado
 transcurrido. El CRUD de cuentas y el ciclo de vida de categorías propias están al 100 %. El
 incremento `0.1.11` y los casos REC/COR de `0.1.12` ya tienen aceptación explícita del usuario.
 La historia #10 conserva el alcance pendiente de auditoría legible y restauración de movimientos;
-aprobar REC/COR no demuestra esos criterios adicionales. El incremento activo es #11.
+aprobar REC/COR no demuestra esos criterios adicionales. Se completa el cierre técnico de #11.
+El siguiente incremento funcional previsto es 0.1.15 (Resumen y Movimientos), adelantado
+parcial de Sprint 4; no cierra #10 ni el conjunto del Sprint 2.
 
 ## Estado global orientativo
 

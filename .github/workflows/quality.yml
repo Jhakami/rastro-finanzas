@@ -13,6 +13,7 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci --legacy-peer-deps --ignore-scripts
+      - run: npx expo install --check
       - run: npm run typecheck
       - run: npm test
       - run: npm run test:budget-sql

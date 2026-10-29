@@ -8,7 +8,7 @@ historial financiero a un servidor de Rastro.
 
 ## Estado actual
 
-Rastro está en construcción. La versión en desarrollo es `0.1.14` (`versionCode 15`). No debe
+Rastro está en construcción. La versión en desarrollo es `0.1.14` (`versionCode 16`, parches Expo). No debe
 considerarse todavía una versión final ni una aplicación publicada en una tienda.
 
 | Etapa                                  | Avance | Estado                         |
@@ -55,9 +55,11 @@ pendientes reales.
 
 Los presupuestos `0.1.14` añaden periodos, cuentas/categorías/etiquetas combinables, umbral,
 orden, archivo/restauración, confirmación de solapamientos y avisos locales opcionales.
-Están implementados, pendientes de aceptación BUD-01–BUD-06 en Android (#11).
+BUD-01–BUD-06 fueron aprobados por el usuario el 28/10/2026 en el build 15 (#11).
+El build 16 actualiza los 12 parches recomendados del SDK 57 y pasa Expo Doctor 21/21;
+su comprobación de actualización en Android se registra separadamente.
 
-Todavía faltan, entre otros puntos, la aceptación de presupuestos, recurrencias,
+Todavía faltan, entre otros puntos, auditoría/restauración de movimientos, recurrencias,
 comprobantes, restauración guiada, periodos avanzados del dashboard y la firma privada de una
 versión publicable.
 

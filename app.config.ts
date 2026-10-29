@@ -11,6 +11,7 @@ const config: ExpoConfig = {
   userInterfaceStyle: 'dark',
   plugins: [
     'expo-router',
+    ['expo-sharing', { android: { enabled: false }, ios: { enabled: false } }],
     ['expo-sqlite', { useSQLCipher: true, enableFTS: true }],
     ['expo-secure-store', { configureAndroidBackup: true }],
     ['expo-local-authentication', { faceIDPermission: 'Permite desbloquear tus finanzas.' }],
@@ -35,7 +36,7 @@ const config: ExpoConfig = {
   ],
   android: {
     package: 'pe.rastro.finanzas',
-    versionCode: 15,
+    versionCode: 16,
     adaptiveIcon: {
       backgroundColor: '#1E1E2E',
       foregroundImage: './assets/android-icon-foreground.png',

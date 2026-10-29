@@ -415,7 +415,7 @@ Efectivo. Probar modo avión y ubicación denegada: deben permitir guardar sin z
 Guardar repetidamente: solo se crea un movimiento. Revisar teclado, legibilidad y desplazamiento.
 Aplicar dos favoritos seguidos: nota y etiquetas no deben arrastrarse de la primera plantilla.
 
-## Incremento 0.1.14: presupuestos · aceptación pendiente
+## Incremento 0.1.14: presupuestos · aceptación funcional aprobada
 
 - APK ARM64 `0.1.14` (`versionCode 15`), compilación release y Lint Vital aprobados.
   Firma v2 de desarrollo con el mismo certificado que `0.1.13`; aún no es firma privada
@@ -431,8 +431,11 @@ Aplicar dos favoritos seguidos: nota y etiquetas no deben arrastrarse de la prim
 - PR #48 en borrador; las verificaciones CI de implementación pasaron. No se detectó un
   teléfono conectado por ADB: instalación sobre `0.1.13` y aceptación BUD pendientes.
 
-Instalar encima de 0.1.13, sin desinstalar ni borrar datos. #11 permanece abierta hasta
-aprobar estos casos. Los avisos se evalúan al abrir/reactivar la app, al cambiar datos y
+El usuario aprobó explícitamente BUD-01–BUD-06 el 28/10/2026 para la APK `versionCode 15`
+y SHA-256 indicados arriba. Esta aceptación no se atribuye a una APK futura con dependencias
+actualizadas. El cierre técnico de Expo y su validación se registran por separado.
+
+Instalar las actualizaciones sin desinstalar ni borrar datos. Los avisos se evalúan al abrir/reactivar la app, al cambiar datos y
 mientras está abierta; no se promete ejecución puntual en segundo plano.
 
 ### BUD-01 — Actualización y conservación
@@ -472,3 +475,21 @@ Corregir cuenta, categoría o monto de un gasto: el presupuesto debe recalculars
 también descuenta su importe. Comprobar acceso desde Resumen y Ajustes, controles legibles,
 teclado y desplazamiento, campos conservados ante error y doble pulsación sin duplicados.
 Registrar gasto sigue siendo la acción principal; todavía no aparece la pestaña Plan.
+
+## Mantenimiento 0.1.14 · build 16 · parches Expo SDK 57
+
+Se actualizan los doce paquetes recomendados, sin salto mayor ni cambios de lógica de
+presupuestos. Expo Doctor pasa 21/21 y `expo install --check` no detecta incompatibilidades.
+El renderer de pruebas `test-renderer` 1.2.0 queda declarado explícitamente para que las
+instalaciones limpias no dependan de un peer instalado incidentalmente. CI comprueba también
+la compatibilidad Expo. El plugin de sharing mantiene desactivada la recepción de archivos.
+
+La aceptación BUD del build 15 no constituye una prueba manual de este build nuevo.
+Comprobación de regresión pendiente en teléfono: actualizar sin desinstalar, abrir la base
+cifrada, contrastar saldos/presupuestos, registrar un gasto, probar avisos permitidos/denegados
+y exportar/compartir un CSV. Verificar también ubicación opcional y apertura en modo avión.
+
+Advertencia independiente: `npm audit` informa 18 alertas de dependencias (10 bajas, 3
+moderadas, 4 altas y 1 crítica). Son resultados automáticos, no una demostración de
+explotabilidad en Rastro. No se aplicó `audit fix --force`: propone cambios mayores o
+retrocesos incompatibles. Expo Doctor 21/21 verifica compatibilidad, no certifica seguridad.

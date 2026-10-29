@@ -74,7 +74,9 @@ Actualización 28/10/2026: TAG/REC/COR y favoritos/registro rápido FAV-01–FAV
 fueron aceptados. #9 cerrada y #47 fusionado. El incremento activo #11 implementa presupuestos
 desde Resumen y Ajustes, sin desplazar Registrar gasto ni crear una pestaña vacía. Incluye
 periodos, ámbitos combinables, progreso accesible, solapamientos confirmables y avisos locales.
-Su aceptación Android sigue pendiente; no se cuenta la implementación como historia cerrada.
+BUD-01–BUD-06 fueron aceptados en Android por el usuario el 28/10/2026 (build 15).
+El mantenimiento de Expo se verifica por separado en el build 16. La siguiente entrega
+prevista 0.1.15 simplifica Resumen y Movimientos manteniendo Registrar gasto como prioridad.
 
 1. Aceptar en Android etiquetas (`TAG-01` a `TAG-03`) y conciliación/corrección (`REC-01`,
    `COR-01` y `COR-02`).
