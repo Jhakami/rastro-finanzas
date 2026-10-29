@@ -8,18 +8,18 @@ historial financiero a un servidor de Rastro.
 
 ## Estado actual
 
-Rastro está en construcción. La versión en desarrollo es `0.1.13` (`versionCode 14`). No debe
+Rastro está en construcción. La versión en desarrollo es `0.1.14` (`versionCode 16`, parches Expo). No debe
 considerarse todavía una versión final ni una aplicación publicada en una tienda.
 
 | Etapa                                  | Avance | Estado                         |
 | -------------------------------------- | -----: | ------------------------------ |
 | Sprint 0 · Base técnica                |  100 % | Terminado                      |
 | Sprint 1 · Trazabilidad diaria         |  100 % | Terminado y probado en Android |
-| Sprint 2 · Parametrización             |   65 % | En curso                       |
+| Sprint 2 · Parametrización             |   75 % | En curso                       |
 | Sprint 3 · Automatización y documentos |    0 % | Pendiente                      |
 | Sprint 4 · Análisis avanzado           |   40 % | Parcialmente implementado      |
 | Sprint 5 · Publicación personal        |    0 % | Pendiente                      |
-| MVP completo                           |   51 % | Estimación orientativa         |
+| MVP completo                           |   53 % | Estimación orientativa         |
 
 El CRUD de cuentas de `0.1.9` está terminado: superó 28 pruebas automáticas y los casos manuales
 `ACC-01` a `ACC-05` en un POCO X7 Pro. El ciclo de vida de categorías propias de `0.1.10` también
@@ -49,11 +49,17 @@ pendientes reales.
   movimientos, incluida la cuenta de pago;
 - patrones cuya muestra principal es el mes actual y cuyas comparaciones usan meses completos.
 - favoritos manuales con monto fijo/sugerido/variable, cuenta, categoría, nota, comercio y
-  etiquetas; orden manual/reciente/frecuencia, archivo y restauración (pendiente aceptación);
+  etiquetas; orden manual/reciente/frecuencia, archivo y restauración (aceptados el 28/10/2026);
 - registro rápido con recientes, sugerencias y detalles opcionales desplegables; nunca guarda
   automáticamente al aplicar un favorito.
 
-Todavía faltan, entre otros puntos, la aceptación de favoritos y registro rápido, recurrencias,
+Los presupuestos `0.1.14` añaden periodos, cuentas/categorías/etiquetas combinables, umbral,
+orden, archivo/restauración, confirmación de solapamientos y avisos locales opcionales.
+BUD-01–BUD-06 fueron aprobados por el usuario el 28/10/2026 en el build 15 (#11).
+El build 16 actualiza los 12 parches recomendados del SDK 57 y pasa Expo Doctor 21/21;
+su comprobación de actualización en Android se registra separadamente.
+
+Todavía faltan, entre otros puntos, auditoría/restauración de movimientos, recurrencias,
 comprobantes, restauración guiada, periodos avanzados del dashboard y la firma privada de una
 versión publicable.
 

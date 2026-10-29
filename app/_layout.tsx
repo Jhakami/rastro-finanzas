@@ -12,6 +12,16 @@ import {
 } from '@/application/biometric-lock';
 import { repository } from '@/infrastructure/repository';
 import { colors } from '@/theme';
+import * as Notifications from 'expo-notifications';
+
+Notifications.setNotificationHandler({
+  handleNotification: async () => ({
+    shouldPlaySound: false,
+    shouldSetBadge: false,
+    shouldShowBanner: true,
+    shouldShowList: true,
+  }),
+});
 
 function LockGate({ children }: { children: React.ReactNode }) {
   const [unlocked, setUnlocked] = useState(false);
@@ -102,6 +112,7 @@ export default function RootLayout() {
             <Stack.Screen name="categories" options={{ presentation: 'modal' }} />
             <Stack.Screen name="tags" options={{ presentation: 'modal' }} />
             <Stack.Screen name="favorites" options={{ presentation: 'modal' }} />
+            <Stack.Screen name="budgets" options={{ presentation: 'modal' }} />
             <Stack.Screen name="transaction-edit" options={{ presentation: 'modal' }} />
             <Stack.Screen name="insights" />
           </Stack>

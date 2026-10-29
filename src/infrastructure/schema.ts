@@ -1,4 +1,4 @@
-import { integer, real, sqliteTable, text } from 'drizzle-orm/sqlite-core';
+import { integer, real, sqliteTable, text, primaryKey } from 'drizzle-orm/sqlite-core';
 
 export const accounts = sqliteTable('accounts', {
   id: text('id').primaryKey(),
@@ -102,8 +102,61 @@ export const spendingLimits = sqliteTable('spending_limits', {
   categoryId: text('category_id').references(() => categories.id),
   accountId: text('account_id').references(() => accounts.id),
   warningPercent: integer('warning_percent').notNull().default(80),
+  period: text('period').notNull().default('monthly'),
+  sortOrder: integer('sort_order').notNull().default(0),
+  notify: integer('notify', { mode: 'boolean' }).notNull().default(false),
+  createdAt: text('created_at'),
+  updatedAt: text('updated_at'),
   enabled: integer('enabled', { mode: 'boolean' }).notNull().default(true),
 });
+
+export const budgetAccounts = sqliteTable(
+  'budget_accounts',
+  {
+    budgetId: text('budget_id')
+      .notNull()
+      .references(() => spendingLimits.id),
+    accountId: text('account_id')
+      .notNull()
+      .references(() => accounts.id),
+  },
+  (table) => [primaryKey({ columns: [table.budgetId, table.accountId] })],
+);
+export const budgetCategories = sqliteTable(
+  'budget_categories',
+  {
+    budgetId: text('budget_id')
+      .notNull()
+      .references(() => spendingLimits.id),
+    categoryId: text('category_id')
+      .notNull()
+      .references(() => categories.id),
+  },
+  (table) => [primaryKey({ columns: [table.budgetId, table.categoryId] })],
+);
+export const budgetTags = sqliteTable(
+  'budget_tags',
+  {
+    budgetId: text('budget_id')
+      .notNull()
+      .references(() => spendingLimits.id),
+    tagId: text('tag_id')
+      .notNull()
+      .references(() => tags.id),
+  },
+  (table) => [primaryKey({ columns: [table.budgetId, table.tagId] })],
+);
+export const budgetAlerts = sqliteTable(
+  'budget_alerts',
+  {
+    budgetId: text('budget_id')
+      .notNull()
+      .references(() => spendingLimits.id),
+    periodStart: text('period_start').notNull(),
+    level: text('level').notNull(),
+  },
+  (table) => [primaryKey({ columns: [table.budgetId, table.periodStart, table.level] })],
+);
 
 export const auditEvents = sqliteTable('audit_events', {
   id: text('id').primaryKey(),

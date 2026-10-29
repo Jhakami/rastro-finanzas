@@ -368,7 +368,7 @@ motivo.
 **Se acepta si:** las validaciones impiden monto inválido, transferencia a la misma cuenta y
 corrección sin motivo; al guardar, los saldos y el resumen mensual se recalculan inmediatamente.
 
-## Incremento 0.1.13: favoritos y registro sencillo · aceptación pendiente
+## Incremento 0.1.13: favoritos y registro sencillo · aceptación aprobada
 
 - APK ARM64 `0.1.13` (`versionCode 14`), firma v2 de desarrollo con el mismo certificado que
   `0.1.12`. Compilación release y Lint Vital aprobados. Sin ubicación en segundo plano ni micrófono.
@@ -377,8 +377,9 @@ corrección sin motivo; al guardar, los saldos y el resumen mensual se recalcula
   convierte plantillas existentes y valida unicidad/integridad de etiquetas.
 - Expo Doctor: 20/21; quedan 12 parches del SDK recomendados, sin actualizar dependencias en
   este incremento. Se usó el almacén de certificados del sistema sin desactivar TLS.
-- La aceptación de TAG/REC/COR del usuario corresponde a versiones anteriores. No equivale a
-  aprobar FAV/UX. Instalar encima de la versión actual sin desinstalar ni borrar datos.
+- FAV-01–FAV-04 y UX-01 aprobados explícitamente por el usuario el 28/10/2026.
+  Historia #9 cerrada; PR #47 fusionado. La advertencia de Expo Doctor anterior permanece
+  registrada y no se presenta como una comprobación aprobada.
 
 ### FAV-01 — Crear y aplicar sin registrar automáticamente
 
@@ -413,3 +414,82 @@ o del catálogo y guardar sin abrir Más detalles. Confirmar cuenta visible y ca
 Efectivo. Probar modo avión y ubicación denegada: deben permitir guardar sin zona. Pulsar
 Guardar repetidamente: solo se crea un movimiento. Revisar teclado, legibilidad y desplazamiento.
 Aplicar dos favoritos seguidos: nota y etiquetas no deben arrastrarse de la primera plantilla.
+
+## Incremento 0.1.14: presupuestos · aceptación funcional aprobada
+
+- APK ARM64 `0.1.14` (`versionCode 15`), compilación release y Lint Vital aprobados.
+  Firma v2 de desarrollo con el mismo certificado que `0.1.13`; aún no es firma privada
+  de distribución. Sin micrófono ni ubicación en segundo plano.
+- Archivo: `artifacts/Rastro-0.1.14-arm64-v8a.apk` (generado localmente, no versionado).
+- SHA-256: `1E617D15A986A394E1A53256CDD4490D55D65ACA52D0159ADDB1138D76C7581C`.
+- TypeScript, ESLint y 71 pruebas Jest (16 suites): aprobados.
+- SQL real en memoria: migración v6→v7, límites conservados, fronteras de mes, ámbitos,
+  referencias archivadas, deduplicación e índice acotado de fecha: aprobados.
+- Expo Doctor: 20/21; 12 parches del SDK recomendados siguen pendientes. No se oculta ni
+  se excluye esa comprobación. Formato de archivos modificados verificado; el chequeo global
+  conserva advertencias de formato preexistentes en archivos ajenos al incremento.
+- PR #48 en borrador; las verificaciones CI de implementación pasaron. No se detectó un
+  teléfono conectado por ADB: instalación sobre `0.1.13` y aceptación BUD pendientes.
+
+El usuario aprobó explícitamente BUD-01–BUD-06 el 28/10/2026 para la APK `versionCode 15`
+y SHA-256 indicados arriba. Esta aceptación no se atribuye a una APK futura con dependencias
+actualizadas. El cierre técnico de Expo y su validación se registran por separado.
+
+Instalar las actualizaciones sin desinstalar ni borrar datos. Los avisos se evalúan al abrir/reactivar la app, al cambiar datos y
+mientras está abierta; no se promete ejecución puntual en segundo plano.
+
+### BUD-01 — Actualización y conservación
+
+Anotar saldos y límites antes de actualizar. Abrir Resumen > Presupuestos y comprobar que
+los límites conservan nombre, monto, umbral, ámbito y estado de archivo. Crear y editar un
+presupuesto general mensual: no debe modificar ningún saldo ni movimiento.
+
+### BUD-02 — Ámbitos combinados sin duplicados
+
+Crear un presupuesto para Yape, una familia y dos etiquetas. Solo cuentan gastos de Yape
+en esa familia (incluidas hijas) que tengan cualquiera de las etiquetas. Un gasto con ambas
+etiquetas cuenta una vez. Sin selección en un ámbito significa todos. Transferencias,
+ingresos, ajustes y movimientos borrados no cuentan. Revisar referencias archivadas existentes.
+
+### BUD-03 — Periodo, umbral y estado
+
+Probar mensual (predeterminado), semanal y anual; comprobar sus fechas visibles. El inicio
+se incluye y el final se excluye. Revisar gastado, restante, porcentaje, advertencia al
+alcanzar el umbral y excedido al alcanzar el 100 %. Rechazar monto cero y umbral inválido.
+
+### BUD-04 — Solapamientos y administración
+
+Crear un presupuesto que coincida con otro: cancelar no guarda; confirmar explícitamente
+permite guardarlo. Se explican importes independientes, nunca se suman los presupuestos.
+Editar, subir/bajar, archivar, reiniciar y restaurar. La restauración también avisa del solapamiento.
+
+### BUD-05 — Avisos opcionales y privacidad
+
+Denegar notificaciones y guardar: el presupuesto y registro de gastos siguen funcionando.
+Permitirlas desde Android, activar avisos y alcanzar el umbral: recibir aviso sin nombres ni
+montos. Reabrir varias veces no repite el mismo nivel del periodo. Probar modo avión.
+
+### BUD-06 — Corrección, teclado y acceso
+
+Corregir cuenta, categoría o monto de un gasto: el presupuesto debe recalcularse. Borrarlo
+también descuenta su importe. Comprobar acceso desde Resumen y Ajustes, controles legibles,
+teclado y desplazamiento, campos conservados ante error y doble pulsación sin duplicados.
+Registrar gasto sigue siendo la acción principal; todavía no aparece la pestaña Plan.
+
+## Mantenimiento 0.1.14 · build 16 · parches Expo SDK 57
+
+Se actualizan los doce paquetes recomendados, sin salto mayor ni cambios de lógica de
+presupuestos. Expo Doctor pasa 21/21 y `expo install --check` no detecta incompatibilidades.
+El renderer de pruebas `test-renderer` 1.2.0 queda declarado explícitamente para que las
+instalaciones limpias no dependan de un peer instalado incidentalmente. CI comprueba también
+la compatibilidad Expo. El plugin de sharing mantiene desactivada la recepción de archivos.
+
+La aceptación BUD del build 15 no constituye una prueba manual de este build nuevo.
+Comprobación de regresión pendiente en teléfono: actualizar sin desinstalar, abrir la base
+cifrada, contrastar saldos/presupuestos, registrar un gasto, probar avisos permitidos/denegados
+y exportar/compartir un CSV. Verificar también ubicación opcional y apertura en modo avión.
+
+Advertencia independiente: `npm audit` informa 18 alertas de dependencias (10 bajas, 3
+moderadas, 4 altas y 1 crítica). Son resultados automáticos, no una demostración de
+explotabilidad en Rastro. No se aplicó `audit fix --force`: propone cambios mayores o
+retrocesos incompatibles. Expo Doctor 21/21 verifica compatibilidad, no certifica seguridad.

@@ -1,6 +1,8 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { startOfMonth } from 'date-fns';
 import { useFavoriteStore } from './favorite-store';
+import { useBudgetStore } from './budget-store';
+import { AppState } from 'react-native';
 import { calculateAccountBalances } from '@/application/balances';
 import {
   buildInsights,
@@ -16,7 +18,6 @@ import type {
   FavoriteTemplate,
   FinanceTransaction,
   Insight,
-  SpendingLimit,
   Tag,
 } from '@/domain/types';
 import {
@@ -26,7 +27,6 @@ import {
   type SaveAccountInput,
   type SaveCategoryInput,
   type CreateTransactionInput,
-  type SaveSpendingLimitInput,
   type SaveTagInput,
 } from '@/infrastructure/repository';
 
@@ -38,7 +38,6 @@ interface FinanceContextValue {
   tags: Tag[];
   allTags: Tag[];
   favorites: FavoriteTemplate[];
-  limits: SpendingLimit[];
   transactions: FinanceTransaction[];
   monthlyTransactions: FinanceTransaction[];
   metrics: DashboardMetrics;
@@ -67,8 +66,6 @@ interface FinanceContextValue {
   deleteTransaction(id: string): Promise<void>;
   updateMicroThreshold(cents: number): Promise<void>;
   updateBehaviorSettings(settings: BehaviorSettings): Promise<void>;
-  saveSpendingLimit(input: SaveSpendingLimitInput): Promise<void>;
-  deleteSpendingLimit(id: string): Promise<void>;
   refresh(): Promise<void>;
 }
 
@@ -81,7 +78,6 @@ export function FinanceProvider({ children }: { children: React.ReactNode }) {
   const [allCategories, setAllCategories] = useState<Category[]>([]);
   const [allTags, setAllTags] = useState<Tag[]>([]);
   const [favorites, setFavorites] = useState<FavoriteTemplate[]>([]);
-  const [limits, setLimits] = useState<SpendingLimit[]>([]);
   const [transactions, setTransactions] = useState<FinanceTransaction[]>([]);
   const [microThresholdCents, setMicroThresholdCents] = useState(500);
   const [behaviorSettings, setBehaviorSettings] = useState(DEFAULT_BEHAVIOR_SETTINGS);
@@ -96,7 +92,6 @@ export function FinanceProvider({ children }: { children: React.ReactNode }) {
         nextAllCategories,
         nextFavorites,
         nextAllTags,
-        nextLimits,
         nextTransactions,
         threshold,
         savedBehaviorSettings,
@@ -105,7 +100,6 @@ export function FinanceProvider({ children }: { children: React.ReactNode }) {
         repository.listCategories(true),
         repository.listFavorites(),
         repository.listTags(true),
-        repository.listLimits(),
         repository.listTransactions(),
         repository.getSetting('microThresholdCents', '500'),
         repository.getSetting('behaviorSettings', JSON.stringify(DEFAULT_BEHAVIOR_SETTINGS)),
@@ -115,9 +109,9 @@ export function FinanceProvider({ children }: { children: React.ReactNode }) {
       setCategories(nextAllCategories.filter((category) => !category.isArchived));
       setFavorites(nextFavorites);
       setAllTags(nextAllTags);
-      setLimits(nextLimits);
       setTransactions(nextTransactions);
       await useFavoriteStore.getState().refresh();
+      await useBudgetStore.getState().refresh();
       setMicroThresholdCents(Number(threshold) || 500);
       try {
         setBehaviorSettings(normalizeBehaviorSettings(JSON.parse(savedBehaviorSettings)));
@@ -135,6 +129,20 @@ export function FinanceProvider({ children }: { children: React.ReactNode }) {
     // Bootstrap is intentionally driven by the external SQLite store.
     // eslint-disable-next-line react-hooks/set-state-in-effect
     void refresh();
+  }, [refresh]);
+
+  useEffect(() => {
+    const subscription = AppState.addEventListener('change', (state) => {
+      if (state === 'active') void refresh();
+    });
+    // Re-evaluate calendar boundaries even when the app remains open overnight.
+    const timer = setInterval(() => {
+      void useBudgetStore.getState().refresh();
+    }, 60_000);
+    return () => {
+      subscription.remove();
+      clearInterval(timer);
+    };
   }, [refresh]);
 
   const addTransaction = useCallback(
@@ -287,22 +295,6 @@ export function FinanceProvider({ children }: { children: React.ReactNode }) {
     setBehaviorSettings(normalized);
   }, []);
 
-  const saveSpendingLimit = useCallback(
-    async (input: SaveSpendingLimitInput) => {
-      await repository.saveSpendingLimit(input);
-      await refresh();
-    },
-    [refresh],
-  );
-
-  const deleteSpendingLimit = useCallback(
-    async (id: string) => {
-      await repository.disableSpendingLimit(id);
-      await refresh();
-    },
-    [refresh],
-  );
-
   const monthlyTransactions = useMemo(() => {
     const boundary = startOfMonth(new Date()).getTime();
     return transactions.filter((item) => new Date(item.occurredAt).getTime() >= boundary);
@@ -321,9 +313,8 @@ export function FinanceProvider({ children }: { children: React.ReactNode }) {
       buildInsights(transactions, microThresholdCents, {
         settings: behaviorSettings,
         categories: allCategories,
-        limits,
       }),
-    [transactions, microThresholdCents, behaviorSettings, allCategories, limits],
+    [transactions, microThresholdCents, behaviorSettings, allCategories],
   );
   const balances = useMemo(
     () => calculateAccountBalances(allAccounts, transactions),
@@ -339,7 +330,6 @@ export function FinanceProvider({ children }: { children: React.ReactNode }) {
       tags,
       allTags,
       favorites,
-      limits,
       transactions,
       monthlyTransactions,
       metrics,
@@ -368,8 +358,6 @@ export function FinanceProvider({ children }: { children: React.ReactNode }) {
       deleteTransaction,
       updateMicroThreshold,
       updateBehaviorSettings,
-      saveSpendingLimit,
-      deleteSpendingLimit,
       refresh,
     }),
     [
@@ -380,7 +368,6 @@ export function FinanceProvider({ children }: { children: React.ReactNode }) {
       tags,
       allTags,
       favorites,
-      limits,
       transactions,
       monthlyTransactions,
       metrics,
@@ -409,8 +396,6 @@ export function FinanceProvider({ children }: { children: React.ReactNode }) {
       deleteTransaction,
       updateMicroThreshold,
       updateBehaviorSettings,
-      saveSpendingLimit,
-      deleteSpendingLimit,
       refresh,
     ],
   );

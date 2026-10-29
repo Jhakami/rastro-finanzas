@@ -4,13 +4,14 @@ const config: ExpoConfig = {
   name: 'Rastro',
   slug: 'rastro-finanzas',
   scheme: 'rastro',
-  version: '0.1.13',
+  version: '0.1.14',
   orientation: 'portrait',
   icon: './assets/icon.png',
   backgroundColor: '#1E1E2E',
   userInterfaceStyle: 'dark',
   plugins: [
     'expo-router',
+    ['expo-sharing', { android: { enabled: false }, ios: { enabled: false } }],
     ['expo-sqlite', { useSQLCipher: true, enableFTS: true }],
     ['expo-secure-store', { configureAndroidBackup: true }],
     ['expo-local-authentication', { faceIDPermission: 'Permite desbloquear tus finanzas.' }],
@@ -35,7 +36,7 @@ const config: ExpoConfig = {
   ],
   android: {
     package: 'pe.rastro.finanzas',
-    versionCode: 14,
+    versionCode: 16,
     adaptiveIcon: {
       backgroundColor: '#1E1E2E',
       foregroundImage: './assets/android-icon-foreground.png',

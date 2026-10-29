@@ -27,7 +27,7 @@ SQLite + SQLCipher ---- SecureStore (clave)
 
 `schema.ts` define cuentas, categorías, movimientos, favoritos, límites, celdas, auditoría y configuración con Drizzle. La migración se ejecuta antes de sembrar valores iniciales. `SyncProvider` permanece conceptualmente en el límite de infraestructura: una sincronización futura no puede reemplazar la fuente local ni bloquear el registro.
 
-## Evolución aprobada (pendiente de implementación)
+## Evolución progresiva (parcialmente implementada)
 
 Primera extracción en `0.1.13`: FavoriteRepository tiene adaptador SQLite independiente y un
 store Zustand con selectores. Los cambios de plantillas recargan únicamente sus favoritos;
@@ -56,6 +56,28 @@ PEN, SQLCipher y funcionamiento sin conexión; no se incorpora backend en estos 
   no tendrá autenticación ni tráfico. La sincronización futura no sustituirá SQLite.
 - La restauración leerá copias .finbackup existentes, comprobará integridad y creará una copia
   preventiva antes de reemplazar datos. No se marca como disponible hasta implementar #14.
+
+## Presupuestos 0.1.14 (#11)
+
+`PlanningRepository` y su adaptador SQLite separan la planificación del repositorio general.
+`Budget`/`BudgetScope` admiten selección múltiple: OR dentro de cada ámbito, AND entre
+cuentas, categorías y etiquetas. Las familias incluyen descendientes. Los solapamientos son
+advertencias conservadoras y requieren confirmación explícita; no se agregan sus importes.
+
+La migración v7 transforma `spending_limits` conservando IDs, importes y ámbitos, incluidos
+los archivados. Añade relaciones de ámbitos, periodos, orden, fechas y deduplicación de avisos.
+Las escrituras y auditoría se confirman atómicamente en una conexión aislada inicializada con
+la clave SQLCipher, claves foráneas y BEGIN IMMEDIATE. No se usa una conexión sin clave.
+
+El store Zustand de presupuestos recarga solo planificación tras sus escrituras. Los cambios
+contables invalidan sus agregaciones. SQL calcula suma y cantidad sin cargar el historial;
+usa inicio inclusivo/fin exclusivo del calendario local y EXISTS para evitar duplicados por
+etiquetas. `test:budget-sql` ejecuta las consultas y migración reales contra SQLite en memoria.
+
+Avisos locales opcionales, sin servidor, con permiso solicitado solo al activarlos. Se evalúan
+al cambiar datos, reactivar y durante uso; deduplicación persistente por presupuesto/periodo/
+nivel. Denegar permisos no impide guardar. Los avisos no muestran importes ni nombres.
+La pestaña Plan y recurrencias continúan pendientes de #12.
 
 ## Mapas y privacidad
 
