@@ -27,7 +27,7 @@ SQLite + SQLCipher ---- SecureStore (clave)
 
 `schema.ts` define cuentas, categorías, movimientos, favoritos, límites, celdas, auditoría y configuración con Drizzle. La migración se ejecuta antes de sembrar valores iniciales. `SyncProvider` permanece conceptualmente en el límite de infraestructura: una sincronización futura no puede reemplazar la fuente local ni bloquear el registro.
 
-## Evolución aprobada (pendiente de implementación)
+## Evolución progresiva (parcialmente implementada)
 
 Primera extracción en `0.1.13`: FavoriteRepository tiene adaptador SQLite independiente y un
 store Zustand con selectores. Los cambios de plantillas recargan únicamente sus favoritos;

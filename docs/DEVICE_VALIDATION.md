@@ -417,6 +417,20 @@ Aplicar dos favoritos seguidos: nota y etiquetas no deben arrastrarse de la prim
 
 ## Incremento 0.1.14: presupuestos · aceptación pendiente
 
+- APK ARM64 `0.1.14` (`versionCode 15`), compilación release y Lint Vital aprobados.
+  Firma v2 de desarrollo con el mismo certificado que `0.1.13`; aún no es firma privada
+  de distribución. Sin micrófono ni ubicación en segundo plano.
+- Archivo: `artifacts/Rastro-0.1.14-arm64-v8a.apk` (generado localmente, no versionado).
+- SHA-256: `1E617D15A986A394E1A53256CDD4490D55D65ACA52D0159ADDB1138D76C7581C`.
+- TypeScript, ESLint y 71 pruebas Jest (16 suites): aprobados.
+- SQL real en memoria: migración v6→v7, límites conservados, fronteras de mes, ámbitos,
+  referencias archivadas, deduplicación e índice acotado de fecha: aprobados.
+- Expo Doctor: 20/21; 12 parches del SDK recomendados siguen pendientes. No se oculta ni
+  se excluye esa comprobación. Formato de archivos modificados verificado; el chequeo global
+  conserva advertencias de formato preexistentes en archivos ajenos al incremento.
+- PR #48 en borrador; las verificaciones CI de implementación pasaron. No se detectó un
+  teléfono conectado por ADB: instalación sobre `0.1.13` y aceptación BUD pendientes.
+
 Instalar encima de 0.1.13, sin desinstalar ni borrar datos. #11 permanece abierta hasta
 aprobar estos casos. Los avisos se evalúan al abrir/reactivar la app, al cambiar datos y
 mientras está abierta; no se promete ejecución puntual en segundo plano.

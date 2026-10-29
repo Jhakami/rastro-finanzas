@@ -141,13 +141,13 @@ en el primer nivel; nota, comercio, etiquetas y ubicación se agruparán en **M�
 Recientes y favoritos completarán datos sin guardar hasta la confirmación. Un error conservará
 el formulario; guardar evitará duplicados y actualizará saldo e historial.
 
-Las siguientes entregas son alcance pendiente, no funcionalidades terminadas:
+Estado de las entregas: las aceptaciones indicadas son explícitas; las demás siguen pendientes.
 
 | Entrega       | Sprint / historia | Alcance y condición                                                                                                                                  |
 | ------------- | ----------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Cierre 0.1.12 | 2 / #8, #10       | Versión desde Expo; nueva APK; registrar aceptación TAG-01–03, REC-01 y COR-01–02. #45 ya está fusionado; eso no sustituye la aceptación manual.     |
-| 0.1.13        | 2 / #9            | Crear, editar, ordenar, archivar y restaurar favoritos; separar fijados y sugerencias; mejorar registro rápido y modularizar favoritos.              |
-| 0.1.14        | 2 / #11           | Presupuestos mensuales por cuenta, categorías y etiquetas; gastado, restante, umbral y orden; advertir solapamientos confirmables.                   |
+| Cierre 0.1.12 | 2 / #8, #10       | TAG-01–03, REC-01 y COR-01–02 aceptados; #45 fusionado. #10 conserva auditoría legible/restauración pendientes.                                      |
+| 0.1.13        | 2 / #9            | Favoritos y registro rápido aceptados FAV-01–04 y UX-01 el 28/10/2026. #9 cerrada; #47 fusionado.                                                    |
+| 0.1.14        | 2 / #11           | Presupuestos implementados, PR #48; BUD-01–06 y comprobaciones de entrega pendientes. Historia activa.                                               |
 | 0.1.15        | 4 / #16, #17      | Resumen accionable, cuentas navegables, movimientos recientes, filtros combinables y páginas de 50 movimientos.                                      |
 | 0.2.0         | 3 / #12           | Recurrencias semanales, mensuales y anuales; confirmación manual predeterminada, automática opcional, pausa, omisión y avisos locales; pestaña Plan. |
 | Posteriores   | 3 / #13–#15       | Comprobantes privados, restauración con copia preventiva compatible con .finbackup y reembolsos vinculados.                                          |
