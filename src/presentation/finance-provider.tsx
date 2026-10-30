@@ -2,6 +2,7 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useState } 
 import { startOfMonth } from 'date-fns';
 import { useFavoriteStore } from './favorite-store';
 import { useBudgetStore } from './budget-store';
+import { useLedgerStore } from './ledger-store';
 import { AppState } from 'react-native';
 import { calculateAccountBalances } from '@/application/balances';
 import {
@@ -110,6 +111,7 @@ export function FinanceProvider({ children }: { children: React.ReactNode }) {
       setFavorites(nextFavorites);
       setAllTags(nextAllTags);
       setTransactions(nextTransactions);
+      await useLedgerStore.getState().refresh();
       await useFavoriteStore.getState().refresh();
       await useBudgetStore.getState().refresh();
       setMicroThresholdCents(Number(threshold) || 500);

@@ -77,6 +77,14 @@ export default function DashboardScreen() {
         <Link href="/accounts" style={styles.link}>
           Administrar cuentas y conciliar
         </Link>
+        {accountId ? (
+          <Link
+            href={{ pathname: '/account-detail', params: { id: accountId } }}
+            style={styles.link}
+          >
+            Ver detalle, historial y conciliación de esta cuenta →
+          </Link>
+        ) : null}
         <Card>
           <Text style={styles.title}>Este mes, hasta hoy</Text>
           <Text style={styles.help}>

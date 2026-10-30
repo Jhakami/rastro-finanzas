@@ -84,10 +84,24 @@ La pestaña Plan y recurrencias continúan pendientes de #12.
 `analysis-view-model` separa cálculos de calendario, agrupación y flujo de las pantallas.
 Resumen prioriza registro y acciones; `/analysis` añade paneles por flujo, gastos e informes.
 `FlowChart` usa SVG local y alternativa textual. No hay Grafana, WebView ni servidor nuevo.
-Esta primera adaptación todavía lee `FinanceProvider`: NO resuelve la paginación o recarga
-global. #49 sigue abierta hasta incorporar `LedgerRepository`, consultas acotadas, cursor y
-páginas de 50, detalle de cuenta y pruebas de rendimiento/Android. Las comparaciones de #17
-no están implementadas. Ver [referencia visual](./UX_ANALYTICS_REFERENCE.md).
+Resumen y Análisis todavía leen `FinanceProvider`; la recarga global continúa pendiente.
+La segunda parte (30/10/2026) añade `LedgerRepository`, `TransactionQuery` y `TransactionPage`:
+consulta parametrizada, cursor por instante/ID, 50 resultados y una fila extra para determinar
+si hay más. La migración v8 agrega un índice parcial de fecha/ID sin cambiar registros.
+Movimientos usa `FlatList` y un store Zustand con selectores; descarta respuestas antiguas,
+evita cargas repetidas, conserva cursor ante errores y reinicia al refrescar o cambiar filtros.
+Las escrituras contables y reactivación invalidan la página mediante el refresh existente.
+No elimina aún la lectura completa que sigue haciendo el proveedor para otras pantallas.
+
+Filtros: texto literal, cuenta (incluido destino de transferencia), tipo, categoría/familia,
+fechas locales inicio inclusivo/fin exclusivo y todas las etiquetas seleccionadas (AND).
+El filtro se aplica explícitamente y la lista muestra el ámbito aplicado. Las cuentas archivadas
+conservan sus registros. `/account-detail` consulta recientes y enlaza historial/conciliación.
+`test:ledger-sql` ejecuta consulta/migración reales sobre 5.005 filas visibles de varios años,
+incluyendo fechas empatadas, offsets, etiquetas, búsquedas literales y consulta del índice.
+Faltan agregaciones SQL para Resumen/Análisis, retirar carga global, rendimiento Android y
+aceptación para cerrar #49. Las comparaciones de #17 no están implementadas.
+Ver [referencia visual](./UX_ANALYTICS_REFERENCE.md).
 
 ## Mapas y privacidad
 

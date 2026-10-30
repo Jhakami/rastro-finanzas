@@ -1,43 +1,110 @@
-import { useMemo, useState } from 'react';
-import { Alert, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { useCallback, useRef, useState } from 'react';
+import {
+  Alert,
+  FlatList,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { Link, router } from 'expo-router';
+import { Link, router, useFocusEffect, useLocalSearchParams } from 'expo-router';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { getCategoryPath } from '@/domain/categories';
 import { formatPEN } from '@/domain/money';
 import { Card, Chip, EmptyState, LoadingView, ScreenHeader } from '@/presentation/components';
 import { useFinance } from '@/presentation/finance-provider';
+import { useLedgerStore } from '@/presentation/ledger-store';
+import { ledgerDateRange } from '@/domain/ledger';
+import type { TransactionKind } from '@/domain/types';
 import { colors, radius, spacing } from '@/theme';
 
-type Filter = 'all' | 'expense' | 'income' | 'transfer';
+type Filter = 'all' | TransactionKind;
 
 export default function MovementsScreen() {
   const {
-    transactions,
     allAccounts: accounts,
     allCategories,
     allTags,
     deleteTransaction,
     loading,
   } = useFinance();
-  const [filter, setFilter] = useState<Filter>('all');
-  const [query, setQuery] = useState('');
-  const visible = useMemo(
-    () =>
-      transactions.filter((item) => {
-        if (filter !== 'all' && item.kind !== filter) return false;
-        const category = getCategoryPath(item.categoryId, allCategories);
-        const tagNames = (item.tagIds ?? [])
-          .map((tagId) => allTags.find((tag) => tag.id === tagId)?.name ?? '')
-          .join(' ');
-        return `${item.merchant ?? ''} ${item.note ?? ''} ${item.source ?? ''} ${category} ${tagNames}`
-          .toLowerCase()
-          .includes(query.toLowerCase());
-      }),
-    [transactions, allCategories, allTags, filter, query],
+  const savedQuery = useLedgerStore.getState().query;
+  const [filter, setFilter] = useState<Filter>(savedQuery.kind ?? 'all');
+  const [query, setQuery] = useState(savedQuery.text ?? '');
+  const params = useLocalSearchParams<{ account?: string }>();
+  const lastRouteAccount = useRef<string | undefined>(undefined);
+  const [accountId, setAccountId] = useState(params.account ?? savedQuery.accountId ?? '');
+  const [categoryId, setCategoryId] = useState(savedQuery.categoryId ?? '');
+  const [tagIds, setTagIds] = useState<string[]>(savedQuery.tagIds ?? []);
+  const [from, setFrom] = useState(
+    savedQuery.from ? format(new Date(savedQuery.from), 'yyyy-MM-dd') : '',
   );
+  const [through, setThrough] = useState(
+    savedQuery.until ? format(new Date(Date.parse(savedQuery.until) - 1), 'yyyy-MM-dd') : '',
+  );
+  const [expanded, setExpanded] = useState(false);
+  const [filterError, setFilterError] = useState<string | null>(null);
+  const visible = useLedgerStore((state) => state.items);
+  const pageLoading = useLedgerStore((state) => state.loading);
+  const pageError = useLedgerStore((state) => state.error);
+  const cursor = useLedgerStore((state) => state.cursor);
+  const applied = useLedgerStore((state) => state.query);
+  const setLedgerQuery = useLedgerStore((state) => state.setQuery);
+  const loadMore = useLedgerStore((state) => state.loadMore);
+  const refreshPage = useLedgerStore((state) => state.refresh);
+  useFocusEffect(
+    useCallback(() => {
+      // Navigating back from correction reloads from page one, retaining applied filters.
+      const current = useLedgerStore.getState().query;
+      setAccountId(current.accountId ?? '');
+      setFilter(current.kind ?? 'all');
+      setQuery(current.text ?? '');
+      setCategoryId(current.categoryId ?? '');
+      setTagIds(current.tagIds ?? []);
+      setFrom(current.from ? format(new Date(current.from), 'yyyy-MM-dd') : '');
+      setThrough(
+        current.until ? format(new Date(Date.parse(current.until) - 1), 'yyyy-MM-dd') : '',
+      );
+      if (params.account && params.account !== lastRouteAccount.current) {
+        lastRouteAccount.current = params.account;
+        setAccountId(params.account);
+        void setLedgerQuery({ ...useLedgerStore.getState().query, accountId: params.account });
+      } else void refreshPage();
+    }, [
+      params.account,
+      refreshPage,
+      setLedgerQuery,
+      setAccountId,
+      setFilter,
+      setQuery,
+      setCategoryId,
+      setTagIds,
+      setFrom,
+      setThrough,
+    ]),
+  );
+  function applyFilters() {
+    try {
+      const dates = ledgerDateRange(from, through);
+      setFilterError(null);
+      void setLedgerQuery({
+        text: query,
+        accountId: accountId || undefined,
+        categoryId: categoryId || undefined,
+        kind: filter === 'all' ? undefined : filter,
+        tagIds,
+        ...dates,
+      });
+      setExpanded(false);
+    } catch (cause) {
+      setFilterError(cause instanceof Error ? cause.message : 'Revisa las fechas.');
+    }
+  }
   if (loading) return <LoadingView />;
 
   return (
@@ -64,7 +131,7 @@ export default function MovementsScreen() {
           <TextInput
             value={query}
             onChangeText={setQuery}
-            placeholder="Buscar comercio, nota o categoría"
+            placeholder="Buscar comercio, nota, categoría o etiqueta"
             placeholderTextColor={colors.muted}
             style={styles.searchInput}
           />
@@ -81,6 +148,8 @@ export default function MovementsScreen() {
               ['expense', 'Gastos'],
               ['income', 'Ingresos'],
               ['transfer', 'Transferencias'],
+              ['refund', 'Reembolsos'],
+              ['adjustment', 'Conciliaciones'],
             ] as const
           ).map(([value, label]) => (
             <Chip
@@ -91,97 +160,240 @@ export default function MovementsScreen() {
             />
           ))}
         </ScrollView>
-        <ScrollView style={styles.listScroller} contentContainerStyle={styles.list}>
-          {visible.length ? (
-            visible.map((item) => {
-              const account = accounts.find((candidate) => candidate.id === item.accountId);
-              const category = allCategories.find((candidate) => candidate.id === item.categoryId);
-              const incoming =
-                item.kind === 'income' ||
-                item.kind === 'refund' ||
-                (item.kind === 'adjustment' && item.amountCents > 0);
-              return (
-                <Pressable
-                  key={item.id}
+        <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, paddingVertical: 8 }}>
+          <Chip
+            label={expanded ? 'Ocultar filtros' : 'Cuenta, fechas y etiquetas'}
+            onPress={() => setExpanded(!expanded)}
+          />
+          <Chip label="Aplicar filtros" onPress={applyFilters} />
+          <Chip
+            label="Limpiar"
+            onPress={() => {
+              setQuery('');
+              setFilter('all');
+              setAccountId('');
+              setCategoryId('');
+              setTagIds([]);
+              setFrom('');
+              setThrough('');
+              setFilterError(null);
+              void setLedgerQuery({});
+            }}
+          />
+        </View>
+        {expanded ? (
+          <ScrollView style={{ maxHeight: 240 }}>
+            <Text style={styles.tip}>
+              Los filtros se combinan. Selecciona y pulsa Aplicar filtros.
+            </Text>
+            <ScrollView horizontal contentContainerStyle={styles.filters}>
+              <Chip
+                label="Todas las cuentas"
+                selected={!accountId}
+                onPress={() => setAccountId('')}
+              />
+              {accounts.map((a) => (
+                <Chip
+                  key={a.id}
+                  label={a.name + (a.isArchived ? ' (archivada)' : '')}
+                  selected={accountId === a.id}
+                  onPress={() => setAccountId(a.id)}
+                />
+              ))}
+            </ScrollView>
+            <TextInput
+              accessibilityLabel="Desde, AAAA-MM-DD"
+              placeholder="Desde: AAAA-MM-DD"
+              placeholderTextColor={colors.muted}
+              style={styles.searchInput}
+              value={from}
+              onChangeText={setFrom}
+            />
+            <TextInput
+              accessibilityLabel="Hasta, AAAA-MM-DD"
+              placeholder="Hasta: AAAA-MM-DD (incluido)"
+              placeholderTextColor={colors.muted}
+              style={styles.searchInput}
+              value={through}
+              onChangeText={setThrough}
+            />
+            <ScrollView horizontal contentContainerStyle={styles.filters}>
+              <Chip
+                label="Todas las categorías"
+                selected={!categoryId}
+                onPress={() => setCategoryId('')}
+              />
+              {allCategories.map((c) => (
+                <Chip
+                  key={c.id}
+                  label={getCategoryPath(c.id, allCategories)}
+                  selected={categoryId === c.id}
+                  onPress={() => setCategoryId(c.id)}
+                />
+              ))}
+            </ScrollView>
+            <Text style={styles.tip}>Debe contener todas las etiquetas seleccionadas.</Text>
+            <ScrollView horizontal contentContainerStyle={styles.filters}>
+              {allTags.map((t) => (
+                <Chip
+                  key={t.id}
+                  label={t.name}
+                  selected={tagIds.includes(t.id)}
                   onPress={() =>
-                    router.push({ pathname: '/transaction-edit', params: { id: item.id } })
+                    setTagIds((ids) =>
+                      ids.includes(t.id) ? ids.filter((id) => id !== t.id) : [...ids, t.id],
+                    )
                   }
-                  onLongPress={() =>
-                    Alert.alert('Eliminar movimiento', 'Podrá recuperarse desde la auditoría.', [
+                />
+              ))}
+            </ScrollView>
+          </ScrollView>
+        ) : null}
+        {filterError || pageError ? (
+          <Text accessibilityRole="alert" style={styles.tip}>
+            {filterError || pageError}
+          </Text>
+        ) : null}
+        <FlatList
+          ListHeaderComponent={
+            <Text style={styles.tip}>
+              Filtros aplicados:{' '}
+              {accounts.find((a) => a.id === applied.accountId)?.name ?? 'Todas las cuentas'}
+              {applied.text ? ` · texto: ${applied.text}` : ''}
+              {applied.kind
+                ? ` · ${{ expense: 'Gastos', income: 'Ingresos', transfer: 'Transferencias', refund: 'Reembolsos', adjustment: 'Conciliaciones' }[applied.kind]}`
+                : ''}
+              {applied.categoryId ? ` · ${getCategoryPath(applied.categoryId, allCategories)}` : ''}
+              {applied.tagIds?.length ? ` · ${applied.tagIds.length} etiquetas` : ''}
+              {applied.from ? ` · desde ${format(new Date(applied.from), 'dd/MM/yyyy')}` : ''}
+              {applied.until
+                ? ` · hasta ${format(new Date(Date.parse(applied.until) - 1), 'dd/MM/yyyy')}`
+                : ''}
+            </Text>
+          }
+          data={visible}
+          keyExtractor={(item) => item.id}
+          style={styles.listScroller}
+          contentContainerStyle={styles.list}
+          refreshing={pageLoading && !visible.length}
+          onRefresh={() => void refreshPage()}
+          renderItem={({ item }) => {
+            const account = accounts.find((candidate) => candidate.id === item.accountId);
+            const category = allCategories.find((candidate) => candidate.id === item.categoryId);
+            const incoming =
+              item.kind === 'income' ||
+              item.kind === 'refund' ||
+              (item.kind === 'adjustment' && item.amountCents > 0);
+            return (
+              <Pressable
+                key={item.id}
+                onPress={() =>
+                  router.push({ pathname: '/transaction-edit', params: { id: item.id } })
+                }
+                onLongPress={() =>
+                  Alert.alert(
+                    'Eliminar movimiento',
+                    'Se ocultará del historial y quedará registrado en la auditoría.',
+                    [
                       { text: 'Cancelar' },
                       {
                         text: 'Eliminar',
                         style: 'destructive',
-                        onPress: () => void deleteTransaction(item.id),
+                        onPress: () =>
+                          void deleteTransaction(item.id).catch((cause) =>
+                            Alert.alert(
+                              'No se eliminó',
+                              cause instanceof Error ? cause.message : 'Intenta nuevamente.',
+                            ),
+                          ),
                       },
-                    ])
-                  }
-                >
-                  <Card style={styles.row}>
-                    <View
-                      style={[
-                        styles.icon,
-                        {
-                          backgroundColor: `${category?.color ?? account?.color ?? colors.muted}22`,
-                        },
-                      ]}
-                    >
-                      <Ionicons
-                        name={(category?.icon as keyof typeof Ionicons.glyphMap) ?? 'swap-vertical'}
-                        size={20}
-                        color={category?.color ?? account?.color ?? colors.muted}
-                      />
-                    </View>
-                    <View style={styles.rowText}>
-                      <Text style={styles.rowTitle}>
-                        {item.merchant || item.source || category?.name || 'Movimiento'}
-                      </Text>
-                      <Text style={styles.rowMeta}>
-                        {account?.name} ·{' '}
-                        {format(new Date(item.occurredAt), 'd MMM, HH:mm', { locale: es })}
-                        {item.location ? ' · zona guardada' : ''}
-                      </Text>
-                      {item.kind === 'expense' ? (
-                        <Text style={styles.categoryPath}>
-                          {getCategoryPath(item.categoryId, allCategories)}
-                        </Text>
-                      ) : null}
-                      {item.tagIds?.length ? (
-                        <View style={styles.tagRow}>
-                          {item.tagIds.map((tagId) => {
-                            const tag = allTags.find((candidate) => candidate.id === tagId);
-                            if (!tag) return null;
-                            return (
-                              <View key={tag.id} style={[styles.tag, { borderColor: tag.color }]}>
-                                <Text style={[styles.tagText, { color: tag.color }]}>
-                                  {tag.name}
-                                </Text>
-                              </View>
-                            );
-                          })}
-                        </View>
-                      ) : null}
-                    </View>
-                    <Text style={[styles.amount, incoming && styles.income]}>
-                      {incoming ? '+' : item.kind === 'transfer' ? '→ ' : '-'}
-                      {formatPEN(Math.abs(item.amountCents))}
+                    ],
+                  )
+                }
+              >
+                <Card style={styles.row}>
+                  <View
+                    style={[
+                      styles.icon,
+                      {
+                        backgroundColor: `${category?.color ?? account?.color ?? colors.muted}22`,
+                      },
+                    ]}
+                  >
+                    <Ionicons
+                      name={(category?.icon as keyof typeof Ionicons.glyphMap) ?? 'swap-vertical'}
+                      size={20}
+                      color={category?.color ?? account?.color ?? colors.muted}
+                    />
+                  </View>
+                  <View style={styles.rowText}>
+                    <Text style={styles.rowTitle}>
+                      {item.merchant || item.source || category?.name || 'Movimiento'}
                     </Text>
-                  </Card>
-                </Pressable>
-              );
-            })
-          ) : (
-            <EmptyState
-              icon="receipt-outline"
-              title="Sin movimientos"
-              body="Registra tu primera compra o recarga con el botón +."
-            />
-          )}
-          <Text style={styles.tip}>
-            Toca un movimiento para corregirlo. Mantenlo presionado para eliminarlo con
-            trazabilidad.
-          </Text>
-        </ScrollView>
+                    <Text style={styles.rowMeta}>
+                      {account?.name} ·{' '}
+                      {format(new Date(item.occurredAt), 'd MMM, HH:mm', { locale: es })}
+                      {item.location ? ' · zona guardada' : ''}
+                    </Text>
+                    {item.kind === 'expense' ? (
+                      <Text style={styles.categoryPath}>
+                        {getCategoryPath(item.categoryId, allCategories)}
+                      </Text>
+                    ) : null}
+                    {item.tagIds?.length ? (
+                      <View style={styles.tagRow}>
+                        {item.tagIds.map((tagId) => {
+                          const tag = allTags.find((candidate) => candidate.id === tagId);
+                          if (!tag) return null;
+                          return (
+                            <View key={tag.id} style={[styles.tag, { borderColor: tag.color }]}>
+                              <Text style={[styles.tagText, { color: tag.color }]}>{tag.name}</Text>
+                            </View>
+                          );
+                        })}
+                      </View>
+                    ) : null}
+                  </View>
+                  <Text style={[styles.amount, incoming && styles.income]}>
+                    {incoming ? '+' : item.kind === 'transfer' ? '→ ' : '-'}
+                    {formatPEN(Math.abs(item.amountCents))}
+                  </Text>
+                </Card>
+              </Pressable>
+            );
+          }}
+          ListEmptyComponent={
+            !pageLoading ? (
+              <EmptyState
+                icon="receipt-outline"
+                title="Sin movimientos"
+                body="No hay registros para los filtros aplicados. Puedes limpiarlos o registrar un gasto."
+              />
+            ) : (
+              <Text style={styles.tip}>Cargando movimientos…</Text>
+            )
+          }
+          ListFooterComponent={
+            <View>
+              {cursor ? (
+                <Chip
+                  label={pageLoading ? 'Cargando…' : 'Cargar 50 más'}
+                  onPress={() => void loadMore()}
+                />
+              ) : null}
+              {pageError ? (
+                <Chip
+                  label="Reintentar"
+                  onPress={() => void (cursor ? loadMore() : refreshPage())}
+                />
+              ) : null}
+              <Text style={styles.tip}>
+                Toca un movimiento para corregirlo. Mantenlo presionado para eliminarlo con
+                trazabilidad.
+              </Text>
+            </View>
+          }
+        />
       </View>
     </SafeAreaView>
   );

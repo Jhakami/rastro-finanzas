@@ -56,9 +56,10 @@ consultada el 29/10/2026. No se envían movimientos a Grafana ni a otro servidor
 ## Límite de esta primera adaptación
 
 La rama de 0.1.15 contiene una primera separación Resumen/Análisis y pruebas de cálculo/UI.
-Todavía usa las lecturas de FinanceProvider. Antes de considerar #49 terminada faltan el
-LedgerRepository con consultas SQL acotadas, cursor y páginas de 50, filtros completos de
-Movimientos, detalle/historial de cuenta, rendimiento y aceptación Android. No se considera
+Resumen/Análisis todavía usan las lecturas de FinanceProvider. La segunda parte (30/10/2026)
+añade LedgerRepository con páginas de 50, filtros combinables de Movimientos y detalle de
+cuenta con acceso a historial y conciliación. Faltan agregaciones SQL, retirar la carga global,
+medir rendimiento y aceptación Android para terminar #49. No se considera
 terminado Sprint 4 ni se adjudican como completas #16/#17/#19. No se ha generado ni aceptado
 una APK 0.1.15 en esta primera adaptación. Microgastos y proyección de gasto se mantienen en
 Informes; esta última se distingue de un pronóstico de saldo basado en pagos planificados.
