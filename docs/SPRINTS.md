@@ -38,7 +38,7 @@ POCO X7 Pro con Android 16. El ajuste posterior a celdas de 50 m se valida como 
 
 Seguimiento: [#6](https://github.com/Jhakami/rastro-finanzas/issues/6).
 
-## Sprint 2 — Parametrización completa · 75 % · En curso
+## Sprint 2 — Parametrización completa · 90 % · En curso
 
 - Crear, editar, ordenar, archivar y restaurar cuentas terminado y aceptado en Android en
   `0.1.9` mediante ACC-01 a ACC-05.
@@ -72,21 +72,22 @@ El porcentaje es orientativo y se calcula con criterios de aceptación terminado
 transcurrido. El CRUD de cuentas y el ciclo de vida de categorías propias están al 100 %. El
 incremento `0.1.11` y los casos REC/COR de `0.1.12` ya tienen aceptación explícita del usuario.
 La historia #10 conserva el alcance pendiente de auditoría legible y restauración de movimientos;
-aprobar REC/COR no demuestra esos criterios adicionales. Se completa el cierre técnico de #11.
-El siguiente incremento funcional previsto es 0.1.15 (Resumen y Movimientos), adelantado
+aprobar REC/COR no demuestra esos criterios adicionales. BUD-01–BUD-06 ya tienen aceptación
+explícita; el avance orientativo aumenta por esa aceptación, no por planificar #49.
+El incremento funcional activo es 0.1.15 (#49, Resumen y Movimientos), adelantado
 parcial de Sprint 4; no cierra #10 ni el conjunto del Sprint 2.
 
 ## Estado global orientativo
 
-| Alcance      | Avance | Condición para aumentar                                        |
-| ------------ | -----: | -------------------------------------------------------------- |
-| Sprint 0     |  100 % | Cerrado                                                        |
-| Sprint 1     |  100 % | Cerrado en dispositivo                                         |
-| Sprint 2     |   75 % | Aceptar presupuestos y completar auditoría/restauración de #10 |
-| Sprint 3     |    0 % | Aún no iniciado                                                |
-| Sprint 4     |   40 % | Validar interacción; faltan periodos globales y detalle        |
-| Sprint 5     |    0 % | Aún no iniciado                                                |
-| MVP completo |   53 % | Promedio simple redondeado de los seis sprints                 |
+| Alcance      | Avance | Condición para aumentar                                 |
+| ------------ | -----: | ------------------------------------------------------- |
+| Sprint 0     |  100 % | Cerrado                                                 |
+| Sprint 1     |  100 % | Cerrado en dispositivo                                  |
+| Sprint 2     |   90 % | Completar auditoría/restauración de #10                 |
+| Sprint 3     |    0 % | Aún no iniciado                                         |
+| Sprint 4     |   40 % | Validar interacción; faltan periodos globales y detalle |
+| Sprint 5     |    0 % | Aún no iniciado                                         |
+| MVP completo |   55 % | Promedio simple redondeado de los seis sprints          |
 
 La guía de comprobación de cada incremento está en
 [`DEVICE_VALIDATION.md`](./DEVICE_VALIDATION.md).
@@ -146,16 +147,16 @@ el formulario; guardar evitará duplicados y actualizará saldo e historial.
 
 Estado de las entregas: las aceptaciones indicadas son explícitas; las demás siguen pendientes.
 
-| Entrega       | Sprint / historia | Alcance y condición                                                                                                                                  |
-| ------------- | ----------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Cierre 0.1.12 | 2 / #8, #10       | TAG-01–03, REC-01 y COR-01–02 aceptados; #45 fusionado. #10 conserva auditoría legible/restauración pendientes.                                      |
-| 0.1.13        | 2 / #9            | Favoritos y registro rápido aceptados FAV-01–04 y UX-01 el 28/10/2026. #9 cerrada; #47 fusionado.                                                    |
-| 0.1.14        | 2 / #11           | Presupuestos implementados, PR #48; BUD-01–06 y comprobaciones de entrega pendientes. Historia activa.                                               |
-| 0.1.15        | 4 / #16, #17      | Resumen accionable, cuentas navegables, movimientos recientes, filtros combinables y páginas de 50 movimientos.                                      |
-| 0.2.0         | 3 / #12           | Recurrencias semanales, mensuales y anuales; confirmación manual predeterminada, automática opcional, pausa, omisión y avisos locales; pestaña Plan. |
-| Posteriores   | 3 / #13–#15       | Comprobantes privados, restauración con copia preventiva compatible con .finbackup y reembolsos vinculados.                                          |
-| Posteriores   | 4 / #16–#21       | Tarjetas configurables, periodos y comparaciones equivalentes, evidencia navegable, recomendaciones y zonas.                                         |
-| Publicación   | 5                 | Migraciones, rendimiento, permisos, firma privada y actualización sin pérdida de datos.                                                              |
+| Entrega       | Sprint / historia                      | Alcance y condición                                                                                                                                                  |
+| ------------- | -------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Cierre 0.1.12 | 2 / #8, #10                            | TAG-01–03, REC-01 y COR-01–02 aceptados; #45 fusionado. #10 conserva auditoría legible/restauración pendientes.                                                      |
+| 0.1.13        | 2 / #9                                 | Favoritos y registro rápido aceptados FAV-01–04 y UX-01 el 28/10/2026. #9 cerrada; #47 fusionado.                                                                    |
+| 0.1.14        | 2 / #11                                | BUD-01–06 aceptados en build 15. Parches SDK 57: Expo Doctor 21/21; comprobación Android del build 16 independiente. PR #48.                                         |
+| 0.1.15        | 4 / #49; relacionada con #16, #17, #19 | Primera adaptación de Resumen/Análisis implementada en rama. Pendientes: LedgerRepository, páginas de 50, filtros completos, detalle de cuenta y aceptación Android. |
+| 0.2.0         | 3 / #12                                | Recurrencias semanales, mensuales y anuales; confirmación manual predeterminada, automática opcional, pausa, omisión y avisos locales; pestaña Plan.                 |
+| Posteriores   | 3 / #13–#15                            | Comprobantes privados, restauración con copia preventiva compatible con .finbackup y reembolsos vinculados.                                                          |
+| Posteriores   | 4 / #16–#21                            | Tarjetas configurables, periodos y comparaciones equivalentes, evidencia navegable, recomendaciones y zonas.                                                         |
+| Publicación   | 5                                      | Migraciones, rendimiento, permisos, firma privada y actualización sin pérdida de datos.                                                                              |
 
 La entrega 0.1.15 adelanta una parte de Sprint 4 por su beneficio al registro diario; no cambia
 el estado global de ese sprint. Los sprints 0 y 1 y la aceptación CAT-05A–CAT-05E se conservan.

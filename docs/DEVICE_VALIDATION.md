@@ -478,6 +478,13 @@ Registrar gasto sigue siendo la acción principal; todavía no aparece la pesta�
 
 ## Mantenimiento 0.1.14 · build 16 · parches Expo SDK 57
 
+- APK generada: `artifacts/Rastro-0.1.14-build16-arm64-v8a.apk`.
+- SHA-256: `19D1103FA1DDF58B2D313921C6868A50D919F98320FD5873B7D801CA2AA2856A`.
+- Firma v2 verificada con el mismo certificado de desarrollo del build 15, solo ARM64,
+  `versionCode 16`. Permisos idénticos; sin micrófono ni ubicación en segundo plano.
+- PR #48 fusionado. Aceptación funcional BUD del build 15 registrada; la comprobación manual
+  de actualización del build 16 sigue pendiente y se mantiene en el seguimiento de #25.
+
 Se actualizan los doce paquetes recomendados, sin salto mayor ni cambios de lógica de
 presupuestos. Expo Doctor pasa 21/21 y `expo install --check` no detecta incompatibilidades.
 El renderer de pruebas `test-renderer` 1.2.0 queda declarado explícitamente para que las
@@ -493,3 +500,31 @@ Advertencia independiente: `npm audit` informa 18 alertas de dependencias (10 ba
 moderadas, 4 altas y 1 crítica). Son resultados automáticos, no una demostración de
 explotabilidad en Rastro. No se aplicó `audit fix --force`: propone cambios mayores o
 retrocesos incompatibles. Expo Doctor 21/21 verifica compatibilidad, no certifica seguridad.
+
+## 0.1.15 · primera adaptación Resumen/Análisis · no entregada en APK
+
+Referencia: capturas aportadas el 29/10/2026, historia #49. Resumen prioriza registrar gasto,
+saldo, mes, presupuestos, recientes y hallazgo. Análisis usa el mismo periodo/cuenta en flujo,
+gastos e informes. Dona para categorías, barras para etiquetas superpuestas y valores diarios
+accesibles en texto. No representa como reales pagos futuros ni porcentajes sin base.
+
+Pendientes de aceptación (NO aprobados):
+
+Validación técnica de esta primera parte: TypeScript y ESLint sin errores, Jest 82/82
+en 19 suites, prueba SQL de presupuestos correcta y Expo Doctor 21/21. Exportación Android
+Hermes completada en `artifacts/bundle-0.1.15`; no equivale a compilación nativa ni APK.
+La ejecución inicial encontró permisos del sandbox en temporales; se repitió fuera de él.
+Una prueba de registro rápido agotó su timeout durante compilación concurrente; la suite
+completa volvió a pasar sin concurrencia, sin ampliar timeouts ni modificar esa prueba.
+
+- UX-ANA-01: registrar desde Resumen, cambiar cuenta, contrastar saldo actual vs flujo del mes,
+  recientes y presupuestos con sus ámbitos explícitos.
+- UX-ANA-02: Análisis arranca en mes; 7 días son exactamente siete fechas; cambiar cuenta
+  y sección conserva el filtro, también con cuentas archivadas y periodos vacíos.
+- UX-ANA-03: alternar tendencia/acumulado, flujo negativo, ver valores diarios, gasto con dos
+  etiquetas sin duplicar el total y acceso de gasto mayor a su registro.
+- UX-ANA-04: lector de pantalla, texto ampliado, pantalla estrecha, modo avión y conservación
+  de datos tras actualizar. Microgastos y proyección siguen accesibles en Informes.
+
+No se genera APK de esta primera parte: antes faltan consultas SQL paginadas, filtros completos
+y detalle de cuenta de #49. No se confunde esta rama con la APK 0.1.14 build 16 disponible.

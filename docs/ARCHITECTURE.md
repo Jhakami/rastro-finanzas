@@ -79,6 +79,16 @@ al cambiar datos, reactivar y durante uso; deduplicación persistente por presup
 nivel. Denegar permisos no impide guardar. Los avisos no muestran importes ni nombres.
 La pestaña Plan y recurrencias continúan pendientes de #12.
 
+## Primera adaptación de Resumen/Análisis (rama 0.1.15)
+
+`analysis-view-model` separa cálculos de calendario, agrupación y flujo de las pantallas.
+Resumen prioriza registro y acciones; `/analysis` añade paneles por flujo, gastos e informes.
+`FlowChart` usa SVG local y alternativa textual. No hay Grafana, WebView ni servidor nuevo.
+Esta primera adaptación todavía lee `FinanceProvider`: NO resuelve la paginación o recarga
+global. #49 sigue abierta hasta incorporar `LedgerRepository`, consultas acotadas, cursor y
+páginas de 50, detalle de cuenta y pruebas de rendimiento/Android. Las comparaciones de #17
+no están implementadas. Ver [referencia visual](./UX_ANALYTICS_REFERENCE.md).
+
 ## Mapas y privacidad
 
 MapLibre recibe exclusivamente agregaciones de celdas. OpenFreeMap entrega teselas visuales; no recibe montos, categorías ni el conjunto de movimientos. Si no hay red, la lista de zonas sigue operativa.

@@ -8,18 +8,20 @@ historial financiero a un servidor de Rastro.
 
 ## Estado actual
 
-Rastro está en construcción. La versión en desarrollo es `0.1.14` (`versionCode 16`, parches Expo). No debe
+Rastro está en construcción. La versión en desarrollo es `0.1.15` (`versionCode 17`), primera
+adaptación de Resumen/Análisis todavía incompleta. La última APK generada es `0.1.14` build 16.
+No debe
 considerarse todavía una versión final ni una aplicación publicada en una tienda.
 
-| Etapa                                  | Avance | Estado                         |
-| -------------------------------------- | -----: | ------------------------------ |
-| Sprint 0 · Base técnica                |  100 % | Terminado                      |
-| Sprint 1 · Trazabilidad diaria         |  100 % | Terminado y probado en Android |
-| Sprint 2 · Parametrización             |   75 % | En curso                       |
-| Sprint 3 · Automatización y documentos |    0 % | Pendiente                      |
-| Sprint 4 · Análisis avanzado           |   40 % | Parcialmente implementado      |
-| Sprint 5 · Publicación personal        |    0 % | Pendiente                      |
-| MVP completo                           |   53 % | Estimación orientativa         |
+| Etapa                                  | Avance | Estado                              |
+| -------------------------------------- | -----: | ----------------------------------- |
+| Sprint 0 · Base técnica                |  100 % | Terminado                           |
+| Sprint 1 · Trazabilidad diaria         |  100 % | Terminado y probado en Android      |
+| Sprint 2 · Parametrización             |   90 % | Falta auditoría/restauración de #10 |
+| Sprint 3 · Automatización y documentos |    0 % | Pendiente                           |
+| Sprint 4 · Análisis avanzado           |   40 % | Parcialmente implementado           |
+| Sprint 5 · Publicación personal        |    0 % | Pendiente                           |
+| MVP completo                           |   55 % | Estimación orientativa              |
 
 El CRUD de cuentas de `0.1.9` está terminado: superó 28 pruebas automáticas y los casos manuales
 `ACC-01` a `ACC-05` en un POCO X7 Pro. El ciclo de vida de categorías propias de `0.1.10` también
