@@ -94,6 +94,9 @@ export function Chip({
 }) {
   return (
     <Pressable
+      accessibilityRole="button"
+      accessibilityLabel={label}
+      accessibilityState={{ selected: Boolean(selected) }}
       onPress={onPress}
       style={[
         styles.chip,

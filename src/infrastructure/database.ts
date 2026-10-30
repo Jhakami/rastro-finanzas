@@ -5,6 +5,7 @@ import { drizzle } from 'drizzle-orm/expo-sqlite';
 import * as schema from './schema';
 import { migrateFavorites } from './favorite-migration';
 import { migrateBudgets } from './budget-migration';
+import { migrateLedger } from './ledger-migration';
 
 const DATABASE_NAME = 'rastro.db';
 const DATABASE_KEY_NAME = 'rastro.database.key.v1';
@@ -136,6 +137,7 @@ async function migrate(db: SQLite.SQLiteDatabase): Promise<void> {
   }
   if (version < 6) await migrateFavorites(db);
   if (version < 7) await migrateBudgets(db);
+  if (version < 8) await migrateLedger(db);
 }
 
 type CategorySeed = readonly [

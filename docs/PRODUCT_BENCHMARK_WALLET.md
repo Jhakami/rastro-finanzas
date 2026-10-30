@@ -2,6 +2,10 @@
 
 ## Objetivo
 
+La [adaptación visual de las 15 capturas aportadas el 29/10/2026](./UX_ANALYTICS_REFERENCE.md)
+concreta Resumen, flujo, categorías/etiquetas e informes y los vincula a los sprints existentes.
+Incluye límites de alcance y la decisión de usar gráficos locales, sin desplegar Grafana.
+
 La prioridad de UX es registrar gastos sencillamente: monto, cuenta visible y categoría, con
 favoritos/recientes y detalles opcionales desplegables. Presupuestos y análisis complementan ese
 recorrido. La ejecución por versiones e historias está en el

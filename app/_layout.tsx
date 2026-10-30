@@ -115,6 +115,8 @@ export default function RootLayout() {
             <Stack.Screen name="budgets" options={{ presentation: 'modal' }} />
             <Stack.Screen name="transaction-edit" options={{ presentation: 'modal' }} />
             <Stack.Screen name="insights" />
+            <Stack.Screen name="analysis" />
+            <Stack.Screen name="account-detail" />
           </Stack>
         </LockGate>
       </FinanceProvider>

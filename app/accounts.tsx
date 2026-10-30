@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import { Alert, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
+import { useRouter, useLocalSearchParams } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import type { Account } from '@/domain/types';
 import { formatPEN, parseBalanceToCents } from '@/domain/money';
@@ -21,6 +21,7 @@ const ACCOUNT_COLORS = [
 ] as const;
 
 export default function AccountsScreen() {
+  const { reconcile } = useLocalSearchParams<{ reconcile?: string }>();
   const router = useRouter();
   const {
     accounts,
@@ -40,8 +41,10 @@ export default function AccountsScreen() {
   const [name, setName] = useState('');
   const [color, setColor] = useState<string>(colors.mauve);
   const [busy, setBusy] = useState(false);
-  const [reconcilingId, setReconcilingId] = useState<string | null>(null);
-  const [targetBalance, setTargetBalance] = useState('');
+  const [reconcilingId, setReconcilingId] = useState<string | null>(reconcile ?? null);
+  const [targetBalance, setTargetBalance] = useState(
+    reconcile ? ((balances[reconcile] ?? 0) / 100).toFixed(2) : '',
+  );
   const [reconciliationReason, setReconciliationReason] = useState('');
   const [reconciling, setReconciling] = useState(false);
 
@@ -295,7 +298,14 @@ export default function AccountsScreen() {
             return (
               <View key={account.id} style={[styles.accountRow, index > 0 && styles.divider]}>
                 <View style={[styles.accountDot, { backgroundColor: account.color }]} />
-                <View style={styles.accountInfo}>
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityLabel={`Ver detalle de ${account.name}`}
+                  onPress={() =>
+                    router.push({ pathname: '/account-detail', params: { id: account.id } })
+                  }
+                  style={styles.accountInfo}
+                >
                   <Text style={styles.accountName} numberOfLines={1}>
                     {account.name}
                   </Text>
@@ -303,7 +313,7 @@ export default function AccountsScreen() {
                     {formatPEN(balances[account.id] ?? 0)}
                     {account.isDefault ? ' · principal protegida' : ''}
                   </Text>
-                </View>
+                </Pressable>
                 <View style={styles.rowActions}>
                   <Pressable
                     accessibilityLabel={`Subir ${account.name}`}
