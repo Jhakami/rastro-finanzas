@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import {
   Alert,
   KeyboardAvoidingView,
@@ -18,6 +18,8 @@ import { parseAmountToCents } from '@/domain/money';
 import type { FinanceTransaction, TransactionKind } from '@/domain/types';
 import { Card, Chip, LoadingView, ScreenHeader } from '@/presentation/components';
 import { useFinance } from '@/presentation/finance-provider';
+import { useLocalQuery } from '@/presentation/use-local-query';
+import { transactionReader } from '@/infrastructure/transaction-reader';
 import { colors, radius, spacing } from '@/theme';
 
 type EditableKind = Extract<TransactionKind, 'expense' | 'income' | 'transfer'>;
@@ -25,9 +27,14 @@ type EditableKind = Extract<TransactionKind, 'expense' | 'income' | 'transfer'>;
 export default function EditTransactionScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const finance = useFinance();
-  const transaction = finance.transactions.find((item) => item.id === id);
+  const result = useLocalQuery(
+    useCallback(() => transactionReader.byId(id), [id]),
+    finance.revision,
+  );
+  const transaction = result.data;
 
-  if (finance.loading) return <LoadingView />;
+  if (finance.loading || result.loading) return <LoadingView />;
+  if (result.error) return <UnavailableTransaction message={result.error} />;
   if (!transaction)
     return <UnavailableTransaction message="Este movimiento ya no está disponible." />;
   if (transaction.kind === 'adjustment' || transaction.kind === 'refund') {

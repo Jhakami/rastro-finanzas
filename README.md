@@ -9,9 +9,11 @@ historial financiero a un servidor de Rastro.
 ## Estado actual
 
 Rastro está en construcción. La versión en desarrollo es `0.1.15` (`versionCode 17`), primera
-adaptación de Resumen/Análisis, movimientos paginados y detalle de cuenta todavía sin aceptación
-Android. Sigue pendiente retirar la carga global del proveedor. La última APK generada es
-`0.1.14` build 16.
+adaptación de Resumen/Análisis, movimientos paginados y detalle de cuenta aceptada por el usuario
+en Android el 31/10/2026. El proveedor ya no carga el historial; saldos y resúmenes se calculan con SQL. La APK
+`0.1.15` build 17 está disponible localmente en `artifacts/Rastro-0.1.15-arm64-v8a.apk`,
+con firma, permisos y SHA-256 verificados y todos los casos de #49 aprobados. Véase la
+[guía de compilación Windows](docs/BUILD_ANDROID_WINDOWS.md).
 No debe
 considerarse todavía una versión final ni una aplicación publicada en una tienda.
 

@@ -549,5 +549,47 @@ Casos Android adicionales pendientes:
 - ACC-06: abrir detalle desde Resumen o cuentas, contrastar saldo, historial y transferencia recibida;
   conciliar cuenta activa; cuenta archivada conserva historial y exige restaurar antes de conciliar.
 
-Pendiente técnico antes de cerrar #49: agregaciones SQL y eliminar la carga completa del proveedor,
-rendimiento en dispositivo, compilación ARM64 y aceptación. No se incrementa avance por estas pruebas.
+En esta segunda parte quedaban pendientes agregaciones SQL y eliminar la carga completa del
+proveedor. Se implementan en la tercera parte siguiente; no se incrementa avance aceptado
+por pruebas automáticas.
+
+### Tercera parte de #49 · candidata 0.1.15 build 17
+
+- Entrega verificada el 31/10/2026: `artifacts/Rastro-0.1.15-arm64-v8a.apk`, 76.509.869 bytes.
+- SHA-256: `9C907E832FD1944634D360F1A76487EC38F1289147154E5AD3CDAA0DDEDAFF7F`.
+- Paquete `pe.rastro.finanzas`, `versionName 0.1.15`, `versionCode 17`, solo `arm64-v8a`.
+- Firma v2 verificada; certificado SHA-256
+  `fac61745dc0903786fb9ede62a962b399f7348f0bb6f899b8332667591033b9c`, igual al build 16.
+- Permisos idénticos al build 16, sin micrófono ni ubicación en segundo plano.
+- Código funcional de `1a499ca` (mismo árbol que `dcf7760`); bundle Hermes incluido.
+  Gradle `assembleRelease` terminó correctamente en 29 min 7 s: 700 tareas, 157 ejecutadas.
+  JDK 21, UTF-8, ARM64, un worker y heap de 1536 MiB. El ajuste optativo
+  `scripts/windows-ascii.gradle` evita el fallo Prefab con rutas que contienen tildes;
+  procedimiento en [BUILD_ANDROID_WINDOWS.md](BUILD_ANDROID_WINDOWS.md).
+- No se instaló en teléfono desde este entorno. Conservar las APK anteriores y hacer copia
+  cifrada preventiva; instalar encima, sin desinstalar ni borrar datos.
+- FinanceProvider sin historial global, con saldos SQL y categorías recientes acotadas.
+- Resumen/Análisis con total, cantidad, microgastos, categorías/etiquetas y días agregados en
+  una sola sentencia SQL; muestras limitadas a 5 recientes, 5 mayores y 30 puntos.
+- Corrección por ID; Zonas agregadas en SQL; Patrones bajo demanda por ventana temporal.
+  CSV carga datos solo al exportar (el archivo todavía se construye en memoria).
+- 97 pruebas Jest en 25 suites, TypeScript y ESLint correctos, Expo Doctor 21/21 y dependencias
+  compatibles. Pruebas SQL de presupuestos, paginación y resúmenes correctas.
+- Prueba con 100.000 movimientos históricos adicionales: no altera resultados ni tamaño de
+  muestras; consulta mensual aproximadamente 4–5 ms en este escritorio, no una medición Android.
+
+Aceptación Android aprobada por el usuario el 31/10/2026: UX-ANA-01–04, MOV-01–03, ACC-06 y:
+
+- SQL-01: contrastar totales/cantidades/etiquetas y microgastos con los movimientos. Con más
+  de 30 gastos, la cantidad y el total deben incluir todos aunque el gráfico muestre 30.
+- SQL-02: abrir Patrones, Zonas, corregir un movimiento antiguo y exportar CSV; no deben
+  desaparecer etiquetas, ubicación aproximada ni registros anteriores.
+- UPD-015: hacer una copia cifrada preventiva y actualizar sin desinstalar; verificar versión
+  0.1.15, saldos, presupuestos y registro rápido. Repetir en modo avión, con permisos denegados,
+  texto ampliado y teclado abierto. No borrar datos para resolver un problema de actualización.
+
+El usuario confirmó explícitamente que probó la APK 0.1.15 y que todos los casos funcionan
+correctamente. La aceptación corresponde al build 17 y SHA-256 indicados arriba, incluidos
+SQL-01–02 y UPD-015. Es aceptación reportada por el usuario, no una instalación ejecutada
+por el agente. Habilita el cierre de #49 y la fusión de PR #51; no cierra #10 ni #16/#17/#19.
+La firma de desarrollo no es firma de publicación.

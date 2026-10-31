@@ -1,8 +1,8 @@
-import { useMemo, useState } from 'react';
+import { useState } from 'react';
 import { Link, router } from 'expo-router';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { buildAnalysisView } from '@/application/analysis-view-model';
+import { useAnalysisReport } from '@/presentation/use-analysis-report';
 import { formatPEN } from '@/domain/money';
 import {
   Card,
@@ -17,21 +17,29 @@ import { useFinance } from '@/presentation/finance-provider';
 import { colors, spacing } from '@/theme';
 
 export default function DashboardScreen() {
-  const { transactions, allAccounts, allCategories, allTags, balances, insights, loading, error } =
-    useFinance();
+  const { allAccounts, allCategories, balances, loading, error } = useFinance();
   const [accountId, setAccountId] = useState<string | null>(null);
   const account = allAccounts.find((a) => a.id === accountId);
-  const model = useMemo(
-    () => buildAnalysisView(transactions, 'month', accountId, allCategories, allTags),
-    [transactions, accountId, allCategories, allTags],
-  );
+  const result = useAnalysisReport('month', accountId);
+  const model = result.data;
   const balance = accountId
     ? (balances[accountId] ?? 0)
     : Object.values(balances).reduce((s, v) => s + v, 0);
-  const insight =
-    insights.find((i) => i.confidence === 'strong') ??
-    insights.find((i) => i.confidence === 'emerging');
-  if (loading) return <LoadingView />;
+  if (loading || result.loading) return <LoadingView />;
+  if (!model)
+    return (
+      <SafeAreaView style={styles.safe}>
+        <Text accessibilityRole="alert" style={styles.error}>
+          {result.error}
+        </Text>
+        <Pressable accessibilityRole="button" onPress={result.retry}>
+          <Text style={styles.link}>Reintentar</Text>
+        </Pressable>
+        <Link href="/new" style={styles.link}>
+          Registrar gasto
+        </Link>
+      </SafeAreaView>
+    );
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
       <ScrollView contentContainerStyle={styles.content}>
@@ -184,18 +192,18 @@ export default function DashboardScreen() {
         <Card>
           <Text style={styles.title}>Hallazgo prioritario</Text>
           <Text style={styles.help}>
-            Análisis global de todas las cuentas; conserva su propio periodo y evidencia.
+            Dato del mes y cuenta seleccionados. Los patrones completos se calculan al abrirlos.
           </Text>
-          <Text style={styles.label}>{insight?.title ?? 'Aún estamos reuniendo evidencia'}</Text>
+          <Text style={styles.label}>
+            {model.microCount
+              ? 'Las compras pequeñas también cuentan'
+              : 'Aún estamos reuniendo evidencia'}
+          </Text>
           <Text style={styles.help}>
-            {insight?.summary ??
-              'No mostramos conclusiones hasta contar con una muestra suficiente.'}
+            {model.microCount
+              ? `${model.microCount} compras pequeñas suman ${formatPEN(model.microExpenseCents)} este mes.`
+              : 'No mostramos conclusiones hasta contar con una muestra suficiente.'}
           </Text>
-          {insight ? (
-            <Text style={styles.help}>
-              {insight.period} · {insight.sampleSize} registros
-            </Text>
-          ) : null}
           <Link href="/insights" style={styles.link}>
             Ver patrones y evidencia →
           </Link>

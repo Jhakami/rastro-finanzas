@@ -84,14 +84,16 @@ La pestaña Plan y recurrencias continúan pendientes de #12.
 `analysis-view-model` separa cálculos de calendario, agrupación y flujo de las pantallas.
 Resumen prioriza registro y acciones; `/analysis` añade paneles por flujo, gastos e informes.
 `FlowChart` usa SVG local y alternativa textual. No hay Grafana, WebView ni servidor nuevo.
-Resumen y Análisis todavía leen `FinanceProvider`; la recarga global continúa pendiente.
+Resumen y Análisis leen agregaciones de `reportingRepository`; `FinanceProvider` ya no
+expone ni carga el historial. Conserva catálogos, saldos SQL, cinco categorías recientes y
+una revisión para invalidar consultas al escribir, reactivar o cambiar de día local.
 La segunda parte (30/10/2026) añade `LedgerRepository`, `TransactionQuery` y `TransactionPage`:
 consulta parametrizada, cursor por instante/ID, 50 resultados y una fila extra para determinar
 si hay más. La migración v8 agrega un índice parcial de fecha/ID sin cambiar registros.
 Movimientos usa `FlatList` y un store Zustand con selectores; descarta respuestas antiguas,
 evita cargas repetidas, conserva cursor ante errores y reinicia al refrescar o cambiar filtros.
 Las escrituras contables y reactivación invalidan la página mediante el refresh existente.
-No elimina aún la lectura completa que sigue haciendo el proveedor para otras pantallas.
+No hay lectura completa del historial al abrir la app ni después de una escritura.
 
 Filtros: texto literal, cuenta (incluido destino de transferencia), tipo, categoría/familia,
 fechas locales inicio inclusivo/fin exclusivo y todas las etiquetas seleccionadas (AND).
@@ -99,8 +101,23 @@ El filtro se aplica explícitamente y la lista muestra el ámbito aplicado. Las 
 conservan sus registros. `/account-detail` consulta recientes y enlaza historial/conciliación.
 `test:ledger-sql` ejecuta consulta/migración reales sobre 5.005 filas visibles de varios años,
 incluyendo fechas empatadas, offsets, etiquetas, búsquedas literales y consulta del índice.
-Faltan agregaciones SQL para Resumen/Análisis, retirar carga global, rendimiento Android y
-aceptación para cerrar #49. Las comparaciones de #17 no están implementadas.
+`REPORT_SQL` calcula total, cantidad, microgastos (incluidas excepciones), categorías, etiquetas
+y días en una única sentencia/snapshot SQLite. Devuelve solo agregados, cinco recientes,
+cinco gastos mayores y hasta treinta puntos de dispersión; las cantidades no se calculan
+desde esas muestras. Los días locales se convierten a límites ISO explícitos antes de SQL.
+Transferencias/ajustes no cuentan como flujo; reembolsos sí son entradas. Saldos SQL conservan
+saldo inicial, signos de ajustes y ambos extremos de transferencias, incluso cuentas archivadas.
+
+Corrección consulta por ID; Zonas agrupa por celda en SQL; Patrones carga bajo demanda solo
+su ventana temporal (hasta seis meses anteriores y mes actual), conservando las reglas de
+evidencia existentes. CSV consulta el historial únicamente al pulsar Exportar, no desde el
+proveedor: esa exportación explícita todavía arma el archivo en memoria. No se afirma que
+la exportación sea streaming ni que Patrones tenga memoria constante con un mes extremadamente
+denso. Las consultas de pantalla descartan respuestas tardías tras cambio de filtro/revisión.
+
+Prueba SQLite con 100.000 registros históricos adicionales: mismos resultados del mes y
+muestras limitadas; los tiempos locales de escritorio no certifican rendimiento Android.
+Faltan aceptación y rendimiento en dispositivo para cerrar #49. Las comparaciones de #17 no están implementadas.
 Ver [referencia visual](./UX_ANALYTICS_REFERENCE.md).
 
 ## Mapas y privacidad

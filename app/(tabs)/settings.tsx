@@ -27,7 +27,6 @@ export default function SettingsScreen() {
     accounts,
     allAccounts,
     balances,
-    transactions,
     allCategories,
     allTags,
     microThresholdCents,
@@ -40,6 +39,24 @@ export default function SettingsScreen() {
   const [changingBiometric, setChangingBiometric] = useState(false);
   const [backupPassword, setBackupPassword] = useState('');
   const [busy, setBusy] = useState(false);
+  const [exporting, setExporting] = useState(false);
+  async function exportCsv(includeLocation: boolean) {
+    if (exporting) return;
+    setExporting(true);
+    try {
+      await exportTransactionsCsv(
+        await repository.listTransactions(),
+        allAccounts,
+        allCategories,
+        allTags,
+        includeLocation,
+      );
+    } catch (cause) {
+      Alert.alert('No se exportó', cause instanceof Error ? cause.message : 'Intenta nuevamente.');
+    } finally {
+      setExporting(false);
+    }
+  }
   const [historyMonths, setHistoryMonths] = useState<3 | 6>(behaviorSettings.historyMonths);
   const [elevatedPercent, setElevatedPercent] = useState(String(behaviorSettings.elevatedPercent));
   const [outlierSigma, setOutlierSigma] = useState(
@@ -273,12 +290,7 @@ export default function SettingsScreen() {
             Elige conscientemente si el CSV contiene zonas aproximadas.
           </Text>
           <View style={styles.buttonStack}>
-            <Pressable
-              style={styles.outlineButton}
-              onPress={() =>
-                void exportTransactionsCsv(transactions, allAccounts, allCategories, allTags, false)
-              }
-            >
+            <Pressable style={styles.outlineButton} onPress={() => void exportCsv(false)}>
               <Text style={styles.outlineText}>CSV sin ubicaciones</Text>
             </Pressable>
             <Pressable
@@ -291,14 +303,7 @@ export default function SettingsScreen() {
                     { text: 'Cancelar' },
                     {
                       text: 'Incluir',
-                      onPress: () =>
-                        void exportTransactionsCsv(
-                          transactions,
-                          allAccounts,
-                          allCategories,
-                          allTags,
-                          true,
-                        ),
+                      onPress: () => void exportCsv(true),
                     },
                   ],
                 )

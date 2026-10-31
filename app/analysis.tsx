@@ -1,9 +1,9 @@
-import { useMemo, useState } from 'react';
+import { useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router, useLocalSearchParams } from 'expo-router';
-import { buildAnalysisView, type AnalysisPeriod } from '@/application/analysis-view-model';
-import { calculateMetrics } from '@/application/analytics';
+import { type AnalysisPeriod } from '@/application/analysis-view-model';
+import { useAnalysisReport } from '@/presentation/use-analysis-report';
 import { formatPEN } from '@/domain/money';
 import { Card, Chip, EmptyState, LoadingView, ScreenHeader } from '@/presentation/components';
 import { DonutChart, ScatterChart } from '@/presentation/charts';
@@ -13,37 +13,37 @@ import { colors, spacing } from '@/theme';
 
 export default function AnalysisScreen() {
   const params = useLocalSearchParams<{ account?: string }>();
-  const {
-    transactions,
-    allAccounts,
-    allCategories,
-    allTags,
-    balances,
-    microThresholdCents,
-    loading,
-    error,
-  } = useFinance();
+  const { allAccounts, allCategories, balances, loading, error } = useFinance();
   const [period, setPeriod] = useState<AnalysisPeriod>('month');
   const [selectedAccountId, setAccountId] = useState<string | null>(params.account ?? null);
   const accountId = allAccounts.some((a) => a.id === selectedAccountId) ? selectedAccountId : null;
   const [section, setSection] = useState<'flow' | 'expense' | 'report'>('flow');
   const [group, setGroup] = useState<'category' | 'tag'>('category');
   const [cumulative, setCumulative] = useState(false);
-  const model = useMemo(
-    () => buildAnalysisView(transactions, period, accountId, allCategories, allTags),
-    [transactions, period, accountId, allCategories, allTags],
-  );
-  const groups = group === 'category' ? model.categoryTotals : model.tagTotals;
-  const metrics = useMemo(
-    () => calculateMetrics(model.rows, microThresholdCents),
-    [model.rows, microThresholdCents],
-  );
+  const result = useAnalysisReport(period, accountId);
+  const model = result.data;
   const account = allAccounts.find((a) => a.id === accountId);
   const currentBalance = accountId
     ? (balances[accountId] ?? 0)
     : Object.values(balances).reduce((s, v) => s + v, 0);
+  if (loading || result.loading) return <LoadingView />;
+  if (!model)
+    return (
+      <SafeAreaView style={styles.safe}>
+        <Text accessibilityRole="alert" style={styles.help}>
+          {result.error}
+        </Text>
+        <Pressable accessibilityRole="button" onPress={result.retry}>
+          <Text style={styles.link}>Reintentar</Text>
+        </Pressable>
+        <Pressable onPress={() => router.back()}>
+          <Text style={styles.link}>Volver</Text>
+        </Pressable>
+      </SafeAreaView>
+    );
+  const groups = group === 'category' ? model.categoryTotals : model.tagTotals;
+  const metrics = model;
   const scope = `${account?.name ?? 'Todas las cuentas'} · ${model.start.toLocaleDateString('es-PE')} – ${new Date(model.end.getTime() - 1).toLocaleDateString('es-PE')}`;
-  if (loading) return <LoadingView />;
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
       <ScrollView contentContainerStyle={styles.content}>
@@ -152,7 +152,7 @@ export default function AnalysisScreen() {
                 />
                 <Chip label="Acumulado" selected={cumulative} onPress={() => setCumulative(true)} />
               </View>
-              {model.incoming.length + model.expenses.length ? (
+              {model.incomeCount + model.expenseCount ? (
                 <FlowChart
                   key={`${period}:${accountId}`}
                   data={model.daily}
@@ -276,8 +276,8 @@ export default function AnalysisScreen() {
             <Text style={styles.title}>El periodo en números</Text>
             <Text style={styles.help}>{scope}</Text>
             <Text style={styles.help}>
-              {model.incoming.length} entradas · {model.expenses.length} gastos ·{' '}
-              {model.daily.length} días calendario
+              {model.incomeCount} entradas · {model.expenseCount} gastos · {model.daily.length} días
+              calendario
             </Text>
             <AmountRow label="Total de entradas" value={model.incomeCents} />
             <AmountRow label="Total de gastos" value={model.expenseCents} />
@@ -295,7 +295,7 @@ export default function AnalysisScreen() {
             <Text style={styles.help}>
               {metrics.microCount} gastos según tu umbral y las excepciones manuales.
             </Text>
-            {period === 'month' && model.expenses.length > 0 ? (
+            {period === 'month' && model.expenseCount > 0 ? (
               <>
                 <AmountRow
                   label="Proyección de gasto al cierre del mes"

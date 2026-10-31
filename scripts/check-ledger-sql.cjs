@@ -130,6 +130,113 @@ assert.equal(page({ $account: 'old' }).length, 51); // Archived account is not e
 assert.equal(page({ $text: "' OR 1=1 --" }).length, 0);
 const plan = db.prepare('EXPLAIN QUERY PLAN ' + sql).all(defaults);
 assert.ok(plan.some((row) => row.detail.includes('idx_ledger_page')));
+// The report runs against the same real schema and archived-account fixture.
+const reportSql = sqlFrom('src/infrastructure/reporting-sql.ts', 'REPORT_SQL');
+const balanceSql = sqlFrom('src/infrastructure/reporting-sql.ts', 'BALANCES_SQL');
+const zonesSql = sqlFrom('src/infrastructure/reporting-sql.ts', 'ZONES_SQL');
+db.exec(`ALTER TABLE accounts ADD COLUMN initial_balance_cents INTEGER NOT NULL DEFAULT 0;
+UPDATE accounts SET initial_balance_cents=1000 WHERE id='cash';
+INSERT INTO accounts VALUES('empty',0,123);
+UPDATE transactions SET micro_override=1 WHERE id='start';
+UPDATE transactions SET micro_override=0 WHERE id='same';
+INSERT INTO location_cells VALUES('zone',-12,-77,'Zona');
+UPDATE transactions SET location_cell_id='zone' WHERE id='start';`);
+assert.equal(
+  db
+    .prepare(balanceSql)
+    .all()
+    .find((r) => r.id === 'cash').balance,
+  0,
+);
+assert.equal(
+  db
+    .prepare(balanceSql)
+    .all()
+    .find((r) => r.id === 'old').balance,
+  -499800,
+);
+assert.equal(
+  db
+    .prepare(balanceSql)
+    .all()
+    .find((r) => r.id === 'empty').balance,
+  123,
+);
+assert.equal(db.prepare(zonesSql).all()[0].amount, 200);
+const days = Array.from({ length: 31 }, (_, i) => ({
+  label: `${i + 1}/10`,
+  from: new Date(Date.UTC(2026, 9, i + 1, 5)).toISOString(),
+  until: new Date(Date.UTC(2026, 9, i + 2, 5)).toISOString(),
+}));
+const reportParams = {
+  $from: month.$from,
+  $until: month.$until,
+  $account: 'cash',
+  $threshold: 500,
+  $days: JSON.stringify(days),
+};
+const report = db.prepare(reportSql).get(reportParams);
+assert.equal(report.expenseCents, 400);
+assert.equal(report.expenseCount, 2);
+assert.equal(report.microExpenseCents, 200);
+assert.equal(report.microCount, 1);
+assert.equal(report.incomeCents, 0);
+assert.equal(report.incomeCount, 0);
+assert.equal(JSON.parse(report.dailyJson).length, 31);
+assert.equal(JSON.parse(report.dailyJson)[0].expenseCents, 400);
+assert.deepEqual(JSON.parse(report.tagsJson), [
+  { id: 'a', value: 400 },
+  { id: 'b', value: 200 },
+]);
+assert.equal(JSON.parse(report.recentJson).length, 3); // includes transfer; flow excludes it
+for (let i = 0; i < 55; i++)
+  insert.run(
+    'sample' + i,
+    'expense',
+    100,
+    'cash',
+    null,
+    'water',
+    '2026-10-02T05:00:00Z',
+    'Compra',
+    null,
+  );
+insert.run('income', 'income', 1000, 'cash', null, null, '2026-10-02T05:00:00Z', null, null);
+insert.run('refund', 'refund', 100, 'cash', null, null, '2026-10-02T05:00:00Z', null, null);
+insert.run('adjust', 'adjustment', -25, 'cash', null, null, '2026-10-02T05:00:00Z', null, null);
+const expanded = db.prepare(reportSql).get(reportParams);
+assert.equal(expanded.expenseCount, 57);
+assert.equal(expanded.expenseCents, 5900);
+assert.equal(expanded.incomeCents, 1100);
+assert.equal(expanded.incomeCount, 2);
+assert.equal(JSON.parse(expanded.scatterJson).length, 30);
+assert.equal(JSON.parse(expanded.recentJson).length, 5);
+assert.equal(JSON.parse(expanded.topJson).length, 5);
+const empty = db.prepare(reportSql).get({ ...reportParams, $account: 'empty' });
+assert.equal(empty.expenseCount, 0);
+assert.equal(empty.expenseCents, 0);
+assert.equal(JSON.parse(empty.dailyJson).length, 31);
+assert.deepEqual(JSON.parse(empty.topJson), []);
+// Regression: older years must not inflate the scoped result or bridge payload.
+db.exec('BEGIN');
+for (let i = 0; i < 100000; i++)
+  insert.run(
+    'history' + i,
+    'expense',
+    100,
+    'old',
+    null,
+    'water',
+    '2019-01-01T05:00:00Z',
+    'Compra',
+    null,
+  );
+db.exec('COMMIT');
+const started = performance.now();
+assert.deepEqual(db.prepare(reportSql).get(reportParams), expanded);
+console.log(
+  `Reporting SQL: 100k additional historical rows, aggregates/samples/balances/zones correct; monthly query ${(performance.now() - started).toFixed(1)} ms (desktop, not Android).`,
+);
 db.close();
 console.log(
   'Ledger SQL: 5005 rows across years, ties/offsets, pages without gaps/duplicates, scopes/tags/search, archived account, migration v7→v8 and index passed.',

@@ -1,26 +1,23 @@
-import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
-import { startOfMonth } from 'date-fns';
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { useFavoriteStore } from './favorite-store';
 import { useBudgetStore } from './budget-store';
 import { useLedgerStore } from './ledger-store';
 import { AppState } from 'react-native';
-import { calculateAccountBalances } from '@/application/balances';
+import { reportingRepository } from '@/infrastructure/reporting-repository';
 import {
-  buildInsights,
   calculateMetrics,
   DEFAULT_BEHAVIOR_SETTINGS,
   normalizeBehaviorSettings,
 } from '@/application/analytics';
-import type {
-  Account,
-  BehaviorSettings,
-  Category,
-  DashboardMetrics,
-  FavoriteTemplate,
-  FinanceTransaction,
-  Insight,
-  Tag,
-} from '@/domain/types';
+import type { Account, BehaviorSettings, Category, FavoriteTemplate, Tag } from '@/domain/types';
 import {
   repository,
   type CorrectTransactionInput,
@@ -39,10 +36,8 @@ interface FinanceContextValue {
   tags: Tag[];
   allTags: Tag[];
   favorites: FavoriteTemplate[];
-  transactions: FinanceTransaction[];
-  monthlyTransactions: FinanceTransaction[];
-  metrics: DashboardMetrics;
-  insights: Insight[];
+  recentCategoryIds: string[];
+  revision: number;
   balances: Record<string, number>;
   microThresholdCents: number;
   behaviorSettings: BehaviorSettings;
@@ -79,13 +74,17 @@ export function FinanceProvider({ children }: { children: React.ReactNode }) {
   const [allCategories, setAllCategories] = useState<Category[]>([]);
   const [allTags, setAllTags] = useState<Tag[]>([]);
   const [favorites, setFavorites] = useState<FavoriteTemplate[]>([]);
-  const [transactions, setTransactions] = useState<FinanceTransaction[]>([]);
+  const [balances, setBalances] = useState<Record<string, number>>({});
+  const [recentCategoryIds, setRecentCategoryIds] = useState<string[]>([]);
+  const [revision, setRevision] = useState(0);
+  const refreshVersion = useRef(0);
   const [microThresholdCents, setMicroThresholdCents] = useState(500);
   const [behaviorSettings, setBehaviorSettings] = useState(DEFAULT_BEHAVIOR_SETTINGS);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   const refresh = useCallback(async () => {
+    const version = ++refreshVersion.current;
     try {
       setError(null);
       const [
@@ -93,7 +92,8 @@ export function FinanceProvider({ children }: { children: React.ReactNode }) {
         nextAllCategories,
         nextFavorites,
         nextAllTags,
-        nextTransactions,
+        nextBalances,
+        nextRecentCategories,
         threshold,
         savedBehaviorSettings,
       ] = await Promise.all([
@@ -101,19 +101,24 @@ export function FinanceProvider({ children }: { children: React.ReactNode }) {
         repository.listCategories(true),
         repository.listFavorites(),
         repository.listTags(true),
-        repository.listTransactions(),
+        reportingRepository.balances(),
+        reportingRepository.recentCategories(),
         repository.getSetting('microThresholdCents', '500'),
         repository.getSetting('behaviorSettings', JSON.stringify(DEFAULT_BEHAVIOR_SETTINGS)),
       ]);
+      if (version !== refreshVersion.current) return;
       setAllAccounts(nextAccounts);
       setAllCategories(nextAllCategories);
       setCategories(nextAllCategories.filter((category) => !category.isArchived));
       setFavorites(nextFavorites);
       setAllTags(nextAllTags);
-      setTransactions(nextTransactions);
+      setBalances(nextBalances);
+      setRecentCategoryIds(nextRecentCategories);
+      setRevision((value) => value + 1);
       await useLedgerStore.getState().refresh();
       await useFavoriteStore.getState().refresh();
       await useBudgetStore.getState().refresh();
+      if (version !== refreshVersion.current) return;
       setMicroThresholdCents(Number(threshold) || 500);
       try {
         setBehaviorSettings(normalizeBehaviorSettings(JSON.parse(savedBehaviorSettings)));
@@ -121,9 +126,10 @@ export function FinanceProvider({ children }: { children: React.ReactNode }) {
         setBehaviorSettings(DEFAULT_BEHAVIOR_SETTINGS);
       }
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : 'No se pudieron cargar tus datos.');
+      if (version === refreshVersion.current)
+        setError(cause instanceof Error ? cause.message : 'No se pudieron cargar tus datos.');
     } finally {
-      setLoading(false);
+      if (version === refreshVersion.current) setLoading(false);
     }
   }, []);
 
@@ -138,7 +144,13 @@ export function FinanceProvider({ children }: { children: React.ReactNode }) {
       if (state === 'active') void refresh();
     });
     // Re-evaluate calendar boundaries even when the app remains open overnight.
+    let day = new Date().toDateString();
     const timer = setInterval(() => {
+      const nextDay = new Date().toDateString();
+      if (nextDay !== day) {
+        day = nextDay;
+        setRevision((value) => value + 1);
+      }
       void useBudgetStore.getState().refresh();
     }, 60_000);
     return () => {
@@ -297,32 +309,11 @@ export function FinanceProvider({ children }: { children: React.ReactNode }) {
     setBehaviorSettings(normalized);
   }, []);
 
-  const monthlyTransactions = useMemo(() => {
-    const boundary = startOfMonth(new Date()).getTime();
-    return transactions.filter((item) => new Date(item.occurredAt).getTime() >= boundary);
-  }, [transactions]);
   const accounts = useMemo(
     () => allAccounts.filter((account) => !account.isArchived),
     [allAccounts],
   );
   const tags = useMemo(() => allTags.filter((tag) => !tag.isArchived), [allTags]);
-  const metrics = useMemo(
-    () => calculateMetrics(monthlyTransactions, microThresholdCents),
-    [monthlyTransactions, microThresholdCents],
-  );
-  const insights = useMemo(
-    () =>
-      buildInsights(transactions, microThresholdCents, {
-        settings: behaviorSettings,
-        categories: allCategories,
-      }),
-    [transactions, microThresholdCents, behaviorSettings, allCategories],
-  );
-  const balances = useMemo(
-    () => calculateAccountBalances(allAccounts, transactions),
-    [allAccounts, transactions],
-  );
-
   const value = useMemo<FinanceContextValue>(
     () => ({
       accounts,
@@ -332,10 +323,8 @@ export function FinanceProvider({ children }: { children: React.ReactNode }) {
       tags,
       allTags,
       favorites,
-      transactions,
-      monthlyTransactions,
-      metrics,
-      insights,
+      recentCategoryIds,
+      revision,
       balances,
       microThresholdCents,
       behaviorSettings,
@@ -370,10 +359,8 @@ export function FinanceProvider({ children }: { children: React.ReactNode }) {
       tags,
       allTags,
       favorites,
-      transactions,
-      monthlyTransactions,
-      metrics,
-      insights,
+      recentCategoryIds,
+      revision,
       balances,
       microThresholdCents,
       behaviorSettings,

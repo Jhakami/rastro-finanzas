@@ -1,46 +1,23 @@
-import { useMemo, useState } from 'react';
-import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import { useCallback, useMemo, useState } from 'react';
+import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Camera, GeoJSONSource, Layer, Map as MapLibreMap } from '@maplibre/maplibre-react-native';
 import { formatPEN } from '@/domain/money';
-import { Card, Chip, EmptyState, ScreenHeader } from '@/presentation/components';
+import { Card, Chip, EmptyState, ScreenHeader, LoadingView } from '@/presentation/components';
 import { useFinance } from '@/presentation/finance-provider';
 import { colors, radius, spacing } from '@/theme';
+import { reportingRepository } from '@/infrastructure/reporting-repository';
+import { useLocalQuery } from '@/presentation/use-local-query';
 
 export default function MapScreen() {
-  const { transactions } = useFinance();
+  const { revision } = useFinance();
+  const result = useLocalQuery(
+    useCallback(() => reportingRepository.zones(), []),
+    revision,
+  );
   const [mode, setMode] = useState<'map' | 'list'>('map');
   const [weight, setWeight] = useState<'amount' | 'count'>('amount');
-  const zones = useMemo(() => {
-    const grouped = new Map<
-      string,
-      {
-        id: string;
-        latitude: number;
-        longitude: number;
-        label: string;
-        amount: number;
-        count: number;
-      }
-    >();
-    transactions
-      .filter((item) => item.kind === 'expense' && item.location)
-      .forEach((item) => {
-        const location = item.location!;
-        const current = grouped.get(location.id) ?? {
-          id: location.id,
-          latitude: location.centerLatitude,
-          longitude: location.centerLongitude,
-          label: location.label || 'Zona sin nombre',
-          amount: 0,
-          count: 0,
-        };
-        current.amount += item.amountCents;
-        current.count += 1;
-        grouped.set(location.id, current);
-      });
-    return [...grouped.values()].sort((a, b) => b.amount - a.amount);
-  }, [transactions]);
+  const zones = useMemo(() => result.data ?? [], [result.data]);
   const geoJson = useMemo(
     () => ({
       type: 'FeatureCollection' as const,
@@ -56,6 +33,18 @@ export default function MapScreen() {
     ? ([zones[0].longitude, zones[0].latitude] as [number, number])
     : ([-77.0428, -12.0464] as [number, number]);
 
+  if (result.loading) return <LoadingView />;
+  if (result.error)
+    return (
+      <SafeAreaView style={styles.safe}>
+        <Text accessibilityRole="alert" style={styles.zoneMeta}>
+          {result.error}
+        </Text>
+        <Pressable accessibilityRole="button" onPress={result.retry}>
+          <Text style={styles.zoneTitle}>Reintentar</Text>
+        </Pressable>
+      </SafeAreaView>
+    );
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
       <View style={styles.content}>
@@ -78,7 +67,12 @@ export default function MapScreen() {
             />
           </View>
         </View>
-        {!zones.length ? (
+        {result.error ? (
+          <Text accessibilityRole="alert" style={styles.zoneMeta}>
+            {result.error}
+          </Text>
+        ) : null}
+        {!zones.length && !result.error ? (
           <Card>
             <EmptyState
               icon="location-outline"

@@ -3,6 +3,17 @@ import AnalysisScreen from '../../../app/analysis';
 import DashboardScreen from '../../../app/(tabs)/index';
 import { useFinance } from '../finance-provider';
 import { useLocalSearchParams } from 'expo-router';
+jest.mock('../use-analysis-report', () => ({
+  useAnalysisReport: (period: 'month' | '7d' | '30d') => {
+    const { buildAnalysisView } = jest.requireActual('@/application/analysis-view-model');
+    const model = buildAnalysisView([], period, null, [], []);
+    return {
+      data: { ...model, incomeCount: 0, expenseCount: 0, microCount: 0, microExpenseCents: 0 },
+      loading: false,
+      error: null,
+    };
+  },
+}));
 jest.mock('../finance-provider', () => ({ useFinance: jest.fn() }));
 jest.mock('../budget-summary', () => ({ BudgetSummary: () => null }));
 jest.mock('expo-router', () => {
