@@ -61,9 +61,9 @@ La rama de 0.1.15 contiene una primera separación Resumen/Análisis y pruebas d
 Resumen/Análisis ahora usan agregaciones SQL, sin historial global en FinanceProvider. La segunda parte (30/10/2026)
 añade LedgerRepository con páginas de 50, filtros combinables de Movimientos y detalle de
 cuenta con acceso a historial y conciliación. La tercera parte añade agregaciones, lecturas
-específicas por pantalla y prueba con 100.000 registros históricos adicionales. Faltan medir
-rendimiento y aceptación Android para terminar #49. No se considera
+específicas por pantalla y prueba con 100.000 registros históricos adicionales. El usuario
+aprobó todos los casos Android de #49 el 31/10/2026 sobre la candidata build 17. No se considera
 terminado Sprint 4 ni se adjudican como completas #16/#17/#19. No se ha generado ni aceptado
 una APK 0.1.15 en las dos primeras partes; la tercera entrega la candidata build 17 ARM64,
-verificada técnicamente el 31/10/2026, sin atribuirle aceptación. Microgastos y proyección de gasto se mantienen en
+verificada técnicamente y aceptada explícitamente el 31/10/2026. Microgastos y proyección de gasto se mantienen en
 Informes; esta última se distingue de un pronóstico de saldo basado en pagos planificados.

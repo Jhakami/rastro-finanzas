@@ -74,8 +74,10 @@ incremento `0.1.11` y los casos REC/COR de `0.1.12` ya tienen aceptación explí
 La historia #10 conserva el alcance pendiente de auditoría legible y restauración de movimientos;
 aprobar REC/COR no demuestra esos criterios adicionales. BUD-01–BUD-06 ya tienen aceptación
 explícita; el avance orientativo aumenta por esa aceptación, no por planificar #49.
-El incremento funcional activo es 0.1.15 (#49, Resumen y Movimientos), adelantado
-parcial de Sprint 4; no cierra #10 ni el conjunto del Sprint 2.
+0.1.15 (#49, Resumen y Movimientos) fue aceptada explícitamente el 31/10/2026, incluidos
+UX-ANA-01–04, MOV-01–03, ACC-06, SQL-01–02 y UPD-015, sobre build 17.
+El siguiente incremento funcional retoma #10: auditoría legible y restauración de movimientos
+para terminar Sprint 2 antes de las recurrencias de #12. No se atribuye aceptación a ese trabajo.
 
 ## Estado global orientativo
 
@@ -152,7 +154,8 @@ Estado de las entregas: las aceptaciones indicadas son explícitas; las demás s
 | Cierre 0.1.12 | 2 / #8, #10                            | TAG-01–03, REC-01 y COR-01–02 aceptados; #45 fusionado. #10 conserva auditoría legible/restauración pendientes.                                                                                                         |
 | 0.1.13        | 2 / #9                                 | Favoritos y registro rápido aceptados FAV-01–04 y UX-01 el 28/10/2026. #9 cerrada; #47 fusionado.                                                                                                                       |
 | 0.1.14        | 2 / #11                                | BUD-01–06 aceptados en build 15. Parches SDK 57: Expo Doctor 21/21; comprobación Android del build 16 independiente. PR #48.                                                                                            |
-| 0.1.15        | 4 / #49; relacionada con #16, #17, #19 | PR #50 fusionado (Resumen/Análisis, paginación y cuentas); continuación SQL en PR #51, sin historial global. 97 pruebas aprobadas. APK build 17 ARM64 generada; firma, permisos y SHA-256 verificados el 31/10/2026. Aceptación y rendimiento en dispositivo pendientes. |
+| 0.1.15        | 4 / #49; relacionada con #16, #17, #19 | PR #50 y continuación SQL #51. 97 pruebas aprobadas. APK build 17 ARM64 con firma, permisos y SHA-256 verificados. Todos los casos Android aceptados explícitamente el 31/10/2026; habilitado cierre de #49. |
+| Cierre Sprint 2 | 2 / #10 | Siguiente incremento: auditoría legible, listado paginado de movimientos eliminados y restauración auditable sin duplicar movimientos. REC/COR conservan su aceptación; criterios nuevos pendientes. |
 | 0.2.0         | 3 / #12                                | Recurrencias semanales, mensuales y anuales; confirmación manual predeterminada, automática opcional, pausa, omisión y avisos locales; pestaña Plan.                                                                    |
 | Posteriores   | 3 / #13–#15                            | Comprobantes privados, restauración con copia preventiva compatible con .finbackup y reembolsos vinculados.                                                                                                             |
 | Posteriores   | 4 / #16–#21                            | Tarjetas configurables, periodos y comparaciones equivalentes, evidencia navegable, recomendaciones y zonas.                                                                                                            |

@@ -578,7 +578,7 @@ por pruebas automáticas.
 - Prueba con 100.000 movimientos históricos adicionales: no altera resultados ni tamaño de
   muestras; consulta mensual aproximadamente 4–5 ms en este escritorio, no una medición Android.
 
-Aceptación Android pendiente: UX-ANA-01–04, MOV-01–03, ACC-06 y:
+Aceptación Android aprobada por el usuario el 31/10/2026: UX-ANA-01–04, MOV-01–03, ACC-06 y:
 
 - SQL-01: contrastar totales/cantidades/etiquetas y microgastos con los movimientos. Con más
   de 30 gastos, la cantidad y el total deben incluir todos aunque el gráfico muestre 30.
@@ -588,6 +588,8 @@ Aceptación Android pendiente: UX-ANA-01–04, MOV-01–03, ACC-06 y:
   0.1.15, saldos, presupuestos y registro rápido. Repetir en modo avión, con permisos denegados,
   texto ampliado y teclado abierto. No borrar datos para resolver un problema de actualización.
 
-La aceptación BUD de 0.1.14 no aprueba automáticamente esta versión. PR #50 ya fue fusionado;
-la continuación SQL está en PR #51. #49 permanece abierta hasta aceptación específica.
+El usuario confirmó explícitamente que probó la APK 0.1.15 y que todos los casos funcionan
+correctamente. La aceptación corresponde al build 17 y SHA-256 indicados arriba, incluidos
+SQL-01–02 y UPD-015. Es aceptación reportada por el usuario, no una instalación ejecutada
+por el agente. Habilita el cierre de #49 y la fusión de PR #51; no cierra #10 ni #16/#17/#19.
 La firma de desarrollo no es firma de publicación.
