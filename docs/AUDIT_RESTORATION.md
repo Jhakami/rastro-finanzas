@@ -12,10 +12,10 @@ fecha/ID y restauración por ID en una transacción SQLCipher aislada. Se actual
 etiquetas o ubicación. El motivo es obligatorio y queda en el evento `restored`. Reintentar
 un movimiento activo no genera otro evento. Un fallo al auditar revierte la escritura.
 
-Todavía no se conecta a la interfaz ni se entrega una APK nueva: la versión instalada y
-aceptada sigue siendo 0.1.15. No se cierra #10 por disponer de estos métodos.
+La candidata 0.1.16 build 18 conecta la interfaz desde Ajustes → Auditoría y restauración.
+La versión aceptada sigue siendo 0.1.15; #10 no se cierra hasta probar esta candidata.
 
-## Siguientes partes
+## Implementación de la candidata (aceptación pendiente)
 
 - Vista legible de creación, corrección, conciliación, borrado y restauración; tolerar eventos
   antiguos sin payload o con datos incompletos, sin inventar importes ni valores anteriores.
@@ -23,9 +23,23 @@ aceptada sigue siendo 0.1.15. No se cierra #10 por disponer de estos métodos.
 - Mostrar cuenta/categoría archivada como histórica, sin reactivarla silenciosamente.
 - Refrescar saldos, presupuestos, historial e informes después de restaurar; preservar
   campos ante errores y bloquear confirmaciones simultáneas en la interfaz.
-- Pruebas SQLite reales de concurrencia, rollback, conservación y transferencias;
-  índices/migración para paginación de auditoría y eliminados si lo requiere la consulta.
-- Pruebas UI, APK actualizable, firma/permisos/hash y aceptación Android específica.
+- Pruebas SQLite reales de reintentos serializados, rollback, conservación y transferencias;
+  migración v9 añade índices para paginación de auditoría y eliminados sin modificar registros.
+- Pruebas UI de errores, motivo requerido y doble confirmación. APK y verificaciones de
+  entrega se registran en DEVICE_VALIDATION.md; aceptación Android específica pendiente.
+
+## Resumen recuperado a petición explícita
+
+Se recupera la estructura visual de `90ebbee` (0.1.14): patrimonio, cuentas navegables,
+cuadrícula de métricas, presupuestos, lectura rápida, dona por categorías, tendencia área/barras
+7/14/30 días y dispersión. Los datos proceden de SQL y la dispersión tiene máximo 30 puntos;
+no vuelve el historial global. Los patrones completos siguen bajo demanda en Ver todos.
+Análisis permanece separado, con flujo/gastos/informes actuales. Las 15 capturas son referencia
+de evolución; no se afirma haber implementado pronósticos, pagos planificados, crédito,
+multimoneda ni comparaciones avanzadas pendientes de sus historias.
+
+Prueba adicional RESUMEN-01: contrastar los gráficos y métricas con los movimientos, alternar
+7/14/30 y área/barras, abrir cuenta y Análisis por separado; probar periodo vacío y texto ampliado.
 
 ## Aceptación Android pendiente
 

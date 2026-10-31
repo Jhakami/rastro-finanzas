@@ -1,13 +1,13 @@
 import type { Category, FinanceTransaction, Tag } from '@/domain/types';
 import { getCategoryPath } from '@/domain/categories';
 
-export type AnalysisPeriod = 'month' | '7d' | '30d';
+export type AnalysisPeriod = 'month' | '7d' | '14d' | '30d';
 export function analysisWindow(period: AnalysisPeriod, now = new Date()) {
   const start = new Date(now.getFullYear(), now.getMonth(), now.getDate());
   const end = new Date(start);
   end.setDate(end.getDate() + 1);
   if (period === 'month') start.setDate(1);
-  else start.setDate(start.getDate() - (period === '7d' ? 6 : 29));
+  else start.setDate(start.getDate() - (period === '7d' ? 6 : period === '14d' ? 13 : 29));
   return { start, end };
 }
 export function buildAnalysisView(

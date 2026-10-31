@@ -79,7 +79,9 @@ UX-ANA-01–04, MOV-01–03, ACC-06, SQL-01–02 y UPD-015, sobre build 17.
 El siguiente incremento funcional retoma #10: auditoría legible y restauración de movimientos
 para terminar Sprint 2 antes de las recurrencias de #12. No se atribuye aceptación a ese trabajo.
 El alcance y los casos pendientes están en [AUDIT_RESTORATION.md](AUDIT_RESTORATION.md).
-Se inicia con el repositorio transaccional y paginado; la interfaz y la APK siguen pendientes.
+La candidata 0.1.16 conecta auditoría/restauración paginadas y recupera el Resumen gráfico
+anterior por solicitud explícita, conservando Análisis separado y consultas SQL. PR #52;
+aceptación AUD/RES/UPD-AUD y RESUMEN-01 pendiente, sin aumentar el avance aceptado.
 
 ## Estado global orientativo
 

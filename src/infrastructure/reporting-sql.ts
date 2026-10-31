@@ -27,6 +27,9 @@ daily AS (SELECT d.label,d.start,
 categories AS (SELECT coalesce(category_id,'unclassified') AS id,sum(amount_cents) AS value FROM expenses GROUP BY category_id),
 tagged AS (SELECT coalesce(tt.tag_id,'untagged') AS id,sum(e.amount_cents) AS value FROM expenses e LEFT JOIN transaction_tags tt ON tt.transaction_id=e.id GROUP BY tt.tag_id)
 SELECT
+ (SELECT CAST(strftime('%H',occurred_at,'localtime') AS INTEGER) FROM expenses GROUP BY strftime('%H',occurred_at,'localtime') ORDER BY count(*) DESC,strftime('%H',occurred_at,'localtime') LIMIT 1) AS busiestHour,
+ (SELECT CAST(strftime('%w',occurred_at,'localtime') AS INTEGER) FROM expenses GROUP BY strftime('%w',occurred_at,'localtime') ORDER BY count(*) DESC,strftime('%w',occurred_at,'localtime') LIMIT 1) AS busiestWeekday,
+ (SELECT count(*) FROM expenses WHERE category_id='category-other') AS pendingClassification,
  (SELECT coalesce(sum(amount_cents),0) FROM scoped WHERE kind IN ('income','refund')) AS incomeCents,
  (SELECT coalesce(sum(amount_cents),0) FROM expenses) AS expenseCents,
  (SELECT count(*) FROM scoped WHERE kind IN ('income','refund')) AS incomeCount,
