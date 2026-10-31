@@ -610,4 +610,20 @@ candidata. No fusionar #52 ni cerrar #10 antes de esa aceptación.
 
 Expo Doctor 21/21 y dependencias compatibles. La primera consulta falló por certificados
 TLS del entorno; se repitió con `NODE_OPTIONS=--use-system-ca`, sin desactivar TLS.
-Artefacto, hash y verificación de firma/permisos se registrarán tras terminar la compilación.
+Entrega verificada el 31/10/2026:
+
+- Archivo local: `artifacts/Rastro-0.1.16-arm64-v8a.apk` (76.532.357 bytes).
+- SHA-256: `92E6A67017B969A8866F8A05BB7D18508C5313A077E5CDC88302B4CF90D6A440`.
+- Paquete `pe.rastro.finanzas`, versión `0.1.16`, código `18`, solo `arm64-v8a`.
+- Firma v2 válida, mismo certificado de desarrollo que build 17:
+  `fac61745dc0903786fb9ede62a962b399f7348f0bb6f899b8332667591033b9c`.
+- Permisos idénticos a 0.1.15. No se añadió micrófono ni ubicación en segundo plano.
+- Código funcional `2240114`; compilación release/Hermes correcta en 16 min 13 s,
+  700 tareas (46 ejecutadas). JDK 21, UTF-8, un worker, ARM64 y ajuste ASCII de Windows.
+- TypeScript, ESLint y CI correctos; pruebas Jest y SQLite de auditoría, presupuestos,
+  paginación y resúmenes. La prueba de reintentos usa escrituras serializadas; no sustituye
+  la comprobación de interacción/actualización en el teléfono.
+
+Instalar encima de 0.1.15 **sin desinstalar**, tras crear una copia cifrada preventiva.
+No se ha instalado ni aceptado este build desde el entorno del agente. Firma de desarrollo,
+no firma privada de publicación. Mantener #10 y PR #52 pendientes hasta aprobación del usuario.

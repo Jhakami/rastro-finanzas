@@ -79,7 +79,8 @@ UX-ANA-01–04, MOV-01–03, ACC-06, SQL-01–02 y UPD-015, sobre build 17.
 El siguiente incremento funcional retoma #10: auditoría legible y restauración de movimientos
 para terminar Sprint 2 antes de las recurrencias de #12. No se atribuye aceptación a ese trabajo.
 El alcance y los casos pendientes están en [AUDIT_RESTORATION.md](AUDIT_RESTORATION.md).
-La candidata 0.1.16 conecta auditoría/restauración paginadas y recupera el Resumen gráfico
+La candidata 0.1.16 build 18 ARM64 está generada, con firma, permisos y SHA-256 verificados.
+Conecta auditoría/restauración paginadas y recupera el Resumen gráfico
 anterior por solicitud explícita, conservando Análisis separado y consultas SQL. PR #52;
 aceptación AUD/RES/UPD-AUD y RESUMEN-01 pendiente, sin aumentar el avance aceptado.
 
@@ -159,7 +160,7 @@ Estado de las entregas: las aceptaciones indicadas son explícitas; las demás s
 | 0.1.13        | 2 / #9                                 | Favoritos y registro rápido aceptados FAV-01–04 y UX-01 el 28/10/2026. #9 cerrada; #47 fusionado.                                                                                                                       |
 | 0.1.14        | 2 / #11                                | BUD-01–06 aceptados en build 15. Parches SDK 57: Expo Doctor 21/21; comprobación Android del build 16 independiente. PR #48.                                                                                            |
 | 0.1.15        | 4 / #49; relacionada con #16, #17, #19 | PR #50 y continuación SQL #51. 97 pruebas aprobadas. APK build 17 ARM64 con firma, permisos y SHA-256 verificados. Todos los casos Android aceptados explícitamente el 31/10/2026; habilitado cierre de #49. |
-| Cierre Sprint 2 | 2 / #10 | Siguiente incremento: auditoría legible, listado paginado de movimientos eliminados y restauración auditable sin duplicar movimientos. REC/COR conservan su aceptación; criterios nuevos pendientes. |
+| 0.1.16 · cierre Sprint 2 | 2 / #10 | Auditoría legible, eliminados paginados y restauración auditable implementados en PR #52. APK build 18 verificada; también recupera Resumen gráfico con Análisis separado a petición explícita. Aceptación AUD/RES/UPD-AUD y RESUMEN-01 pendiente. |
 | 0.2.0         | 3 / #12                                | Recurrencias semanales, mensuales y anuales; confirmación manual predeterminada, automática opcional, pausa, omisión y avisos locales; pestaña Plan.                                                                    |
 | Posteriores   | 3 / #13–#15                            | Comprobantes privados, restauración con copia preventiva compatible con .finbackup y reembolsos vinculados.                                                                                                             |
 | Posteriores   | 4 / #16–#21                            | Tarjetas configurables, periodos y comparaciones equivalentes, evidencia navegable, recomendaciones y zonas.                                                                                                            |

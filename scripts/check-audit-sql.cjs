@@ -82,6 +82,18 @@ async function main() {
     )
     .get();
   assert.equal(effects.debit + effects.credit, 0);
+  db.exec('ALTER TABLE accounts ADD COLUMN initial_balance_cents INTEGER NOT NULL DEFAULT 0');
+  const balancesSql = readFileSync(
+    join(__dirname, '../src/infrastructure/reporting-sql.ts'),
+    'utf8',
+  ).match(/BALANCES_SQL\s*=\s*`([\s\S]*?)`/)[1];
+  const balances = Object.fromEntries(
+    db
+      .prepare(balancesSql)
+      .all()
+      .map((row) => [row.id, row.balance]),
+  );
+  assert.deepEqual(balances, { a: -500, b: 500 });
   db.exec(`UPDATE transactions SET deleted_at='2026-02-01T00:00:00Z';
     CREATE TRIGGER fail_audit BEFORE INSERT ON audit_events BEGIN SELECT RAISE(ABORT,'audit failure'); END;`);
   await assert.rejects(repository.restoreTransaction('transfer', 'Fallar'), /audit failure/);
