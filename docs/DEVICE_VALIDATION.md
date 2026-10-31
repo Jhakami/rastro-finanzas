@@ -549,5 +549,31 @@ Casos Android adicionales pendientes:
 - ACC-06: abrir detalle desde Resumen o cuentas, contrastar saldo, historial y transferencia recibida;
   conciliar cuenta activa; cuenta archivada conserva historial y exige restaurar antes de conciliar.
 
-Pendiente técnico antes de cerrar #49: agregaciones SQL y eliminar la carga completa del proveedor,
-rendimiento en dispositivo, compilación ARM64 y aceptación. No se incrementa avance por estas pruebas.
+En esta segunda parte quedaban pendientes agregaciones SQL y eliminar la carga completa del
+proveedor. Se implementan en la tercera parte siguiente; no se incrementa avance aceptado
+por pruebas automáticas.
+
+### Tercera parte de #49 · candidata 0.1.15 build 17
+
+- FinanceProvider sin historial global, con saldos SQL y categorías recientes acotadas.
+- Resumen/Análisis con total, cantidad, microgastos, categorías/etiquetas y días agregados en
+  una sola sentencia SQL; muestras limitadas a 5 recientes, 5 mayores y 30 puntos.
+- Corrección por ID; Zonas agregadas en SQL; Patrones bajo demanda por ventana temporal.
+  CSV carga datos solo al exportar (el archivo todavía se construye en memoria).
+- 97 pruebas Jest en 25 suites, TypeScript y ESLint correctos, Expo Doctor 21/21 y dependencias
+  compatibles. Pruebas SQL de presupuestos, paginación y resúmenes correctas.
+- Prueba con 100.000 movimientos históricos adicionales: no altera resultados ni tamaño de
+  muestras; consulta mensual aproximadamente 4–5 ms en este escritorio, no una medición Android.
+
+Aceptación Android pendiente: UX-ANA-01–04, MOV-01–03, ACC-06 y:
+
+- SQL-01: contrastar totales/cantidades/etiquetas y microgastos con los movimientos. Con más
+  de 30 gastos, la cantidad y el total deben incluir todos aunque el gráfico muestre 30.
+- SQL-02: abrir Patrones, Zonas, corregir un movimiento antiguo y exportar CSV; no deben
+  desaparecer etiquetas, ubicación aproximada ni registros anteriores.
+- UPD-015: hacer una copia cifrada preventiva y actualizar sin desinstalar; verificar versión
+  0.1.15, saldos, presupuestos y registro rápido. Repetir en modo avión, con permisos denegados,
+  texto ampliado y teclado abierto. No borrar datos para resolver un problema de actualización.
+
+La aceptación BUD de 0.1.14 no aprueba automáticamente esta versión. #49 y PR #50 permanecen
+sin cerrar/fusionar hasta aceptación específica. La firma de desarrollo no es firma de publicación.

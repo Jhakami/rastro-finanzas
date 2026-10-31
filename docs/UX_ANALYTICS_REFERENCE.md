@@ -14,7 +14,9 @@ Se conserva Catppuccin oscuro, controles con estado accesible y textos propios d
 En Análisis, periodo y cuenta permanecen antes de las tarjetas, sin una bandeja inferior
 que tape los gráficos. El valor inicial es el mes calendario hasta hoy. Los accesos 7/30 días
 no sustituyen ese valor por defecto. Todos los paneles de flujo/gastos/informes usan el mismo
-filtro. Saldo actual, presupuestos e insights globales indican expresamente sus ámbitos distintos.
+filtro. Saldo actual y presupuestos indican expresamente sus ámbitos distintos. El dato
+prioritario de compras pequeñas usa el mes/cuenta seleccionados; Patrones conserva su ventana
+global y se calcula solo al abrir esa pantalla.
 
 ## Adaptación y trazabilidad
 
@@ -56,10 +58,12 @@ consultada el 29/10/2026. No se envían movimientos a Grafana ni a otro servidor
 ## Límite de esta primera adaptación
 
 La rama de 0.1.15 contiene una primera separación Resumen/Análisis y pruebas de cálculo/UI.
-Resumen/Análisis todavía usan las lecturas de FinanceProvider. La segunda parte (30/10/2026)
+Resumen/Análisis ahora usan agregaciones SQL, sin historial global en FinanceProvider. La segunda parte (30/10/2026)
 añade LedgerRepository con páginas de 50, filtros combinables de Movimientos y detalle de
-cuenta con acceso a historial y conciliación. Faltan agregaciones SQL, retirar la carga global,
-medir rendimiento y aceptación Android para terminar #49. No se considera
+cuenta con acceso a historial y conciliación. La tercera parte añade agregaciones, lecturas
+específicas por pantalla y prueba con 100.000 registros históricos adicionales. Faltan medir
+rendimiento y aceptación Android para terminar #49. No se considera
 terminado Sprint 4 ni se adjudican como completas #16/#17/#19. No se ha generado ni aceptado
-una APK 0.1.15 en esta primera adaptación. Microgastos y proyección de gasto se mantienen en
+una APK 0.1.15 en las dos primeras partes; la tercera prepara la candidata Android sin
+atribuirle aceptación. Microgastos y proyección de gasto se mantienen en
 Informes; esta última se distingue de un pronóstico de saldo basado en pagos planificados.

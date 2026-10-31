@@ -2,12 +2,35 @@ import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
+import { useCallback } from 'react';
+import { buildInsights } from '@/application/analytics';
+import { transactionReader } from '@/infrastructure/transaction-reader';
+import { useLocalQuery } from '@/presentation/use-local-query';
 import { Card, ScreenHeader } from '@/presentation/components';
 import { useFinance } from '@/presentation/finance-provider';
 import { colors, radius, spacing } from '@/theme';
 
 export default function InsightsScreen() {
-  const { insights } = useFinance();
+  const { revision, microThresholdCents, behaviorSettings, allCategories } = useFinance();
+  const result = useLocalQuery(
+    useCallback(async () => {
+      const now = new Date();
+      const from = new Date(
+        now.getFullYear(),
+        now.getMonth() - Math.max(behaviorSettings.historyMonths, behaviorSettings.growthMonths),
+        1,
+      );
+      const until = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
+      const rows = await transactionReader.window(from.toISOString(), until.toISOString());
+      return buildInsights(rows, microThresholdCents, {
+        settings: behaviorSettings,
+        categories: allCategories,
+        now,
+      });
+    }, [microThresholdCents, behaviorSettings, allCategories]),
+    revision,
+  );
+  const insights = result.data ?? [];
   return (
     <SafeAreaView style={styles.safe}>
       <ScrollView contentContainerStyle={styles.content}>
@@ -24,6 +47,12 @@ export default function InsightsScreen() {
           Cada hallazgo indica la muestra y el cálculo que lo respalda. Nunca inferimos emociones ni
           personalidad.
         </Text>
+        {result.loading ? <Text style={styles.intro}>Calculando patrones del periodo…</Text> : null}
+        {result.error ? (
+          <Text accessibilityRole="alert" style={styles.intro}>
+            {result.error}
+          </Text>
+        ) : null}
         {insights.map((insight) => (
           <Card key={insight.id} style={styles.card}>
             <View style={styles.badge}>

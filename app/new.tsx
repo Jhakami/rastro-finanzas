@@ -41,7 +41,7 @@ export default function NewTransactionScreen() {
     categories,
     tags,
     favorites,
-    transactions,
+    recentCategoryIds = [],
     addTransaction,
     addCategory,
     deleteCategory,
@@ -68,18 +68,6 @@ export default function NewTransactionScreen() {
   const manualFavorites = useFavoriteStore((s) => s.items);
   const pinned = manualFavorites.filter((item) => !item.isArchived && item.available);
   const selectedManual = pinned.find((item) => item.id === selectedFavoriteId);
-  const recentCategoryIds = [
-    ...new Set(
-      transactions
-        .filter(
-          (item) =>
-            item.kind === 'expense' &&
-            item.categoryId &&
-            categories.some((c) => c.id === item.categoryId),
-        )
-        .map((item) => item.categoryId!),
-    ),
-  ].slice(0, 5);
   const { control, handleSubmit, setValue } = useForm<FormValues>({
     defaultValues: { amount: '', merchant: '', note: '', source: 'Padres' },
   });
