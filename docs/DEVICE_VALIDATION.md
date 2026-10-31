@@ -555,6 +555,19 @@ por pruebas automáticas.
 
 ### Tercera parte de #49 · candidata 0.1.15 build 17
 
+- Entrega verificada el 31/10/2026: `artifacts/Rastro-0.1.15-arm64-v8a.apk`, 76.509.869 bytes.
+- SHA-256: `9C907E832FD1944634D360F1A76487EC38F1289147154E5AD3CDAA0DDEDAFF7F`.
+- Paquete `pe.rastro.finanzas`, `versionName 0.1.15`, `versionCode 17`, solo `arm64-v8a`.
+- Firma v2 verificada; certificado SHA-256
+  `fac61745dc0903786fb9ede62a962b399f7348f0bb6f899b8332667591033b9c`, igual al build 16.
+- Permisos idénticos al build 16, sin micrófono ni ubicación en segundo plano.
+- Código funcional de `1a499ca` (mismo árbol que `dcf7760`); bundle Hermes incluido.
+  Gradle `assembleRelease` terminó correctamente en 29 min 7 s: 700 tareas, 157 ejecutadas.
+  JDK 21, UTF-8, ARM64, un worker y heap de 1536 MiB. El ajuste optativo
+  `scripts/windows-ascii.gradle` evita el fallo Prefab con rutas que contienen tildes;
+  procedimiento en [BUILD_ANDROID_WINDOWS.md](BUILD_ANDROID_WINDOWS.md).
+- No se instaló en teléfono desde este entorno. Conservar las APK anteriores y hacer copia
+  cifrada preventiva; instalar encima, sin desinstalar ni borrar datos.
 - FinanceProvider sin historial global, con saldos SQL y categorías recientes acotadas.
 - Resumen/Análisis con total, cantidad, microgastos, categorías/etiquetas y días agregados en
   una sola sentencia SQL; muestras limitadas a 5 recientes, 5 mayores y 30 puntos.
@@ -575,5 +588,6 @@ Aceptación Android pendiente: UX-ANA-01–04, MOV-01–03, ACC-06 y:
   0.1.15, saldos, presupuestos y registro rápido. Repetir en modo avión, con permisos denegados,
   texto ampliado y teclado abierto. No borrar datos para resolver un problema de actualización.
 
-La aceptación BUD de 0.1.14 no aprueba automáticamente esta versión. #49 y PR #50 permanecen
-sin cerrar/fusionar hasta aceptación específica. La firma de desarrollo no es firma de publicación.
+La aceptación BUD de 0.1.14 no aprueba automáticamente esta versión. PR #50 ya fue fusionado;
+la continuación SQL está en PR #51. #49 permanece abierta hasta aceptación específica.
+La firma de desarrollo no es firma de publicación.

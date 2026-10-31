@@ -64,6 +64,6 @@ cuenta con acceso a historial y conciliación. La tercera parte añade agregacio
 específicas por pantalla y prueba con 100.000 registros históricos adicionales. Faltan medir
 rendimiento y aceptación Android para terminar #49. No se considera
 terminado Sprint 4 ni se adjudican como completas #16/#17/#19. No se ha generado ni aceptado
-una APK 0.1.15 en las dos primeras partes; la tercera prepara la candidata Android sin
-atribuirle aceptación. Microgastos y proyección de gasto se mantienen en
+una APK 0.1.15 en las dos primeras partes; la tercera entrega la candidata build 17 ARM64,
+verificada técnicamente el 31/10/2026, sin atribuirle aceptación. Microgastos y proyección de gasto se mantienen en
 Informes; esta última se distingue de un pronóstico de saldo basado en pagos planificados.

@@ -1,0 +1,34 @@
+// Opt-in Windows build workaround. No application/native dependency changes.
+// Invoke with -I scripts/windows-ascii.gradle -Drastro.asciiRoot=C:/RastroBuild.
+// The alias must resolve to this exact workspace; never redirect another project.
+def asciiRoot = new File(System.getProperty('rastro.asciiRoot', 'C:/RastroBuild'))
+gradle.settingsEvaluated { settings ->
+    if (settings.rootProject.name != 'Rastro') return
+    def physicalRoot = settings.settingsDir.parentFile.canonicalFile
+    if (!asciiRoot.exists() || asciiRoot.canonicalFile != physicalRoot) {
+        throw new GradleException('The ASCII junction must resolve to the Rastro workspace.')
+    }
+    def remap
+    remap = { descriptor ->
+        def physicalDir = descriptor.projectDir.canonicalFile.toPath()
+        if (physicalDir.startsWith(physicalRoot.toPath())) {
+            def relative = physicalRoot.toPath().relativize(physicalDir).toString()
+            descriptor.projectDir = new File(asciiRoot, relative)
+        }
+        descriptor.children.each { remap(it) }
+    }
+    // Keep the settings/root directory unchanged so Gradle's build selector still matches it.
+    settings.rootProject.children.each { remap(it) }
+}
+gradle.beforeProject { project ->
+    if (project.rootProject.name != 'Rastro' || project.path != ':app') return
+    // Run before React's own afterEvaluate callback consumes the CMake path.
+    project.afterEvaluate {
+        def react = project.extensions.findByName('react')
+        if (react != null) {
+            react.reactNativeDir.set(new File(asciiRoot, 'node_modules/react-native'))
+            react.codegenDir.set(new File(asciiRoot, 'node_modules/@react-native/codegen'))
+        }
+        println("[Rastro ASCII] app directory: ${project.projectDir}")
+    }
+}
