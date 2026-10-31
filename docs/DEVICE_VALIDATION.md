@@ -593,3 +593,21 @@ correctamente. La aceptación corresponde al build 17 y SHA-256 indicados arriba
 SQL-01–02 y UPD-015. Es aceptación reportada por el usuario, no una instalación ejecutada
 por el agente. Habilita el cierre de #49 y la fusión de PR #51; no cierra #10 ni #16/#17/#19.
 La firma de desarrollo no es firma de publicación.
+
+## Candidata 0.1.16 build 18 · #10 y Resumen recuperado
+
+Interfaz en Ajustes → Auditoría y restauración. Eventos y eliminados en páginas de 50;
+motivo obligatorio, confirmación protegida contra doble toque y conservación del formulario
+ante errores. Restauración atómica sin duplicar movimientos, con refresco de módulos.
+Migración v9: únicamente índices de auditoría y eliminados.
+
+Resumen recupera el diseño gráfico de 0.1.14 por solicitud explícita del usuario, conservando
+consultas SQL y Análisis separado. No reintroduce historial global ni backend.
+
+Casos pendientes: AUD-01–02, RES-01–03, UPD-AUD y RESUMEN-01, detallados en
+[AUDIT_RESTORATION.md](AUDIT_RESTORATION.md). La aprobación de 0.1.15 no se extiende a esta
+candidata. No fusionar #52 ni cerrar #10 antes de esa aceptación.
+
+Expo Doctor 21/21 y dependencias compatibles. La primera consulta falló por certificados
+TLS del entorno; se repitió con `NODE_OPTIONS=--use-system-ca`, sin desactivar TLS.
+Artefacto, hash y verificación de firma/permisos se registrarán tras terminar la compilación.

@@ -62,10 +62,13 @@ it('unknown deep-link accounts fall back to all accounts rather than a false zer
   await render(<AnalysisScreen />);
   expect(screen.getByText(/Saldo registrado de todas las cuentas/)).toBeTruthy();
 });
-it('keeps expense entry primary on the compact dashboard and offers deeper analysis', async () => {
+it('recupera gráficos del Resumen anterior y conserva Análisis separado', async () => {
   await render(<DashboardScreen />);
   expect(screen.getByText('+ Registrar gasto')).toBeTruthy();
-  expect(screen.getByText('Este mes, hasta hoy')).toBeTruthy();
-  expect(screen.getByText('Explorar flujo, gastos e informes →')).toBeTruthy();
-  expect(screen.queryByText('Monto según hora de compra')).toBeNull();
+  expect(screen.getByText('Resumen del mes')).toBeTruthy();
+  expect(screen.getByText('Análisis · Explorar flujo, gastos e informes →')).toBeTruthy();
+  expect(screen.getByText('Monto según hora de compra')).toBeTruthy();
+  expect(screen.getByText('En qué se fue el dinero')).toBeTruthy();
+  await fireEvent.press(screen.getByText('14 días'));
+  expect(screen.getByText('Evolución del gasto diario')).toBeTruthy();
 });
