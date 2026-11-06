@@ -36,7 +36,7 @@ const config: ExpoConfig = {
   ],
   android: {
     package: 'pe.rastro.finanzas',
-    versionCode: 18,
+    versionCode: 19,
     adaptiveIcon: {
       backgroundColor: '#1E1E2E',
       foregroundImage: './assets/android-icon-foreground.png',
