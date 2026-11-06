@@ -38,7 +38,7 @@ POCO X7 Pro con Android 16. El ajuste posterior a celdas de 50 m se valida como 
 
 Seguimiento: [#6](https://github.com/Jhakami/rastro-finanzas/issues/6).
 
-## Sprint 2 — Parametrización completa · 90 % · En curso
+## Sprint 2 — Parametrización completa · 100 % · Aceptado
 
 - Crear, editar, ordenar, archivar y restaurar cuentas terminado y aceptado en Android en
   `0.1.9` mediante ACC-01 a ACC-05.
@@ -99,7 +99,7 @@ aceptación AUD/RES/UPD-AUD y RESUMEN-01 pendiente, sin aumentar el avance acept
 La guía de comprobación de cada incremento está en
 [`DEVICE_VALIDATION.md`](./DEVICE_VALIDATION.md).
 
-## Sprint 3 — Automatización y documentos · Pendiente
+## Sprint 3 — Automatización y documentos · Iniciado (#12)
 
 - Recurrencias que generen borradores confirmables y notificaciones.
 - Fotografías de comprobantes almacenadas en el espacio privado.
