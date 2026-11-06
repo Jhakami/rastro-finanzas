@@ -15,6 +15,12 @@ Parches compatibles solicitados por Expo:
 - expo-sharing 57.0.24 → 57.0.25
 
 Se mantiene Resumen con gráficos, Análisis separado y toda la funcionalidad de build 18.
+Las siete dependencias se fijan a las versiones verificadas; `package-lock.json` conserva
+las resoluciones transitivas. npm actualizó también dependencias transitivas y paquetes
+permitidos por los rangos existentes (65 paquetes cambiados, 8 añadidos y 2 retirados).
+No se ejecutó `audit fix`. La instalación informa 23 alertas (6 bajas, 11 moderadas,
+5 altas y 1 crítica); no equivalen a una validación de explotabilidad y requieren
+evaluación separada. Expo Doctor comprueba compatibilidad, no certifica seguridad.
 La base de recurrencias sigue aislada y no se incluye en la APK del PR #52.
 No hay nuevas migraciones de datos ni backend. Se incrementa `versionCode` a 19 para
 actualizar encima de build 18. Conservar la APK aceptada y su hash original.

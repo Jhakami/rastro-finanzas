@@ -8,6 +8,11 @@ El seguimiento operativo se realiza mediante los [hitos](https://github.com/Jhak
 
 ## Política de ejecución
 
+Mantenimiento activo 06/11/2026: PR #52 actualiza siete parches Expo y prepara
+0.1.16 build 19 para resolver CI, sin modificar Resumen gráfico ni Análisis separado.
+La aceptación funcional del build 18 se conserva; el build 19 requiere regresión de
+actualización independiente. Véase [EXPO_BUILD19.md](EXPO_BUILD19.md).
+
 - Se mantiene un solo incremento funcional activo hasta terminar implementación, validación
   automática y aceptación en Android.
 - Dentro del incremento se avanza criterio por criterio; no se abren simultáneamente varios
