@@ -1,5 +1,7 @@
 # Plan de construcción por sprints
 
+Estado actualizado al 06/11/2026: todos los casos de 0.1.16 aceptados por el usuario. Sprint 2 completo; siguiente historia #12. Los pendientes de #10 descritos abajo son históricos. Véase docs/ACCEPTANCE_016.md (ACCEPTANCE_016.md desde esta carpeta).
+
 Cada sprint termina únicamente cuando pasan TypeScript, ESLint, Jest, Expo Doctor, bundle Hermes y prueba manual en Android. El estado **hecho** significa implementado y verificado; no significa que todo el producto esté culminado.
 
 El seguimiento operativo se realiza mediante los [hitos](https://github.com/Jhakami/rastro-finanzas/milestones) y las [incidencias](https://github.com/Jhakami/rastro-finanzas/issues) de GitHub. Este archivo define el alcance; GitHub refleja su ejecución.
@@ -90,11 +92,11 @@ aceptación AUD/RES/UPD-AUD y RESUMEN-01 pendiente, sin aumentar el avance acept
 | ------------ | -----: | ------------------------------------------------------- |
 | Sprint 0     |  100 % | Cerrado                                                 |
 | Sprint 1     |  100 % | Cerrado en dispositivo                                  |
-| Sprint 2     |   90 % | Completar auditoría/restauración de #10                 |
+| Sprint 2     |   100 % | Completar auditoría/restauración de #10                 |
 | Sprint 3     |    0 % | Aún no iniciado                                         |
 | Sprint 4     |   40 % | Validar interacción; faltan periodos globales y detalle |
 | Sprint 5     |    0 % | Aún no iniciado                                         |
-| MVP completo |   55 % | Promedio simple redondeado de los seis sprints          |
+| MVP completo |   57 % | Promedio simple redondeado de los seis sprints          |
 
 La guía de comprobación de cada incremento está en
 [`DEVICE_VALIDATION.md`](./DEVICE_VALIDATION.md).

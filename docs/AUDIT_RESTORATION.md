@@ -1,5 +1,7 @@
 # #10 · Auditoría legible y restauración · Sprint 2
 
+Estado actualizado al 06/11/2026: todos los casos de 0.1.16 aceptados por el usuario. Sprint 2 completo; siguiente historia #12. Los pendientes de #10 descritos abajo son históricos. Véase docs/ACCEPTANCE_016.md (ACCEPTANCE_016.md desde esta carpeta).
+
 ## Estado al 31/10/2026
 
 Única historia funcional activa tras aceptar 0.1.15 y cerrar #49. REC-01 y COR-01–02
