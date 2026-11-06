@@ -10,6 +10,11 @@ Los párrafos históricos que indicaban aceptación pendiente describen el estad
 no el estado actual. La siguiente historia activa es #12 (Sprint 3), pagos recurrentes.
 No se considera implementada ni aceptada por iniciar su trabajo.
 
+Integración pendiente: CI del 06/11/2026 detectó siete parches Expo recomendados nuevos.
+PR #52 no está fusionado y #10 no está cerrada en GitHub. La aceptación funcional se
+conserva, pero antes de integrar se debe resolver el mantenimiento con compilación y
+regresión Android. No desactivar el control de compatibilidad para forzar CI verde.
+
 UX/UI: mantener Resumen gráfico y Análisis separado; Registrar gasto visible. Plan solo
 se incorpora cuando presupuestos y recurrencias estén operativos. Mostrar próximos pagos,
 pendientes y pausados, con importe, cuenta y fecha claros. Confirmar requiere revisión;
