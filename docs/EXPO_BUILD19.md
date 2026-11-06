@@ -33,3 +33,22 @@ Comprobación manual de build 19: copia cifrada preventiva, actualizar sin desin
 abrir base y contrastar saldos/presupuestos, registrar gasto, abrir Resumen y Análisis,
 revisar auditoría/restauración, ubicación y avisos opcionales con permisos denegados,
 modo avión y exportación/compartición. No borrar datos ante un fallo de actualización.
+
+## Artefacto verificado · 06/11/2026
+
+- `artifacts/Rastro-0.1.16-build19-arm64-v8a.apk`, 76.536.713 bytes.
+- SHA-256: `B34826FF6311A80F04FC5C4452EC15ECF9B3888FE47AD0B62A50C497433E10D2`.
+- Paquete `pe.rastro.finanzas`, versión `0.1.16`, código `19`, solo ARM64.
+- Firma v2 válida; mismo certificado de desarrollo que build 18:
+  `fac61745dc0903786fb9ede62a962b399f7348f0bb6f899b8332667591033b9c`.
+- Permisos idénticos a build 18. Sin micrófono ni ubicación en segundo plano.
+- Gradle release/Hermes y Lint Vital correctos: 22 min 22 s, 700 tareas (220 ejecutadas).
+  Código de aplicación/dependencias en `0bff089`; notas posteriores no cambian el binario.
+- Expo Doctor 21/21, compatibilidad Expo, TypeScript, ESLint y SQLite correctos.
+  CI del PR #52 y de recurrencias aprobado (ejecución corregida 42291794738).
+- La primera ejecución Jest local agotó el timeout al compilar simultáneamente;
+  la repetición sin Gradle aprobó 110/110 pruebas en 28 suites, sin ampliar timeouts.
+  CI también aprobó la suite completa.
+
+No se instaló en teléfono ni se atribuye aceptación manual a este build. El certificado
+es de desarrollo, no de publicación privada. El build 18 permanece intacto y aceptado.

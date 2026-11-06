@@ -1,5 +1,9 @@
 # Rastro
 
+Entrega técnica disponible: `artifacts/Rastro-0.1.16-build19-arm64-v8a.apk`, siete parches
+Expo compatibles, firma/permisos/hash verificados y CI resuelto. Pendiente probar actualización
+encima del build 18 aceptado. [Detalle y SHA-256](docs/EXPO_BUILD19.md).
+
 Estado actualizado al 06/11/2026: todos los casos de 0.1.16 aceptados por el usuario. Sprint 2 completo; siguiente historia #12. Los pendientes de #10 descritos abajo son históricos. Véase docs/ACCEPTANCE_016.md (ACCEPTANCE_016.md desde esta carpeta).
 
 [![Calidad](https://github.com/Jhakami/rastro-finanzas/actions/workflows/quality.yml/badge.svg)](https://github.com/Jhakami/rastro-finanzas/actions/workflows/quality.yml)

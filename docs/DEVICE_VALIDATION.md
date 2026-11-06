@@ -1,5 +1,10 @@
 # Guía de validación en Android
 
+Entrega técnica 06/11/2026: **0.1.16 build 19**, siete parches Expo, CI resuelto,
+110 pruebas aprobadas y APK ARM64 con misma firma/permisos que build 18.
+Archivo, SHA-256 y regresión manual pendiente en [EXPO_BUILD19.md](EXPO_BUILD19.md).
+La aceptación de build 18 se conserva; no equivale a probar el nuevo binario.
+
 Cada incremento se mide por separado: implementación **50 %**, validación automática **30 %**
 y aceptación en un teléfono **20 %**. Solo alcanza 100 % al aprobar las tres partes.
 
