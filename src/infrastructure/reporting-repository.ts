@@ -13,6 +13,9 @@ export interface ZoneSummary {
   count: number;
 }
 interface ReportRow {
+  busiestHour?: number | null;
+  busiestWeekday?: number | null;
+  pendingClassification?: number;
   incomeCents: number;
   expenseCents: number;
   incomeCount: number;
@@ -79,6 +82,9 @@ export function decodeReport(
   return {
     start,
     end,
+    busiestHour: row.busiestHour ?? null,
+    busiestWeekday: row.busiestWeekday ?? null,
+    pendingClassification: row.pendingClassification ?? 0,
     daily,
     incomeCents: row.incomeCents,
     expenseCents: row.expenseCents,

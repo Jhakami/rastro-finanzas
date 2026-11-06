@@ -1,5 +1,10 @@
 # Guía de validación en Android
 
+Entrega técnica 06/11/2026: **0.1.16 build 19**, siete parches Expo, CI resuelto,
+110 pruebas aprobadas y APK ARM64 con misma firma/permisos que build 18.
+Archivo, SHA-256 y regresión manual pendiente en [EXPO_BUILD19.md](EXPO_BUILD19.md).
+La aceptación de build 18 se conserva; no equivale a probar el nuevo binario.
+
 Cada incremento se mide por separado: implementación **50 %**, validación automática **30 %**
 y aceptación en un teléfono **20 %**. Solo alcanza 100 % al aprobar las tres partes.
 
@@ -593,3 +598,37 @@ correctamente. La aceptación corresponde al build 17 y SHA-256 indicados arriba
 SQL-01–02 y UPD-015. Es aceptación reportada por el usuario, no una instalación ejecutada
 por el agente. Habilita el cierre de #49 y la fusión de PR #51; no cierra #10 ni #16/#17/#19.
 La firma de desarrollo no es firma de publicación.
+
+## Candidata 0.1.16 build 18 · #10 y Resumen recuperado
+
+Interfaz en Ajustes → Auditoría y restauración. Eventos y eliminados en páginas de 50;
+motivo obligatorio, confirmación protegida contra doble toque y conservación del formulario
+ante errores. Restauración atómica sin duplicar movimientos, con refresco de módulos.
+Migración v9: únicamente índices de auditoría y eliminados.
+
+Resumen recupera el diseño gráfico de 0.1.14 por solicitud explícita del usuario, conservando
+consultas SQL y Análisis separado. No reintroduce historial global ni backend.
+
+Casos pendientes: AUD-01–02, RES-01–03, UPD-AUD y RESUMEN-01, detallados en
+[AUDIT_RESTORATION.md](AUDIT_RESTORATION.md). La aprobación de 0.1.15 no se extiende a esta
+candidata. No fusionar #52 ni cerrar #10 antes de esa aceptación.
+
+Expo Doctor 21/21 y dependencias compatibles. La primera consulta falló por certificados
+TLS del entorno; se repitió con `NODE_OPTIONS=--use-system-ca`, sin desactivar TLS.
+Entrega verificada el 31/10/2026:
+
+- Archivo local: `artifacts/Rastro-0.1.16-arm64-v8a.apk` (76.532.357 bytes).
+- SHA-256: `92E6A67017B969A8866F8A05BB7D18508C5313A077E5CDC88302B4CF90D6A440`.
+- Paquete `pe.rastro.finanzas`, versión `0.1.16`, código `18`, solo `arm64-v8a`.
+- Firma v2 válida, mismo certificado de desarrollo que build 17:
+  `fac61745dc0903786fb9ede62a962b399f7348f0bb6f899b8332667591033b9c`.
+- Permisos idénticos a 0.1.15. No se añadió micrófono ni ubicación en segundo plano.
+- Código funcional `2240114`; compilación release/Hermes correcta en 16 min 13 s,
+  700 tareas (46 ejecutadas). JDK 21, UTF-8, un worker, ARM64 y ajuste ASCII de Windows.
+- TypeScript, ESLint y CI correctos; pruebas Jest y SQLite de auditoría, presupuestos,
+  paginación y resúmenes. La prueba de reintentos usa escrituras serializadas; no sustituye
+  la comprobación de interacción/actualización en el teléfono.
+
+Instalar encima de 0.1.15 **sin desinstalar**, tras crear una copia cifrada preventiva.
+No se ha instalado ni aceptado este build desde el entorno del agente. Firma de desarrollo,
+no firma privada de publicación. Mantener #10 y PR #52 pendientes hasta aprobación del usuario.

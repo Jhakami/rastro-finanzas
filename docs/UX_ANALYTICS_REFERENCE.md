@@ -6,9 +6,12 @@ No se incorporan al repositorio los archivos originales ni sus importes personal
 
 ## Dos niveles, una prioridad
 
-Resumen conserva Registrar gasto al principio. Después: patrimonio/saldo actual, selector
-de cuentas, entradas/gastos/flujo del mes hasta hoy, presupuestos, cinco movimientos recientes
-y un hallazgo prioritario. Análisis es una pantalla de profundidad, no otra pestaña vacía.
+Por confirmación explícita del usuario el 31/10/2026, 0.1.16 recupera el Resumen gráfico de
+0.1.14 (`90ebbee`): Registrar gasto, patrimonio, cuentas navegables, métricas del mes,
+presupuestos, lectura rápida, dona, tendencia área/barras de 7/14/30 días y dispersión.
+Conserva la agregación SQL de 0.1.15; los patrones completos se consultan bajo demanda.
+Análisis sigue separado y reúne la evolución inspirada en las 15 capturas: no se oculta ni
+se elimina al recuperar Resumen. No se implementan como ficticios los paneles futuros.
 Se conserva Catppuccin oscuro, controles con estado accesible y textos propios de Rastro.
 
 En Análisis, periodo y cuenta permanecen antes de las tarjetas, sin una bandeja inferior

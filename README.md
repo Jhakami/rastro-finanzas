@@ -1,5 +1,11 @@
 # Rastro
 
+Entrega técnica disponible: `artifacts/Rastro-0.1.16-build19-arm64-v8a.apk`, siete parches
+Expo compatibles, firma/permisos/hash verificados y CI resuelto. Pendiente probar actualización
+encima del build 18 aceptado. [Detalle y SHA-256](docs/EXPO_BUILD19.md).
+
+Estado actualizado al 06/11/2026: todos los casos de 0.1.16 aceptados por el usuario. Sprint 2 completo; siguiente historia #12. Los pendientes de #10 descritos abajo son históricos. Véase docs/ACCEPTANCE_016.md (ACCEPTANCE_016.md desde esta carpeta).
+
 [![Calidad](https://github.com/Jhakami/rastro-finanzas/actions/workflows/quality.yml/badge.svg)](https://github.com/Jhakami/rastro-finanzas/actions/workflows/quality.yml)
 
 Aplicación Android local-first para registrar gastos e ingresos en segundos, controlar Yape,
@@ -8,7 +14,10 @@ historial financiero a un servidor de Rastro.
 
 ## Estado actual
 
-Rastro está en construcción. La versión en desarrollo es `0.1.15` (`versionCode 17`), primera
+Rastro está en construcción. La candidata en desarrollo es `0.1.16` (`versionCode 18`):
+auditoría/restauración y recuperación del Resumen gráfico anterior, con Análisis separado.
+APK local `artifacts/Rastro-0.1.16-arm64-v8a.apk` aceptada por el usuario el 06/11/2026.
+La última versión aceptada es `0.1.15` (`versionCode 17`), primera
 adaptación de Resumen/Análisis, movimientos paginados y detalle de cuenta aceptada por el usuario
 en Android el 31/10/2026. El proveedor ya no carga el historial; saldos y resúmenes se calculan con SQL. La APK
 `0.1.15` build 17 está disponible localmente en `artifacts/Rastro-0.1.15-arm64-v8a.apk`,
@@ -21,11 +30,11 @@ considerarse todavía una versión final ni una aplicación publicada en una tie
 | -------------------------------------- | -----: | ----------------------------------- |
 | Sprint 0 · Base técnica                |  100 % | Terminado                           |
 | Sprint 1 · Trazabilidad diaria         |  100 % | Terminado y probado en Android      |
-| Sprint 2 · Parametrización             |   90 % | Falta auditoría/restauración de #10 |
+| Sprint 2 · Parametrización             |   100 % | Aceptado en Android |
 | Sprint 3 · Automatización y documentos |    0 % | Pendiente                           |
 | Sprint 4 · Análisis avanzado           |   40 % | Parcialmente implementado           |
 | Sprint 5 · Publicación personal        |    0 % | Pendiente                           |
-| MVP completo                           |   55 % | Estimación orientativa              |
+| MVP completo                           |   57 % | Estimación orientativa              |
 
 El CRUD de cuentas de `0.1.9` está terminado: superó 28 pruebas automáticas y los casos manuales
 `ACC-01` a `ACC-05` en un POCO X7 Pro. El ciclo de vida de categorías propias de `0.1.10` también

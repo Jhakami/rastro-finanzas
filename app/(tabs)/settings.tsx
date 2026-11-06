@@ -138,6 +138,9 @@ export default function SettingsScreen() {
     <SafeAreaView style={styles.safe} edges={['top']}>
       <ScrollView contentContainerStyle={styles.content}>
         <ScreenHeader eyebrow="Todo bajo tu control" title="Ajustes" />
+        <Link href="/audit" style={{ color: colors.green, paddingVertical: 14, fontWeight: '700' }}>
+          Auditoría y restauración
+        </Link>
         <Text style={styles.section}>Cuentas</Text>
         <Card>
           {accounts.map((account, index) => (
